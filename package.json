@@ -1,0 +1,23 @@
+{
+  "name": "osin-project",
+  "version": "1.0.0",
+  "description": "Project Osin of HBB Solution",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Gia Vo",
+  "license": "ISC",
+  "dependencies": {
+    "assert": "^1.4.1",
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "express-session": "^1.15.1",
+    "mongodb": "^2.2.16",
+    "mongoose": "^4.7.4",
+    "mongoose-paginate": "^5.0.3",
+    "node-persist": "0.0.8",
+    "nodejs": "0.0.0",
+    "session-mongoose": "^0.5.2"
+  }
+}
