@@ -20,7 +20,7 @@ router.use(function (req, res, next) {
 router.route('/getById').get((req, res) => {
     var id = req.query.id;
 
-    Owner.findOne({ _id: id }).exec((error, data) => {
+    Owner.findOne({ _id: id }, { 'info.password': 0, '__v': 0 }).exec((error, data) => {
         if (validate.isNullorEmpty(data)) {
             return res.status(200).send(msgRep.msgData(false, msg.msg_data_not_exist));
         } else {
@@ -35,6 +35,18 @@ router.route('/getById').get((req, res) => {
 
 router.route('/getAround').get((req, res) => {
     var id = req.query.id;
+    var minDistance = req.query.minDistance;
+    var maxDistance = req.query.maxDistance;
+    var limit = req.query.limit;
+    var page = req.query.page;
+    var skip = 0;
+
+    if (!minDistance) minDistance = 1;
+    if (!maxDistance) maxDistance = 2000;
+    if (!limit) limit = 20;
+    if (!page) page = 1;
+
+    skip = (page - 1) * limit;
 
     Owner.findOne({ _id: id }).exec((error, data) => {
         if (validate.isNullorEmpty(data)) {
@@ -43,63 +55,36 @@ router.route('/getAround').get((req, res) => {
             if (error) {
                 return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
             } else {
-                var location = data.info.address.location;
-
-                // Owner.find({
-                //     'info.address.location': {
-                //         $nearSphere: {
-                //             $geometry: {
-                //                 type: 'Point',
-                //                 coordinates: [106.687583, 10.767292]
-                //             },
-                //             $maxDistance: 5000
-                //         }
-                //     }
-                // }, (error, data) => {
-                //     console.log(data);
-                //     if (validate.isNullorEmpty(data)) {
-                //         return res.status(200).send(msgRep.msgData(false, msg.msg_data_not_exist));
-                //     } else {
-                //         return res.status(200).send(msgRep.msgData(true, msg.msg_success, data));
-                //     }
-                // });
-
-                // Owner.find({}).near('info.address.location.coordinates', { center: [106.687583, 10.767292], spherical: true })
-                //     .exec((error, data) => {
-                //         if (validate.isNullorEmpty(data)) {
-                //             return res.status(200).send(msgRep.msgData(false, msg.msg_data_not_exist));
-                //         } else {
-                //             return res.status(200).send(msgRep.msgData(true, msg.msg_success, data));
-                //         }
-                //     })
-
-                // Owner.find({
-                //     'info.address.location.coordinates': {
-                //         '$near': {
-                //             '$maxDistance': 1,
-                //             '$geometry': {
-                //                 type: 'Point', coordinates: [106.687583, 10.767292]
-                //             }
-                //         }
-                //     }
-                // }).exec((error, data) => {
-                //     if (validate.isNullorEmpty(data)) {
-                //         return res.status(200).send(msgRep.msgData(false, msg.msg_data_not_exist));
-                //     } else {
-                //         return res.status(200).send(msgRep.msgData(true, msg.msg_success, data));
-                //     }
-                // })
+                var userLoc = data.info.address.location;
 
                 Owner.aggregate([
                     {
                         $geoNear: {
-                            near: { type: 'Point', coordinates: [106.687583, 10.767292] },
-                            // near: location,
+                            near: userLoc,
                             distanceField: 'dist.calculated',
-                            maxDistance: 2000,
-                            includeLocs: 'dist.location',
-                            num: 5,
+                            minDistance: minDistance,
+                            maxDistance: maxDistance,
+                            num: limit,
                             spherical: true
+                        }
+                    },
+                    {
+                        $sort: {
+                            'dist.calculated': 1
+                        }
+                    },
+                    {
+                        $skip: skip
+                    },
+                    {
+                        $project: {
+                            info: {
+                                password: 0,
+                                address: {
+                                    location: 0
+                                }
+                            },
+                            __v: 0
                         }
                     }
                 ], (error, places) => {
@@ -113,11 +98,5 @@ router.route('/getAround').get((req, res) => {
         }
     })
 });
-
-function waitForIndex() {
-    return new Promise((resolve, reject) => {
-        Owner.on('index', error => error ? reject(error) : resolve());
-    });
-}
 
 module.exports = router;

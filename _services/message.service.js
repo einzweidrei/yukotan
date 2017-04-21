@@ -5,6 +5,7 @@ var Message = (function () {
     Message.msg_required = "REQUIRED";
     Message.msg_data_exist = "DATA_EXIST";
     Message.msg_data_not_exist = "DATA_NOT_EXIST";
+    Message.msg_language_not_support = "LANGUAGE_NOT_SUPPORT";
 
     //[Username]
     Message.msg_username_exist = "Username already exists";
@@ -16,7 +17,7 @@ var Message = (function () {
     Message.msg_email_invalid = "Invalid Email";
 
     //[Passwod]
-    Message.msg_password_invalid = "Invalid Password";
+    Message.msg_invalid_password = "Invalid Password";
 
     //[Name]
     Message.msg_name_invalid = "Invalid Name";

@@ -1,13 +1,16 @@
 // params
 var express = require('express');
-var app = express();
 var bodyparser = require('body-parser');
 var mongoose = require('mongoose');
+var requestLanguage = require('express-request-language');
+var cookieParser = require('cookie-parser');
+
+var app = express();
 var router = express.Router();
 
 // connecting mongodb
 // var mongodburi = 'mongodb://localhost:27017/Osin';
-var mongodburi = 'mongodb://capstone:Anhcanem123@ds139198.mlab.com:39198/hailyuko';
+var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodburi);
 
@@ -40,15 +43,18 @@ app.use(bodyparser.urlencoded({
 // parse application/json
 app.use(bodyparser.json());
 
-router.use((req, res, next) => {
-    console.log('Something is happening');
-    next();
-});
+app.use(cookieParser());
+
+app.use('', (req, res, next) => {
+
+})
 
 // API
 app.use('/auth', require('./_routes/authenticate.router'));
 app.use('/owner', require('./_routes/owner.router'));
+app.use('/:language/package', require('./_routes/package.router'));
 
+// /:language(en|vi)
 app.listen(process.env.PORT || 8080, function () {
     console.log('listening on 8080 <3')
 });

@@ -10,7 +10,6 @@ var OwnerSchema = new Schema(
     {
         info: {
             username: { type: String },
-            password: { type: String },
             email: { type: String },
             name: { type: String },
             phone: { type: String },
@@ -36,6 +35,7 @@ var OwnerSchema = new Schema(
             gender: { type: Number }
         },
         auth: {
+            password: { type: String },
             device_token: { type: String }
         },
         history: {

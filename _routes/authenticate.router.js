@@ -18,7 +18,7 @@ router.use(function (req, res, next) {
 });
 
 const hash_key = 'HBBSolution';
-const token_length = 128;
+const token_length = 64;
 
 function hash(content) {
 	const crypto = require('crypto');
@@ -34,39 +34,87 @@ function getToken() {
 	return token;
 }
 
-router.route('/register').post((req, res) => {
-	var owner = new Owner();
-	owner.info.username = req.body.username;
-	owner.info.password = hash(req.body.password);
-	owner.info.email = req.body.email;
-	owner.info.phone = req.body.phone;
-	owner.info.image = req.body.image;
-	owner.info.address.name = req.body.addressName;
-	owner.info.address.coordinates.lat = req.body.lat;
-	owner.info.address.coordinates.lng = req.body.lng;
-	owner.info.gender = req.body.gender;
-	owner.history.createAt = new Date();
-	owner.history.updateAt = new Date();
-	owner.status = true;
+router.route('/login').post((req, res) => {
+	try {
+		var username = req.body.username;
+		var password = hash(req.body.password);
 
-	owner.info.address.location = {
-		type: 'Point',
-		coordinates: [req.body.lng, req.body.lat]
-	}
-
-	Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
-		if (validate.isNullorEmpty(data)) {
-			owner.save((error) => {
+		Owner.findOne({ 'info.username': username }).select('_id info auth').exec((error, data) => {
+			if (validate.isNullorEmpty(data)) {
+				return res.status(200).send(msgRep.msgData(false, msg.msg_data_not_exist));
+			} else {
 				if (error) {
 					return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
 				} else {
-					return res.status(200).send(msgRep.msgData(true, msg.msg_success));
+					if (data.auth.password != password) {
+						return res.status(200).send(msgRep.msgData(false, msg.msg_invalid_password));
+					} else {
+						var session = new Session();
+						session.auth.owner = data._id;
+						session.auth.token = getToken();
+						session.loginAt = new Date();
+						session.status = true;
+
+						session.save((error) => {
+							if (error) {
+								return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+							} else {
+								return res.status(200).json({
+									status: true,
+									message: msg.msg_success,
+									data: {
+										token: session.auth.token,
+										owner: data.info
+									}
+								});
+							}
+						});
+					}
 				}
-			});
-		} else {
-			return res.status(200).send(msgRep.msgData(false, msg.msg_data_exist));
+			}
+		})
+	} catch (error) {
+		return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+	}
+});
+
+router.route('/register').post((req, res) => {
+	try {
+		var owner = new Owner();
+		owner.info.username = req.body.username;
+		owner.info.email = req.body.email;
+		owner.info.phone = req.body.phone;
+		owner.info.image = req.body.image;
+		owner.info.address.name = req.body.addressName;
+		owner.info.address.coordinates.lat = req.body.lat;
+		owner.info.address.coordinates.lng = req.body.lng;
+		owner.info.gender = req.body.gender;
+		owner.auth.password = hash(req.body.password);
+		owner.history.createAt = new Date();
+		owner.history.updateAt = new Date();
+		owner.status = true;
+
+		owner.info.address.location = {
+			type: 'Point',
+			coordinates: [req.body.lng, req.body.lat]
 		}
-	})
+
+		Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
+			if (validate.isNullorEmpty(data)) {
+				owner.save((error) => {
+					if (error) {
+						return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+					} else {
+						return res.status(200).send(msgRep.msgData(true, msg.msg_success));
+					}
+				});
+			} else {
+				return res.status(200).send(msgRep.msgData(false, msg.msg_data_exist));
+			}
+		})
+	} catch (error) {
+		return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+	}
 });
 
 module.exports = router;

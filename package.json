@@ -11,10 +11,13 @@
   "dependencies": {
     "assert": "^1.4.1",
     "body-parser": "^1.15.2",
+    "cookie-parser": "^1.4.3",
     "express": "^4.14.0",
+    "express-request-language": "^1.1.10",
     "express-session": "^1.15.1",
     "mongodb": "^2.2.16",
     "mongoose": "^4.7.4",
+    "mongoose-intl": "^2.0.1",
     "mongoose-paginate": "^5.0.3",
     "node-persist": "0.0.8",
     "nodejs": "0.0.0",
