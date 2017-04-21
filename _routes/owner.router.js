@@ -9,12 +9,29 @@ var msgRep = new messageService.Message();
 var validationService = require('../_services/validation.service');
 var validate = new validationService.Validation();
 
+var languageService = require('../_services/language.service');
+var lnService = new languageService.Language();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 
 router.use(function (req, res, next) {
     console.log('owner_router is connecting');
-    next();
+
+    try {
+        var baseUrl = req.baseUrl;
+        var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
+
+        if (lnService.isValidLanguage(language)) {
+            req.cookies['language'] = language;
+            next();
+        }
+        else {
+            return res.status(200).send(msgRep.msgData(false, msg.msg_language_not_support));
+        }
+    } catch (error) {
+        return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+    }
 });
 
 router.route('/getById').get((req, res) => {

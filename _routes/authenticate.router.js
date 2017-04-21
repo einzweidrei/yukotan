@@ -9,12 +9,29 @@ var msgRep = new messageService.Message();
 var validationService = require('../_services/validation.service');
 var validate = new validationService.Validation();
 
+var languageService = require('../_services/language.service');
+var lnService = new languageService.Language();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 
 router.use(function (req, res, next) {
 	console.log('auth_router is connecting');
-	next();
+
+	try {
+		var baseUrl = req.baseUrl;
+		var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
+
+		if (lnService.isValidLanguage(language)) {
+			req.cookies['language'] = language;
+			next();
+		}
+		else {
+			return res.status(200).send(msgRep.msgData(false, msg.msg_language_not_support));
+		}
+	} catch (error) {
+		return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+	}
 });
 
 const hash_key = 'HBBSolution';
@@ -101,11 +118,31 @@ router.route('/register').post((req, res) => {
 
 		Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
-				owner.save((error) => {
+				owner.save((error, data) => {
 					if (error) {
+						console.log(error);
 						return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
 					} else {
-						return res.status(200).send(msgRep.msgData(true, msg.msg_success));
+						var session = new Session();
+						session.auth.owner = data._id;
+						session.auth.token = getToken();
+						session.loginAt = new Date();
+						session.status = true;
+
+						session.save((error) => {
+							if (error) {
+								return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+							} else {
+								return res.status(200).json({
+									status: true,
+									message: msg.msg_success,
+									data: {
+										token: session.auth.token,
+										owner: data.info
+									}
+								});
+							}
+						});
 					}
 				});
 			} else {

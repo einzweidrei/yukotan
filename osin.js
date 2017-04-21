@@ -46,9 +46,11 @@ app.use(bodyparser.json());
 app.use(cookieParser());
 
 // API
-app.use('/auth', require('./_routes/authenticate.router'));
-app.use('/owner', require('./_routes/owner.router'));
+app.use('/:language/auth', require('./_routes/authenticate.router'));
+app.use('/:language/owner', require('./_routes/owner.router'));
 app.use('/:language/package', require('./_routes/package.router'));
+app.use('/:language/work', require('./_routes/work.router'));
+app.use('/:language/task', require('./_routes/task.router'));
 
 // /:language(en|vi)
 app.listen(process.env.PORT || 8080, function () {
