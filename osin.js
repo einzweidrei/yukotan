@@ -45,10 +45,6 @@ app.use(bodyparser.json());
 
 app.use(cookieParser());
 
-app.use('', (req, res, next) => {
-
-})
-
 // API
 app.use('/auth', require('./_routes/authenticate.router'));
 app.use('/owner', require('./_routes/owner.router'));
