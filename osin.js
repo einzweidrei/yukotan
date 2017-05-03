@@ -9,8 +9,8 @@ var app = express();
 var router = express.Router();
 
 // connecting mongodb
-// var mongodburi = 'mongodb://localhost:27017/Osin';
-var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
+var mongodburi = 'mongodb://localhost:27017/Osin';
+// var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodburi);
 
@@ -48,9 +48,11 @@ app.use(cookieParser());
 // API
 app.use('/:language/auth', require('./_routes/authenticate.router'));
 app.use('/:language/owner', require('./_routes/owner.router'));
+app.use('/:language/maid', require('./_routes/maid.router'));
 app.use('/:language/package', require('./_routes/package.router'));
 app.use('/:language/work', require('./_routes/work.router'));
 app.use('/:language/task', require('./_routes/task.router'));
+app.use('/:language/process', require('./_routes/process.router'));
 
 // /:language(en|vi)
 app.listen(process.env.PORT || 8080, function () {

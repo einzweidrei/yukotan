@@ -9,7 +9,7 @@ var ObjectId = Schema.ObjectId;
 var SessionSchema = new Schema(
     {
         auth: {
-            owner: { type: ObjectId, ref: 'Owner' },
+            userId: { type: ObjectId },
             token: { type: String }
         },
         loginAt: { type: Date },

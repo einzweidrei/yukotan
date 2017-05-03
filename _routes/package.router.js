@@ -5,8 +5,7 @@ var cookieParser = require('cookie-parser');
 var router = express.Router();
 
 var messageService = require('../_services/message.service');
-var msg = messageService.Message;
-var msgRep = new messageService.Message();
+var msg = new messageService.Message();
 
 var validationService = require('../_services/validation.service');
 var validate = new validationService.Validation();
@@ -30,10 +29,10 @@ router.use(function (req, res, next) {
             next();
         }
         else {
-            return res.status(200).send(msgRep.msgData(false, msg.msg_language_not_support));
+            return msg.msgReturn(res, 6);
         }
     } catch (error) {
-        return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+        return msg.msgReturn(res, 3);
     }
 });
 
@@ -56,11 +55,11 @@ router.route('/create').post((req, res) => {
         });
 
         package.save((error) => {
-            if (error) return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
-            return res.status(200).send(msgRep.msgData(true, msg.msg_success));
+            if (error) return msg.msgReturn(res, 3);
+            return msg.msgReturn(res, 0);
         })
     } catch (error) {
-        return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+        return msg.msgReturn(res, 3);
     }
 });
 
@@ -69,20 +68,19 @@ router.route('/getAll').get((req, res) => {
         var language = req.cookies.language;
         Package.setDefaultLanguage(language);
 
-        Package.find({}).exec((error, data) => {
+        Package.find({}).select('name').exec((error, data) => {
             if (error) {
-                return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+                return msg.msgReturn(res, 3);
             } else {
                 if (validate.isNullorEmpty(data)) {
-                    return res.status(200).send(msgRep.msgData(false, msg.msg_data_not_exist));
+                    return msg.msgReturn(res, 4);
                 } else {
-                    Package.setDefaultLanguage('en');
-                    return res.status(200).send(msgRep.msgData(true, msg.msg_success, data));
+                    return msg.msgReturn(res, 0, data);
                 }
             }
         });
     } catch (error) {
-        return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+        return msg.msgReturn(res, 3);
     }
 });
 

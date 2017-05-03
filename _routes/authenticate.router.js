@@ -3,8 +3,7 @@ var mongoose = require('mongoose');
 var router = express.Router();
 
 var messageService = require('../_services/message.service');
-var msg = messageService.Message;
-var msgRep = new messageService.Message();
+var msg = new messageService.Message();
 
 var validationService = require('../_services/validation.service');
 var validate = new validationService.Validation();
@@ -27,10 +26,10 @@ router.use(function (req, res, next) {
 			next();
 		}
 		else {
-			return res.status(200).send(msgRep.msgData(false, msg.msg_language_not_support));
+			return msg.msgReturn(res, 6);
 		}
 	} catch (error) {
-		return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+		return msg.msgReturn(res, 3);
 	}
 });
 
@@ -53,75 +52,210 @@ function getToken() {
 
 router.route('/login').post((req, res) => {
 	try {
-		var username = req.body.username;
-		var password = hash(req.body.password);
+		var username = req.body.username || "";
+		var password = hash(req.body.password) || "";
 
 		Owner.findOne({ 'info.username': username }).select('_id info auth').exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
-				return res.status(200).send(msgRep.msgData(false, msg.msg_data_not_exist));
+				return msg.msgReturn(res, 3);
 			} else {
 				if (error) {
-					return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+					return msg.msgReturn(res, 3);
 				} else {
 					if (data.auth.password != password) {
-						return res.status(200).send(msgRep.msgData(false, msg.msg_invalid_password));
+						return msg.msgReturn(res, 5);
 					} else {
-						var session = new Session();
-						session.auth.owner = data._id;
-						session.auth.token = getToken();
-						session.loginAt = new Date();
-						session.status = true;
-
-						session.save((error) => {
+						Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
 							if (error) {
-								return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+								return msg.msgReturn(res, 3);
 							} else {
-								return res.status(200).json({
-									status: true,
-									message: msg.msg_success,
-									data: {
-										token: session.auth.token,
-										owner: data.info
-									}
-								});
+								var newToken = getToken();
+
+								if (validate.isNullorEmpty(result)) {
+									var session = new Session();
+									session.auth.owner = data._id;
+									session.auth.token = newToken;
+									session.loginAt = new Date();
+									session.status = true;
+
+									session.save((error) => {
+										if (error) {
+											return msg.msgReturn(res, 3);
+										} else {
+											return res.status(200).json({
+												status: true,
+												message: msg.msg_success,
+												data: {
+													token: newToken,
+													user: data.info
+												}
+											});
+										}
+									});
+								} else {
+									Session.findOneAndUpdate(
+										{
+											'auth.userId': data._id,
+											status: true
+										},
+										{
+											$set:
+											{
+												'auth.token': newToken,
+												loginAt: new Date()
+											}
+										},
+										{
+											upsert: true
+										},
+										(error, result) => {
+											return res.status(200).json({
+												status: true,
+												message: msg.msg_success,
+												data: {
+													token: newToken,
+													user: data.info
+												}
+											});
+										}
+									)
+								}
 							}
 						});
 					}
 				}
 			}
-		})
+		});
 	} catch (error) {
-		return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+		return msg.msgReturn(res, 3);
+	}
+});
+
+router.route('/maid/login').post((req, res) => {
+	try {
+		var username = req.body.username || "";
+		var password = hash(req.body.password) || "";
+
+		Maid.findOne({ 'info.username': username }).select('_id info auth').exec((error, data) => {
+			if (validate.isNullorEmpty(data)) {
+				return msg.msgReturn(res, 3);
+			} else {
+				if (error) {
+					return msg.msgReturn(res, 3);
+				} else {
+					if (data.auth.password != password) {
+						return msg.msgReturn(res, 5);
+					} else {
+						Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
+							if (error) {
+								return msg.msgReturn(res, 3);
+							} else {
+								var newToken = getToken();
+
+								if (validate.isNullorEmpty(result)) {
+									var session = new Session();
+									session.auth.userId = data._id;
+									session.auth.token = newToken;
+									session.loginAt = new Date();
+									session.status = true;
+
+									session.save((error) => {
+										if (error) {
+											return msg.msgReturn(res, 3);
+										} else {
+											return res.status(200).json({
+												status: true,
+												message: msg.msg_success,
+												data: {
+													token: newToken,
+													user: data.info
+												}
+											});
+										}
+									});
+								} else {
+									Session.findOneAndUpdate(
+										{
+											'auth.userId': data._id,
+											status: true
+										},
+										{
+											$set:
+											{
+												'auth.token': newToken,
+												loginAt: new Date()
+											}
+										},
+										{
+											upsert: true
+										},
+										(error, result) => {
+											return res.status(200).json({
+												status: true,
+												message: msg.msg_success,
+												data: {
+													token: newToken,
+													user: data.info
+												}
+											});
+										}
+									)
+								}
+							}
+						});
+					}
+				}
+			}
+		});
+	} catch (error) {
+		return msg.msgReturn(res, 3);
 	}
 });
 
 router.route('/register').post((req, res) => {
 	try {
 		var owner = new Owner();
-		owner.info.username = req.body.username;
-		owner.info.email = req.body.email;
-		owner.info.phone = req.body.phone;
-		owner.info.image = req.body.image;
-		owner.info.address.name = req.body.addressName;
-		owner.info.address.coordinates.lat = req.body.lat;
-		owner.info.address.coordinates.lng = req.body.lng;
-		owner.info.gender = req.body.gender;
-		owner.auth.password = hash(req.body.password);
-		owner.history.createAt = new Date();
-		owner.history.updateAt = new Date();
+		owner.info = {
+			username: req.body.username,
+			email: req.body.email,
+			phone: req.body.phone,
+			image: req.body.image,
+			address: {
+				name: req.body.addressName,
+				coordinates: {
+					lat: req.body.lat,
+					lng: req.body.lng
+				}
+			},
+			gender: req.body.gender,
+		};
+
+		owner.evaluation_point = 2.5;
+
+		owner.wallet = 0;
+
+		owner.auth = {
+			password: hash(req.body.password),
+			device_token: req.body.device_token
+		};
+
+		owner.history = {
+			createAt: new Date(),
+			updateAt: new Date()
+		};
+
 		owner.status = true;
 
-		owner.info.address.location = {
+		owner.location = {
 			type: 'Point',
 			coordinates: [req.body.lng, req.body.lat]
-		}
+		};
 
 		Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
 				owner.save((error, data) => {
 					if (error) {
-						console.log(error);
-						return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+						return msg.msgReturn(res, 3);
 					} else {
 						var session = new Session();
 						session.auth.owner = data._id;
@@ -131,7 +265,7 @@ router.route('/register').post((req, res) => {
 
 						session.save((error) => {
 							if (error) {
-								return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+								return msg.msgReturn(res, 3);
 							} else {
 								return res.status(200).json({
 									status: true,
@@ -146,11 +280,11 @@ router.route('/register').post((req, res) => {
 					}
 				});
 			} else {
-				return res.status(200).send(msgRep.msgData(false, msg.msg_data_exist));
+				return msg.msgReturn(res, 2);
 			}
 		})
 	} catch (error) {
-		return res.status(500).send(msgRep.msgData(false, msg.msg_failed));
+		return msg.msgReturn(res, 3);
 	}
 });
 

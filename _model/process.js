@@ -7,7 +7,7 @@ var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
 //create Account
-var WorkSchema = new Schema(
+var ProcessSchema = new Schema(
     {
         name: { type: String, intl: true },
         status: { type: Boolean },
@@ -26,6 +26,6 @@ var WorkSchema = new Schema(
     }
 );
 
-WorkSchema.plugin(mongooseIntl, { languages: ['en', 'vi'], defaultLanguage: 'en' })
+ProcessSchema.plugin(mongooseIntl, { languages: ['en', 'vi'], defaultLanguage: 'en' })
 
-module.exports = mongoose.model('Work', WorkSchema);		
+module.exports = mongoose.model('Process', ProcessSchema);		

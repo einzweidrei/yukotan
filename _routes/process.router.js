@@ -4,6 +4,9 @@ var requestLanguage = require('express-request-language');
 var cookieParser = require('cookie-parser');
 var router = express.Router();
 
+var Schema = mongoose.Schema;
+var ObjectId = Schema.ObjectId;
+
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
 
@@ -15,10 +18,10 @@ var lnService = new languageService.Language();
 
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
-var Work = require('../_model/work');
+var Process = require('../_model/process');
 
 router.use(function (req, res, next) {
-    console.log('work_router is connecting');
+    console.log('process_router is connecting');
 
     try {
         var baseUrl = req.baseUrl;
@@ -38,27 +41,28 @@ router.use(function (req, res, next) {
 
 router.route('/create').post((req, res) => {
     try {
-        var work = new Work();
+        var process = new Process();
 
         var language = req.cookies.language;
-        Work.setDefaultLanguage(language);
+        Process.setDefaultLanguage(language);
 
         var name = req.body.name;
 
-        work.status = true;
-        work.history.createAt = new Date();
-        work.history.updateAt = new Date();
+        process.status = true;
+        process.history.createAt = new Date();
+        process.history.updateAt = new Date();
 
-        work.set('name.all', {
+        process.set('name.all', {
             en: name,
             vi: name
         });
 
-        work.save((error) => {
+        process.save((error) => {
             if (error) return msg.msgReturn(res, 3);
             return msg.msgReturn(res, 0);
         })
     } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
@@ -66,9 +70,8 @@ router.route('/create').post((req, res) => {
 router.route('/getAll').get((req, res) => {
     try {
         var language = req.cookies.language;
-        Work.setDefaultLanguage(language);
-
-        Work.find({}).select('name').exec((error, data) => {
+        Process.setDefaultLanguage(language);
+        Process.find({}).select('name').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {

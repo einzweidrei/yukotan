@@ -5,7 +5,7 @@ var Schema = mongoose.Schema;
 //create type ObjectId
 var ObjectId = Schema.ObjectId;
 
-var OwnerSchema = new Schema(
+var MaidSchema = new Schema(
     {
         info: {
             username: { type: String },
@@ -20,10 +20,17 @@ var OwnerSchema = new Schema(
                     lng: { type: Number }
                 }
             },
-            gender: { type: Number },
+            gender: { type: Number }
         },
         evaluation_point: { type: Number },
-        wallet: { type: Number },
+        work_info: {
+            ability: [
+                {
+                    work: { type: ObjectId, ref: 'Work' }
+                }
+            ],
+            price: { type: Number }
+        },
         location: {
             type: {
                 type: String,
@@ -47,9 +54,6 @@ var OwnerSchema = new Schema(
     }
 );
 
-// OwnerSchema.index({ 'info.address.location': '2dsphere' });
+MaidSchema.index({ 'location': '2dsphere' });
 
-//plugin Pagination
-// OwnerSchema.plugin(mongoosePaginate);
-
-module.exports = mongoose.model('Owner', OwnerSchema);		
+module.exports = mongoose.model('Maid', MaidSchema);		

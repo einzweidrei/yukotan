@@ -21,6 +21,7 @@
     "mongoose-paginate": "^5.0.3",
     "node-persist": "0.0.8",
     "nodejs": "0.0.0",
+    "promise-async": "^0.2.0",
     "session-mongoose": "^0.5.2"
   }
 }
