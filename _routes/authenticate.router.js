@@ -34,7 +34,7 @@ router.use(function (req, res, next) {
 	}
 });
 
-const hash_key = 'HBBSolution';
+const hash_key = 'LULULUL';
 const token_length = 64;
 
 function hash(content) {
