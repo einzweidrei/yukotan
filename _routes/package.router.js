@@ -84,4 +84,14 @@ router.route('/getAll').get((req, res) => {
     }
 });
 
+router.route('/testImage').post((req, res) => {
+    try {
+        // console.log(req.body);
+        return msg.msgReturn(res, 2);
+    } catch (error) {
+        console.log(error);
+        return msg.msgReturn(res, 3);
+    }
+});
+
 module.exports = router;
