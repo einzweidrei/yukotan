@@ -87,7 +87,10 @@ router.route('/login').post((req, res) => {
 												message: msg.msg_success,
 												data: {
 													token: newToken,
-													user: data.info
+													user: {
+														_id: data._id,
+														info: data.info
+													}
 												}
 											});
 										}
@@ -114,7 +117,10 @@ router.route('/login').post((req, res) => {
 												message: msg.msg_success,
 												data: {
 													token: newToken,
-													user: data.info
+													user: {
+														_id: data._id,
+														info: data.info
+													}
 												}
 											});
 										}
@@ -168,7 +174,10 @@ router.route('/maid/login').post((req, res) => {
 												message: msg.msg_success,
 												data: {
 													token: newToken,
-													user: data.info
+													user: {
+														_id: data._id,
+														info: data.info
+													}
 												}
 											});
 										}
@@ -195,7 +204,10 @@ router.route('/maid/login').post((req, res) => {
 												message: msg.msg_success,
 												data: {
 													token: newToken,
-													user: data.info
+													user: {
+														_id: data._id,
+														info: data.info
+													}
 												}
 											});
 										}
@@ -272,7 +284,10 @@ router.route('/register').post((req, res) => {
 									message: msg.msg_success,
 									data: {
 										token: session.auth.token,
-										owner: data.info
+										user: {
+											_id: data._id,
+											info: data.info
+										}
 									}
 								});
 							}

@@ -80,10 +80,10 @@ router.route('/getAll').post((req, res) => {
         Work.setDefaultLanguage(language);
         Process.setDefaultLanguage(language);
 
-        var minDistance = req.query.minDistance || 1;
-        var maxDistance = req.query.maxDistance || 2000;
-        var limit = req.query.limit || 20;
-        var page = req.query.page || 1;
+        var minDistance = req.body.minDistance || 1;
+        var maxDistance = req.body.maxDistance || 2000;
+        var limit = req.body.limit || 20;
+        var page = req.body.page || 1;
         var skip = (page - 1) * limit;
 
         var title = req.body.title;
@@ -91,8 +91,8 @@ router.route('/getAll').post((req, res) => {
         var package = req.body.package;
         var work = req.body.work;
 
-        var sortBy = req.query.sortBy || "distance"; //distance & price
-        var sortType = req.query.sortType || "asc"; //asc & desc
+        var sortBy = req.body.sortBy || "distance"; //distance & price
+        var sortType = req.body.sortType || "asc"; //asc & desc
 
         var sortQuery = {};
 
@@ -121,8 +121,8 @@ router.route('/getAll').post((req, res) => {
         var loc = {
             type: 'Point',
             coordinates: [
-                parseFloat(req.query.lng) || 0,
-                parseFloat(req.query.lat) || 0
+                parseFloat(req.body.lng) || 0,
+                parseFloat(req.body.lat) || 0
             ]
         };
 
