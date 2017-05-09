@@ -21,6 +21,22 @@ var Maid = require('../_model/maid');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 
+var bodyparser = require('body-parser');
+
+router.use(bodyparser.json({
+    limit: '50mb',
+}));
+
+// setting limit of FILE
+router.use(bodyparser.urlencoded({
+    limit: '50mb',
+    parameterLimit: 1000000,
+    extended: true
+}));
+
+// // parse application/json
+router.use(bodyparser.json());
+
 const hash_key = 'HBBSolution';
 const token_length = 64;
 

@@ -17,6 +17,23 @@ var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
 
+var cloudinary = require('cloudinary');
+var bodyparser = require('body-parser');
+
+router.use(bodyparser.json({
+    limit: '50mb',
+}));
+
+// setting limit of FILE
+router.use(bodyparser.urlencoded({
+    limit: '50mb',
+    parameterLimit: 1000000,
+    extended: true
+}));
+
+// // parse application/json
+router.use(bodyparser.json());
+
 router.use(function (req, res, next) {
     console.log('package_router is connecting');
 
@@ -80,16 +97,6 @@ router.route('/getAll').get((req, res) => {
             }
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
-
-router.route('/testImage').post((req, res) => {
-    try {
-        // console.log(req.body);
-        return msg.msgReturn(res, 2);
-    } catch (error) {
-        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });

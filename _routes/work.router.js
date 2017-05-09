@@ -17,6 +17,22 @@ var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Work = require('../_model/work');
 
+var bodyparser = require('body-parser');
+
+router.use(bodyparser.json({
+    limit: '50mb',
+}));
+
+// setting limit of FILE
+router.use(bodyparser.urlencoded({
+    limit: '50mb',
+    parameterLimit: 1000000,
+    extended: true
+}));
+
+// // parse application/json
+router.use(bodyparser.json());
+
 router.use(function (req, res, next) {
     console.log('work_router is connecting');
 

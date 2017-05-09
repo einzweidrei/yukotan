@@ -14,9 +14,14 @@ var lnService = new languageService.Language();
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 
-router.use(function (req, res, next) {
-	console.log('auth_router is connecting');
+var cloudinary = require('cloudinary');
 
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
+
+router.use(multipartMiddleware);
+
+router.use(function (req, res, next) {
 	try {
 		var baseUrl = req.baseUrl;
 		var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
@@ -227,20 +232,6 @@ router.route('/maid/login').post((req, res) => {
 router.route('/register').post((req, res) => {
 	try {
 		var owner = new Owner();
-		owner.info = {
-			username: req.body.username,
-			email: req.body.email,
-			phone: req.body.phone,
-			image: req.body.image,
-			address: {
-				name: req.body.addressName,
-				coordinates: {
-					lat: req.body.lat,
-					lng: req.body.lng
-				}
-			},
-			gender: req.body.gender,
-		};
 
 		owner.evaluation_point = 2.5;
 
@@ -265,35 +256,103 @@ router.route('/register').post((req, res) => {
 
 		Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
-				owner.save((error, data) => {
-					if (error) {
-						return msg.msgReturn(res, 3);
-					} else {
-						var session = new Session();
-						session.auth.owner = data._id;
-						session.auth.token = getToken();
-						session.loginAt = new Date();
-						session.status = true;
-
-						session.save((error) => {
-							if (error) {
-								return msg.msgReturn(res, 3);
-							} else {
-								return res.status(200).json({
-									status: true,
-									message: msg.msg_success,
-									data: {
-										token: session.auth.token,
-										user: {
-											_id: data._id,
-											info: data.info
-										}
-									}
-								});
+				if (!req.files.avatar.path) {
+					owner.info = {
+						username: req.body.username,
+						email: req.body.email,
+						phone: req.body.phone,
+						image: "",
+						address: {
+							name: req.body.addressName,
+							coordinates: {
+								lat: req.body.lat,
+								lng: req.body.lng
 							}
-						});
-					}
-				});
+						},
+						gender: req.body.gender,
+					};
+
+					owner.save((error, data) => {
+						if (error) {
+							return msg.msgReturn(res, 3);
+						} else {
+							var session = new Session();
+							session.auth.owner = data._id;
+							session.auth.token = getToken();
+							session.loginAt = new Date();
+							session.status = true;
+
+							session.save((error) => {
+								if (error) {
+									return msg.msgReturn(res, 3);
+								} else {
+									return res.status(200).json({
+										status: true,
+										message: msg.msg_success,
+										data: {
+											token: session.auth.token,
+											user: {
+												_id: data._id,
+												info: data.info
+											}
+										}
+									});
+								}
+							});
+						}
+					});
+				} else {
+					cloudinary.uploader.upload(
+						req.files.avatar.path,
+						function (result) {
+
+							owner.info = {
+								username: req.body.username,
+								email: req.body.email,
+								phone: req.body.phone,
+								image: result.url,
+								address: {
+									name: req.body.addressName,
+									coordinates: {
+										lat: req.body.lat,
+										lng: req.body.lng
+									}
+								},
+								gender: req.body.gender,
+							};
+
+							owner.save((error, data) => {
+								if (error) {
+									return msg.msgReturn(res, 3);
+								} else {
+									var session = new Session();
+									session.auth.owner = data._id;
+									session.auth.token = getToken();
+									session.loginAt = new Date();
+									session.status = true;
+
+									session.save((error) => {
+										if (error) {
+											return msg.msgReturn(res, 3);
+										} else {
+											return res.status(200).json({
+												status: true,
+												message: msg.msg_success,
+												data: {
+													token: session.auth.token,
+													user: {
+														_id: data._id,
+														info: data.info
+													}
+												}
+											});
+										}
+									});
+								}
+							});
+						}
+					)
+				}
 			} else {
 				return msg.msgReturn(res, 2);
 			}

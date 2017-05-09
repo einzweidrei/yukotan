@@ -24,6 +24,22 @@ var Maid = require('../_model/maid');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 
+var bodyparser = require('body-parser');
+
+router.use(bodyparser.json({
+    limit: '50mb',
+}));
+
+// setting limit of FILE
+router.use(bodyparser.urlencoded({
+    limit: '50mb',
+    parameterLimit: 1000000,
+    extended: true
+}));
+
+// // parse application/json
+router.use(bodyparser.json());
+
 /** Middle Ware
  * 
  */
@@ -194,11 +210,15 @@ router.route('/getAll').post((req, res) => {
             },
             {
                 $project: {
-                    location: 0,
-                    __v: 0
+                    process: 1,
+                    history: 1,
+                    stakeholders: 1,
+                    info: 1,
+                    dist: 1
                 }
             }
         ], (error, places) => {
+            console.log(places);
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -330,7 +350,7 @@ router.route('/create').post((req, res) => {
                 }
             },
             time: {
-                startAt: req.body.startAt || new Date(),
+                startAt: req.body.startAt || new Date() - 1,
                 endAt: req.body.endAt || new Date(),
                 hour: req.body.hour || 0
             },
@@ -341,7 +361,8 @@ router.route('/create').post((req, res) => {
             owner: req.body.owner
         };
 
-        task.process = req.body.process;
+        task.process = new ObjectId('000000000000000000000001');
+        // task.process = req.body.process;
 
         task.location = {
             type: 'Point',
