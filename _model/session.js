@@ -9,6 +9,8 @@ var ObjectId = Schema.ObjectId;
 var SessionSchema = new Schema(
     {
         auth: {
+            // ownerId: { type: ObjectId, path: 'Owner' },
+            // maidId: { type: ObjectId, path: 'Maid' },
             userId: { type: ObjectId },
             token: { type: String }
         },

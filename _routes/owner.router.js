@@ -48,7 +48,23 @@ router.use(function (req, res, next) {
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            next();
+            if (req.headers.hbbgvauth) {
+                let token = req.headers.hbbgvauth;
+                Session.findOne({ 'auth.token': token }).exec((error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            return msg.msgReturn(res, 14);
+                        } else {
+                            req.cookies['userId'] = data.auth.userId;
+                            next();
+                        }
+                    }
+                });
+            } else {
+                return msg.msgReturn(res, 14);
+            }
         }
         else {
             return msg.msgReturn(res, 6);
@@ -96,7 +112,7 @@ router.route('/getById').get((req, res) => {
 
 router.route('/getAllDeniedTasks').get((req, res) => {
     try {
-        var ownerId = req.query.ownerId;
+        let ownerId = req.cookies.userId;
 
         var populateQuery = [
             {
@@ -153,7 +169,7 @@ router.route('/getAllDeniedTasks').get((req, res) => {
  */
 router.route('/getAllTasks').get((req, res) => {
     try {
-        var id = req.query.id;
+        var id = req.cookies.userId;
         var process = req.query.process;
 
         var findQuery = {
@@ -188,91 +204,6 @@ router.route('/getAllTasks').get((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     return msg.msgReturn(res, 0, data);
-                }
-            }
-        });
-    } catch (error) {
-        console.log(error);
-        return msg.msgReturn(res, 3);
-    }
-});
-
-/** PUT - Update Owner's Information
- * info {
- *      type: PUT
- *      url: /update
- *      name: Update Owner's Information
- *      description: Update one owner's information
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      id: owner_ID
- *      username: String
- *      email: String
- *      phone: String
- *      image: String
- *      addressName: String
- *      lat: Number
- *      lng: Number
- *      gender: Number
- * }
- */
-router.route('/update').put((req, res) => {
-    try {
-        var owner = new Owner();
-
-        var id = req.body.id;
-        owner.info = {
-            username: req.body.username || "",
-            email: req.body.email || "",
-            phone: req.body.phone || "",
-            image: req.body.image || "",
-            address: {
-                name: req.body.addressName || "",
-                coordinates: {
-                    lat: req.body.lat || 0,
-                    lng: req.body.lng || 0
-                }
-            },
-            gender: req.body.gender || 0
-        }
-
-        owner.location = {
-            type: 'Point',
-            coordinates: [req.body.lng || 0, req.body.lat || 0]
-        }
-
-        Owner.findOne({ _id: id }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Owner.findOneAndUpdate(
-                        {
-                            _id: id,
-                            status: true
-                        },
-                        {
-                            $set: {
-                                info: owner.info,
-                                location: owner.location,
-                                'history.updateAt': new Date()
-                            }
-                        },
-                        {
-                            upsert: true
-                        },
-                        (error, result) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0);
-                        }
-                    )
                 }
             }
         });

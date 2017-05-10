@@ -10,6 +10,17 @@ var cloudinary = require('cloudinary');
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 
+var messageService = require('./_services/message.service');
+var msg = new messageService.Message();
+
+var validationService = require('./_services/validation.service');
+var validate = new validationService.Validation();
+
+var languageService = require('./_services/language.service');
+var lnService = new languageService.Language();
+
+var Session = require('./_model/session');
+
 var app = express();
 var router = express.Router();
 
@@ -36,7 +47,7 @@ app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
     // Request headers you wish to allow
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization, hbbgvauth');
     // res.setHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers');
 
     // Set to true if you need the website to include cookies in the requests sent
@@ -49,16 +60,6 @@ app.use(function (req, res, next) {
 });
 
 // app.use(express.bodyparser());
-
-app.post('/profile', function (req, res, next) {
-    console.log(res.files);
-    console.log(res.file);
-    console.log(res.body);
-    next();
-    // req.file is the `avatar` file
-    // req.body will hold the text fields, if there were any
-});
-
 
 // parse application/x-www-form-urlencoded
 // app.use(bodyparser.json({

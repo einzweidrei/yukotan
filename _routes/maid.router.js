@@ -60,7 +60,23 @@ router.use(function (req, res, next) {
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            next();
+            if (req.headers.hbbgvauth) {
+                let token = req.headers.hbbgvauth;
+                Session.findOne({ 'auth.token': token }).exec((error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            return msg.msgReturn(res, 14);
+                        } else {
+                            req.cookies['userId'] = data.auth.userId;
+                            next();
+                        }
+                    }
+                });
+            } else {
+                return msg.msgReturn(res, 14);
+            }
         }
         else {
             return msg.msgReturn(res, 6);
@@ -248,7 +264,7 @@ router.route('/getAll').get((req, res) => {
 
 router.route('/getAllDeniedTasks').get((req, res) => {
     try {
-        var maidId = req.query.maidId;
+        var maidId = req.cookies.userId;
 
         var populateQuery = [
             {
@@ -293,7 +309,7 @@ router.route('/getAllRequest').post((req, res) => {
         Work.setDefaultLanguage(language);
         Process.setDefaultLanguage(language);
 
-        var maidId = req.body.maidId;
+        var maidId = req.cookies.userId;
 
         var minDistance = req.body.minDistance || 1;
         var maxDistance = req.body.maxDistance || 2000;
@@ -448,7 +464,7 @@ router.route('/getAllRequest').post((req, res) => {
  */
 router.route('/getAllTasks').get((req, res) => {
     try {
-        var id = req.query.id;
+        var id = req.cookies.userId;
         var process = req.query.process;
 
         var findQuery = {
@@ -488,180 +504,6 @@ router.route('/getAllTasks').get((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     return msg.msgReturn(res, 0, data);
-                }
-            }
-        });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
-
-/** POST - Create Maid's Information
- * info {
- *      type: POST
- *      url: /create
- *      name: Create Maid's Information
- *      description: Create one Maid's information
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      username: String
- *      email: String
- *      phone: String
- *      image: String
- *      addressName: String
- *      lat: Number
- *      lng: Number
- *      gender: Number
- * }
- */
-router.route('/create').post((req, res) => {
-    try {
-        var maid = new Maid();
-        maid.info = {
-            username: req.body.username || "",
-            email: req.body.email || "",
-            phone: req.body.phone || "",
-            image: req.body.image || "",
-            address: {
-                name: req.body.addressName || "",
-                coordinates: {
-                    lat: req.body.lat || 0,
-                    lng: req.body.lng || 0
-                }
-            },
-            gender: req.body.gender || 0,
-        };
-
-        maid.evaluation_point = 0;
-
-        maid.work_info = {
-            price: 0
-        };
-
-        maid.auth = {
-            password: hash(req.body.password),
-            device_token: req.body.device_token
-        };
-
-        maid.history = {
-            createAt: new Date(),
-            updateAt: new Date()
-        };
-
-        maid.status = true;
-
-        maid.location = {
-            type: 'Point',
-            coordinates: [req.body.lng, req.body.lat]
-        };
-
-        Maid.findOne({ 'info.username': req.body.username }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    maid.save((error) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        return msg.msgReturn(res, 0);
-                    });
-                } else {
-                    return msg.msgReturn(res, 2);
-                }
-            }
-        });
-    } catch (error) {
-        console.log(error);
-        return msg.msgReturn(res, 3);
-    }
-});
-
-/** PUT - Update Maid's Information
- * info {
- *      type: PUT
- *      url: /update
- *      name: Update Maid's Information
- *      description: Update one Maid's information
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      id: Maid_ID
- *      username: String
- *      email: String
- *      phone: String
- *      image: String
- *      addressName: String
- *      lat: Number
- *      lng: Number
- *      gender: Number
- * }
- */
-router.route('/update').put((req, res) => {
-    try {
-        var id = req.body.id;
-
-        var maid = new Maid();
-        maid.info = {
-            username: req.body.username || "",
-            email: req.body.email || "",
-            phone: req.body.phone || "",
-            image: req.body.image || "",
-            address: {
-                name: req.body.addressName || "",
-                coordinates: {
-                    lat: req.body.lat || 0,
-                    lng: req.body.lng || 0
-                }
-            },
-            gender: req.body.gender || 0,
-        };
-
-        maid.work_info = {
-            ability: req.body.ability,
-            price: 0
-        };
-
-        maid.location = {
-            type: 'Point',
-            coordinates: [req.body.lng, req.body.lat]
-        };
-
-        Maid.findOne({ _id: id }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Maid.findOneAndUpdate(
-                        {
-                            _id: id,
-                            status: true
-                        },
-                        {
-                            $set: {
-                                info: maid.info,
-                                work_info: maid.work_info,
-                                location: maid.location,
-                                'history.updateAt': new Date()
-                            }
-                        },
-                        {
-                            upsert: true
-                        },
-                        (error, result) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0);
-                        }
-                    )
                 }
             }
         });

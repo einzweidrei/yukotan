@@ -52,7 +52,26 @@ router.use(function (req, res, next) {
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            next();
+
+            if (req.headers.hbbgvauth) {
+                let token = req.headers.hbbgvauth;
+                Session.findOne({ 'auth.token': token }).exec((error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            return msg.msgReturn(res, 14);
+                        } else {
+                            req.cookies['userId'] = data.auth.userId;
+
+                            console.log(req.cookies);
+                            next();
+                        }
+                    }
+                });
+            } else {
+                return msg.msgReturn(res, 14);
+            }
         }
         else {
             return msg.msgReturn(res, 6);
@@ -218,7 +237,6 @@ router.route('/getAll').post((req, res) => {
                 }
             }
         ], (error, places) => {
-            console.log(places);
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -328,7 +346,6 @@ router.route('/getById').get((req, res) => {
  *      endAt: Date
  *      hour: Number
  *      tools: Boolean
- *      owner: owner_ID
  *      process: process_ID
  * }
  */
@@ -358,7 +375,7 @@ router.route('/create').post((req, res) => {
         };
 
         task.stakeholders = {
-            owner: req.body.owner
+            owner: req.cookies.userId
         };
 
         task.process = new ObjectId('000000000000000000000001');
@@ -388,7 +405,7 @@ router.route('/create').post((req, res) => {
             }
         }
 
-        Owner.findOne({ _id: req.body.owner }).exec((error, owner) => {
+        Owner.findOne({ _id: req.cookies.userId }).exec((error, owner) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -441,7 +458,7 @@ router.route('/create').post((req, res) => {
                         task: function (callback) {
                             Task.find(
                                 {
-                                    'stakeholders.owner': req.body.owner,
+                                    'stakeholders.owner': req.cookies.userId,
                                     process: '000000000000000000000001',
                                     status: true
                                 }).exec((error, data) => {
@@ -492,7 +509,6 @@ router.route('/create').post((req, res) => {
             }
         });
     } catch (error) {
-        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
@@ -616,7 +632,7 @@ router.route('/update').put((req, res) => {
                 });
             },
             task: function (callback) {
-                Task.findOne({ _id: req.body.id, status: true }).exec((error, data) => {
+                Task.findOne({ _id: req.body.id, 'stakeholders.owner': req.cookies.userId, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, 2);
                     }
@@ -641,6 +657,7 @@ router.route('/update').put((req, res) => {
                     Task.findOneAndUpdate(
                         {
                             _id: id,
+                            'stakeholders.owner': req.cookies.userId,
                             status: true
                         },
                         {
@@ -698,9 +715,9 @@ router.route('/update').put((req, res) => {
 router.route('/delete').delete((req, res) => {
     try {
         var id = req.body.id;
-        var ownerId = req.body.ownerId;
+        var ownerId = req.cookies.userId;
 
-        Task.findOne({ _id: id, status: true }).exec((error, data) => {
+        Task.findOne({ _id: id, 'stakeholders.owner': req.cookies.userId, status: true }).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -710,7 +727,7 @@ router.route('/delete').delete((req, res) => {
                     // if (data.process == '000000000000000000000001') {
                     Task.findOneAndUpdate(
                         {
-                            _id: id, status: true
+                            _id: id, 'stakeholders.owner': req.cookies.userId, status: true
                         },
                         {
                             $set: {
@@ -758,7 +775,7 @@ router.route('/delete').delete((req, res) => {
 router.route('/cancel').delete((req, res) => {
     try {
         var id = req.body.id;
-        var maidId = req.body.maidId;
+        var maidId = req.cookies.userId;
 
         Task.findOne({ _id: id, 'stakeholders.received': maidId, status: true }).exec((error, data) => {
             if (error) {
@@ -820,7 +837,7 @@ router.route('/cancel').delete((req, res) => {
 router.route('/reserve').post((req, res) => {
     try {
         var id = req.body.id;
-        var maidId = req.body.maidId;
+        var maidId = req.cookies.userId;
 
         async.parallel({
             maid: function (callback) {
@@ -921,7 +938,7 @@ router.route('/reserve').post((req, res) => {
 router.route('/submit').post((req, res) => {
     try {
         var id = req.body.id;
-        var ownerId = req.body.ownerId;
+        var ownerId = req.cookies.userId;
         var maidId = req.body.maidId;
 
         async.parallel({
@@ -1085,7 +1102,7 @@ router.route('/submit').post((req, res) => {
 router.route('/checkin').post((req, res) => {
     try {
         var id = req.body.id;
-        var ownerId = req.body.ownerId;
+        var ownerId = req.cookies.userId;
 
         async.parallel({
             //check owner exist
@@ -1199,7 +1216,7 @@ router.route('/checkin').post((req, res) => {
 router.route('/checkout').post((req, res) => {
     try {
         var id = req.body.id;
-        var ownerId = req.body.ownerId;
+        var ownerId = req.cookies.userId;
 
         async.parallel({
             //check owner exist
@@ -1303,6 +1320,7 @@ router.route('/sendRequest').post((req, res) => {
         var task = new Task();
 
         var maidId = req.body.maidId;
+        let ownerId = req.cookies.userId;
 
         task.info = {
             title: req.body.title || "",
@@ -1326,7 +1344,7 @@ router.route('/sendRequest').post((req, res) => {
         };
 
         task.stakeholders = {
-            owner: req.body.owner
+            owner: ownerId
         };
 
         task.process = '000000000000000000000006';
@@ -1357,7 +1375,7 @@ router.route('/sendRequest').post((req, res) => {
             }
         }
 
-        Owner.findOne({ _id: req.body.owner }).exec((error, owner) => {
+        Owner.findOne({ _id: ownerId }).exec((error, owner) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -1491,7 +1509,7 @@ router.route('/acceptRequest').post((req, res) => {
     try {
         var id = req.body.id;
         var ownerId = req.body.ownerId;
-        var maidId = req.body.maidId;
+        var maidId = req.cookies.userId;
 
         async.parallel({
             //check maid exist
@@ -1637,7 +1655,7 @@ router.route('/denyRequest').post((req, res) => {
     try {
         var id = req.body.id;
         var ownerId = req.body.ownerId;
-        var maidId = req.body.maidId;
+        var maidId = req.cookies.userId;
 
         Task.findOne({ _id: id, process: '000000000000000000000006', 'stakeholders.owner': ownerId }).exec((error, data) => {
             if (error) {
