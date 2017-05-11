@@ -17,6 +17,7 @@ var Package = require('../_model/package');
 var Work = require('../_model/work');
 var Task = require('../_model/task');
 var Process = require('../_model/process');
+var Maid = require('../_model/maid');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 
@@ -207,6 +208,55 @@ router.route('/getAllTasks').get((req, res) => {
                 }
             }
         });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/getAllWorkedMaid').get((req, res) => {
+    try {
+        let id = req.cookies.userId;
+
+        var matchQuery = {
+            process: new ObjectId('000000000000000000000005'),
+            'stakeholders.owner': new ObjectId(id)
+        };
+
+        Task.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $group: {
+                    _id: '$stakeholders.received',
+                }
+            }
+        ],
+            // {
+            //     allowDiskUse: true
+            // },
+            (error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        Maid.populate(data, { path: '_id', select: 'info' }, (error, owner) => {
+                            if (error) {
+                                return msg.msgReturn(res, 3);
+                            } else {
+                                if (validate.isNullorEmpty(owner)) {
+                                    return msg.msgReturn(res, 4);
+                                } else {
+                                    return msg.msgReturn(res, 0, owner);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        );
     } catch (error) {
         return msg.msgReturn(res, 3);
     }

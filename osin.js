@@ -85,7 +85,8 @@ app.use('/:language/package', require('./_routes/package.router'));
 app.use('/:language/work', require('./_routes/work.router'));
 app.use('/:language/task', require('./_routes/task.router'));
 app.use('/:language/process', require('./_routes/process.router'));
-app.use('/image', require('./_routes/uploadImage.router'));
+app.use('/:language/more', require('./_routes/more.router'));
+// app.use('/image', require('./_routes/uploadImage.router'));
 
 // /:language(en|vi)
 app.listen(process.env.PORT || 8080, function () {

@@ -20,33 +20,12 @@ var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 
 var ObjectId = require('mongoose').Types.ObjectId;
-
 var bodyparser = require('body-parser');
 
-router.use(bodyparser.json({
-    limit: '50mb',
-}));
-
-// setting limit of FILE
 router.use(bodyparser.urlencoded({
-    limit: '50mb',
-    parameterLimit: 1000000,
     extended: true
 }));
-
-// // parse application/json
 router.use(bodyparser.json());
-
-const hash_key = 'HBBSolution';
-const token_length = 64;
-
-function hash(content) {
-    const crypto = require('crypto');
-    const hash = crypto.createHmac('sha256', hash_key)
-        .update(content)
-        .digest('hex');
-    return hash;
-}
 
 /** Middle Ware
  * 
@@ -262,6 +241,15 @@ router.route('/getAll').get((req, res) => {
     }
 });
 
+/** GET - Get All Denied Tasks
+ * info {
+ *      type: GET
+ *      url: /getAllDeniedTasks
+ *      role: Maid
+ *      name: Get All Denied Tasks
+ *      description: Get all denied tasks
+ * }
+ */
 router.route('/getAllDeniedTasks').get((req, res) => {
     try {
         var maidId = req.cookies.userId;
@@ -302,6 +290,29 @@ router.route('/getAllDeniedTasks').get((req, res) => {
     }
 });
 
+/** GET - Get All Direct Requests
+ * info {
+ *      type: GET
+ *      url: /getAll
+ *      role: Maid
+ *      name: Get All Direct Requests
+ *      description: Get all direct request of Owner
+ * }
+ * 
+ * body {
+ *      lat: Number
+ *      lng: Number
+ *      minDistance: Number
+ *      maxDistance: Number
+ *      limit: Number
+ *      page: Number
+ *      sortBy: "distance" | "price"
+ *      sortType: "asc" | "desc"
+ *      title: String
+ *      package: [package_ID]
+ *      work: [work_ID]
+ * }
+ */
 router.route('/getAllRequest').post((req, res) => {
     try {
         var language = req.cookies.language;
@@ -507,6 +518,56 @@ router.route('/getAllTasks').get((req, res) => {
                 }
             }
         });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/getAllWorkedOwner').get((req, res) => {
+    try {
+        let id = req.cookies.userId;
+        console.log(id);
+
+        var matchQuery = {
+            process: new ObjectId('000000000000000000000005'),
+            'stakeholders.received': new ObjectId(id)
+        };
+
+        Task.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $group: {
+                    _id: '$stakeholders.owner',
+                }
+            }
+        ],
+            // {
+            //     allowDiskUse: true
+            // },
+            (error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        Owner.populate(data, { path: '_id', select: 'info' }, (error, owner) => {
+                            if (error) {
+                                return msg.msgReturn(res, 3);
+                            } else {
+                                if (validate.isNullorEmpty(owner)) {
+                                    return msg.msgReturn(res, 4);
+                                } else {
+                                    return msg.msgReturn(res, 0, owner);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        );
     } catch (error) {
         return msg.msgReturn(res, 3);
     }

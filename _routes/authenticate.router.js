@@ -13,6 +13,7 @@ var lnService = new languageService.Language();
 
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
+var Maid = require('../_model/maid');
 
 var cloudinary = require('cloudinary');
 
@@ -41,6 +42,7 @@ router.use(function (req, res, next) {
 });
 
 const hash_key = 'LULULUL';
+// const hash_key = 'HBBSolution';
 const token_length = 64;
 
 function hash(content) {
@@ -476,6 +478,7 @@ router.route('/maid/login').post((req, res) => {
 			}
 		});
 	} catch (error) {
+		console.log(error);
 		return msg.msgReturn(res, 3);
 	}
 });

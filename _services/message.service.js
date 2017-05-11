@@ -7,6 +7,7 @@ var Message = (function () {
     Message.msg_data_exist = "DATA_EXIST";
     Message.msg_data_not_exist = "Sorry! Data is not exist.";
     Message.msg_language_not_support = "LANGUAGE_NOT_SUPPORT";
+    Message.INVALID_PASSWORD = "Sorry! Your password is not match";
     Message.TASK_UPDATE_FAILED = "Sorry! Your task is picking up by some maid, your request was denied."
     Message.TASK_OUT_OF_LIMIT = "Sorry! Your tasks recently is full, your request was denied.";
     Message.TIME_NOT_VALID = "Sorry! Your time or hour is not valid, your request was denied.";
@@ -40,7 +41,7 @@ var Message = (function () {
             case 4:
                 return res.status(200).send(Message.prototype.msgData(false, Message.msg_data_not_exist, data));
             case 5:
-                return res.status(200).send(Message.prototype.msgData(false, Message.msg_invalid_password, data));
+                return res.status(200).send(Message.prototype.msgData(false, Message.INVALID_PASSWORD, data));
             case 6:
                 return res.status(200).send(Message.prototype.msgData(false, Message.msg_language_not_support, data));
             case 7:
