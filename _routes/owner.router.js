@@ -170,6 +170,11 @@ router.route('/getAllDeniedTasks').get((req, res) => {
  */
 router.route('/getAllTasks').get((req, res) => {
     try {
+        var language = req.cookies.language;
+        Package.setDefaultLanguage(language);
+        Work.setDefaultLanguage(language);
+        Process.setDefaultLanguage(language);
+
         var id = req.cookies.userId;
         var process = req.query.process;
 
