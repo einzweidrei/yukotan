@@ -49,6 +49,10 @@ router.use(function (req, res, next) {
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
+            Package.setDefaultLanguage(language);
+            Work.setDefaultLanguage(language);
+            Process.setDefaultLanguage(language);
+
             if (req.headers.hbbgvauth) {
                 let token = req.headers.hbbgvauth;
                 Session.findOne({ 'auth.token': token }).exec((error, data) => {
@@ -170,10 +174,10 @@ router.route('/getAllDeniedTasks').get((req, res) => {
  */
 router.route('/getAllTasks').get((req, res) => {
     try {
-        var language = req.cookies.language;
-        Package.setDefaultLanguage(language);
-        Work.setDefaultLanguage(language);
-        Process.setDefaultLanguage(language);
+        // var language = req.cookies.language;
+        // Package.setDefaultLanguage(language);
+        // Work.setDefaultLanguage(language);
+        // Process.setDefaultLanguage(language);
 
         var id = req.cookies.userId;
         var process = req.query.process;

@@ -43,6 +43,9 @@ router.use(function (req, res, next) {
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
+            Package.setDefaultLanguage(language);
+            Work.setDefaultLanguage(language);
+            Process.setDefaultLanguage(language);
 
             if (req.headers.hbbgvauth) {
                 let token = req.headers.hbbgvauth;
@@ -101,10 +104,10 @@ router.use(function (req, res, next) {
  */
 router.route('/getAll').post((req, res) => {
     try {
-        var language = req.cookies.language;
-        Package.setDefaultLanguage(language);
-        Work.setDefaultLanguage(language);
-        Process.setDefaultLanguage(language);
+        // var language = req.cookies.language;
+        // Package.setDefaultLanguage(language);
+        // Work.setDefaultLanguage(language);
+        // Process.setDefaultLanguage(language);
 
         var minDistance = req.body.minDistance || 1;
         var maxDistance = req.body.maxDistance || 2000;

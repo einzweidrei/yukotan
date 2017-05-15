@@ -39,6 +39,10 @@ router.use(function (req, res, next) {
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
+            Package.setDefaultLanguage(language);
+            Work.setDefaultLanguage(language);
+            Process.setDefaultLanguage(language);
+
             if (req.headers.hbbgvauth) {
                 let token = req.headers.hbbgvauth;
                 Session.findOne({ 'auth.token': token }).exec((error, data) => {
@@ -123,10 +127,10 @@ router.route('/getById').get((req, res) => {
  */
 router.route('/getAll').get((req, res) => {
     try {
-        var language = req.cookies.language;
-        Package.setDefaultLanguage(language);
-        Work.setDefaultLanguage(language);
-        Process.setDefaultLanguage(language);
+        // var language = req.cookies.language;
+        // Package.setDefaultLanguage(language);
+        // Work.setDefaultLanguage(language);
+        // Process.setDefaultLanguage(language);
 
         var minDistance = req.query.minDistance || 1;
         var maxDistance = req.query.maxDistance || 2000;
@@ -315,10 +319,10 @@ router.route('/getAllDeniedTasks').get((req, res) => {
  */
 router.route('/getAllRequest').post((req, res) => {
     try {
-        var language = req.cookies.language;
-        Package.setDefaultLanguage(language);
-        Work.setDefaultLanguage(language);
-        Process.setDefaultLanguage(language);
+        // var language = req.cookies.language;
+        // Package.setDefaultLanguage(language);
+        // Work.setDefaultLanguage(language);
+        // Process.setDefaultLanguage(language);
 
         var maidId = req.cookies.userId;
 
@@ -526,7 +530,6 @@ router.route('/getAllTasks').get((req, res) => {
 router.route('/getAllWorkedOwner').get((req, res) => {
     try {
         let id = req.cookies.userId;
-        console.log(id);
 
         var matchQuery = {
             process: new ObjectId('000000000000000000000005'),
