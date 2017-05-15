@@ -122,7 +122,7 @@ router.route('/getAllDeniedTasks').get((req, res) => {
             },
             {
                 path: 'info.work',
-                select: 'name'
+                select: 'name image'
             },
             {
                 path: 'stakeholders.received',
@@ -189,7 +189,7 @@ router.route('/getAllTasks').get((req, res) => {
             },
             {
                 path: 'info.work',
-                select: 'name'
+                select: 'name image'
             },
             {
                 path: 'process',

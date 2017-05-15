@@ -261,7 +261,7 @@ router.route('/getAllDeniedTasks').get((req, res) => {
             },
             {
                 path: 'info.work',
-                select: 'name'
+                select: 'name image'
             },
             {
                 path: 'stakeholders.owner',
@@ -437,7 +437,7 @@ router.route('/getAllRequest').post((req, res) => {
                 } else {
                     Owner.populate(places, { path: 'stakeholders.owner', select: 'info' }, (error, data) => {
                         if (error) return msg.msgReturn(res, 3);
-                        Work.populate(data, { path: 'info.work', select: 'name' }, (error, data) => {
+                        Work.populate(data, { path: 'info.work', select: 'name image' }, (error, data) => {
                             if (error) return msg.msgReturn(res, 3);
                             Package.populate(data, { path: 'info.package', select: 'name' }, (error, data) => {
                                 if (error) return msg.msgReturn(res, 3);
@@ -499,7 +499,7 @@ router.route('/getAllTasks').get((req, res) => {
             },
             {
                 path: 'info.work',
-                select: 'name'
+                select: 'name image'
             },
             {
                 path: 'process',

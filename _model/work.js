@@ -11,6 +11,7 @@ var WorkSchema = new Schema(
     {
         name: { type: String, intl: true },
         status: { type: Boolean },
+        image: { type: String },
         history: {
             createAt: { type: Date },
             updateAt: { type: Date }
