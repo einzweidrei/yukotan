@@ -159,8 +159,8 @@ function verifyFaceId(faceId1, faceId2) {
 }
 
 router.post('/verify', multipartMiddleware, (req, res) => {
-    // var imgUrl = 'http://res.cloudinary.com/einzweidrei2/image/upload/v1494992955/v6dghizgtrmrizvamoy4.jpg';
-    var imgUrl = 'http://res.cloudinary.com/einzweidrei2/image/upload/v1495003151/18600741_808648622622105_1571731949_n_q12mbl.jpg';
+    var imgUrl = 'http://res.cloudinary.com/einzweidrei2/image/upload/v1494992955/v6dghizgtrmrizvamoy4.jpg';
+    // var imgUrl = 'http://res.cloudinary.com/einzweidrei2/image/upload/v1495003151/18600741_808648622622105_1571731949_n_q12mbl.jpg';
     var subs_key = '8f22becb14664c0c87864d840dfcf114';
 
     cloudinary.uploader.upload(
