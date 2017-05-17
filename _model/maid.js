@@ -22,13 +22,13 @@ var MaidSchema = new Schema(
             },
             gender: { type: Number }
         },
-        evaluation_point: { type: Number },
         work_info: {
             ability: [
                 {
                     work: { type: ObjectId, ref: 'Work' }
                 }
             ],
+            evaluation_point: { type: Number },
             price: { type: Number }
         },
         location: {

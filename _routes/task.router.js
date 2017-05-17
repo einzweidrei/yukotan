@@ -66,7 +66,7 @@ router.use(function (req, res, next) {
             } else {
                 return msg.msgReturn(res, 14);
             }
-            next();
+            // next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -1718,7 +1718,7 @@ router.route('/getRequest').get((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    Maid.populate(data, { path: 'request.maid', select: 'info' }, (error, result) => {
+                    Maid.populate(data, { path: 'request.maid', select: 'info work_info' }, (error, result) => {
                         if (error) {
                             return msg.msgReturn(res, 3);
                         } else {

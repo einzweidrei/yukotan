@@ -525,9 +525,10 @@ router.route('/maid/register').post((req, res) => {
 			gender: req.body.gender || 0,
 		};
 
-		maid.evaluation_point = 0;
+		// maid.evaluation_point = 0;
 
 		maid.work_info = {
+			evaluation_point: 0,
 			price: 0
 		};
 
