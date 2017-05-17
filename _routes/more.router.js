@@ -13,6 +13,9 @@ var validate = new validationService.Validation();
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
 
+var mail = require('../_services/mail.service');
+var mailService = new mail.MailService();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
@@ -20,11 +23,23 @@ var Term = require('../_model/term');
 
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
+var randomstring = require("randomstring");
 
 router.use(bodyparser.urlencoded({
     extended: true
 }));
 router.use(bodyparser.json());
+
+const hash_key = 'LULULUL';
+// const hash_key = 'HBBSolution';
+
+function hash(content) {
+    const crypto = require('crypto');
+    const hash = crypto.createHmac('sha256', hash_key)
+        .update(content)
+        .digest('hex');
+    return hash;
+}
 
 router.use(function (req, res, next) {
     console.log('package_router is connecting');
@@ -88,6 +103,56 @@ router.route('/getTerm').get((req, res) => {
             }
         });
     } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/resetPassword').post((req, res) => {
+    try {
+        let newPw = randomstring.generate(7);
+        let hashPw = hash(newPw);
+
+        var username = req.body.username;
+        var email = req.body.email;
+
+        Owner.findOne({ 'info.username': username, 'info.email': email }).exec((error, data) => {
+            if (error) {
+                console.log(error);
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    Owner.findOneAndUpdate(
+                        {
+                            'info.username': username,
+                            'info.email': email
+                        },
+                        {
+                            $set: {
+                                'auth.password': hashPw
+                            }
+                        },
+                        {
+                            upsert: true
+                        },
+                        (error) => {
+                            if (error) {
+                                return msg.msgReturn(res, 3);
+                            } else {
+                                mailService.resetPassword(email, newPw, res);
+
+                                // console.log(mailService.resetPassword(email, newPw));
+                                // if (boolean) return msg.msgReturn(res, 0);
+                                // return msg.msgReturn(res, 0);
+                            }
+                        }
+                    )
+                }
+            }
+        });
+    } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });

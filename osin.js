@@ -24,11 +24,22 @@ var Session = require('./_model/session');
 var app = express();
 var router = express.Router();
 
+var admin = require('firebase-admin');
+var serviceAccount = require('./_path/serviceAccountKey.json');
+
+var nodemailer = require('nodemailer');
+
 // connecting mongodb
 // var mongodburi = 'mongodb://localhost:27017/Osin';
 var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodburi);
+
+// firebase admin setting
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://awesomeproj-84c8b.firebaseio.com"
+});
 
 // config cdn
 cloudinary.config({
@@ -86,6 +97,7 @@ app.use('/:language/work', require('./_routes/work.router'));
 app.use('/:language/task', require('./_routes/task.router'));
 app.use('/:language/process', require('./_routes/process.router'));
 app.use('/:language/more', require('./_routes/more.router'));
+app.use('/microsoft', require('./_routes/microsoftApi.router'));
 // app.use('/image', require('./_routes/uploadImage.router'));
 
 // /:language(en|vi)

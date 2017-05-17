@@ -13,6 +13,12 @@ var validate = new validationService.Validation();
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
 
+var FCM = require('../_services/fcm.service');
+var FCMService = new FCM.FCMService();
+
+var Mail = require('../_services/mail.service');
+var MailService = new Mail.MailService();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
@@ -20,14 +26,8 @@ var Package = require('../_model/package');
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
 
-router.use(bodyparser.json({
-    limit: '50mb',
-}));
-
 // setting limit of FILE
 router.use(bodyparser.urlencoded({
-    limit: '50mb',
-    parameterLimit: 1000000,
     extended: true
 }));
 
@@ -96,6 +96,22 @@ router.route('/getAll').get((req, res) => {
                 }
             }
         });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/pushNotify').post((req, res) => {
+    try {
+        FCMService.pushNotification(res);
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+router.route('/sendMail').post((req, res) => {
+    try {
+        MailService.sendMail(res);
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
