@@ -293,6 +293,14 @@ router.route('/getById').get((req, res) => {
                 select: 'info'
             },
             {
+                path: 'stakeholders.received',
+                select: 'info'
+            },
+            {
+                path: 'stakeholders.request.maid',
+                select: 'info'
+            },
+            {
                 path: 'process',
                 select: 'name'
             }
