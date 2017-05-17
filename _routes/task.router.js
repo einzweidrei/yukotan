@@ -47,25 +47,26 @@ router.use(function (req, res, next) {
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
-            if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
-                Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 14);
-                        } else {
-                            req.cookies['userId'] = data.auth.userId;
+            // if (req.headers.hbbgvauth) {
+            //     let token = req.headers.hbbgvauth;
+            //     Session.findOne({ 'auth.token': token }).exec((error, data) => {
+            //         if (error) {
+            //             return msg.msgReturn(res, 3);
+            //         } else {
+            //             if (validate.isNullorEmpty(data)) {
+            //                 return msg.msgReturn(res, 14);
+            //             } else {
+            //                 req.cookies['userId'] = data.auth.userId;
 
-                            console.log(req.cookies);
-                            next();
-                        }
-                    }
-                });
-            } else {
-                return msg.msgReturn(res, 14);
-            }
+            //                 console.log(req.cookies);
+            //                 next();
+            //             }
+            //         }
+            //     });
+            // } else {
+            //     return msg.msgReturn(res, 14);
+            // }
+            next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -1687,6 +1688,48 @@ router.route('/denyRequest').post((req, res) => {
             }
         });
     } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/getRequest').get((req, res) => {
+    try {
+        let id = req.query.id;
+
+        let matchQuery = { _id: new ObjectId(id), status: true };
+
+        console.log(id);
+        console.log(matchQuery);
+
+        Task.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $project: {
+                    request: '$stakeholders.request'
+                }
+            }
+        ], (error, data) => {
+            console.log(data);
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    Maid.populate(data, { path: 'request.maid', select: 'info' }, (error, result) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            return msg.msgReturn(res, 0, result);
+                        }
+                    });
+                }
+            }
+        });
+    } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
