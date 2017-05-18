@@ -138,8 +138,8 @@ router.route('/getAll').get((req, res) => {
         var page = req.query.page || 1;
         var skip = (page - 1) * limit;
 
-        var name = req.body.name;
-        var work = req.body.work;
+//         var name = req.body.name;
+//         var work = req.body.work;
 
         var sortBy = req.query.sortBy || "distance"; //distance & price
         var sortType = req.query.sortType || "asc"; //asc & desc
@@ -178,21 +178,21 @@ router.route('/getAll').get((req, res) => {
 
         var matchQuery = { status: true };
 
-        if (work) {
-            var arr = new Array();
-            if (work instanceof Array) {
-                for (var i = 0; i < work.length; i++) {
-                    arr.push(new ObjectId(work[i]));
-                }
-                matchQuery['work_info.ability.work'] = {
-                    $in: arr
-                }
-            }
-        }
+//         if (work) {
+//             var arr = new Array();
+//             if (work instanceof Array) {
+//                 for (var i = 0; i < work.length; i++) {
+//                     arr.push(new ObjectId(work[i]));
+//                 }
+//                 matchQuery['work_info.ability.work'] = {
+//                     $in: arr
+//                 }
+//             }
+//         }
 
-        if (name) {
-            matchQuery['info.name'] = new RegExp(name, 'i');
-        }
+//         if (name) {
+//             matchQuery['info.name'] = new RegExp(name, 'i');
+//         }
 
         Maid.aggregate([
             {
