@@ -232,10 +232,10 @@ router.route('/getAll').get((req, res) => {
                 if (validate.isNullorEmpty(places)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    Work.populate(places, { path: 'work_info.ability.work', select: 'name' }, (error, data) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        return msg.msgReturn(res, 0, data);
-                    });
+//                     Work.populate(places, { path: 'work_info.ability.work', select: 'name' }, (error, data) => {
+//                         if (error) return msg.msgReturn(res, 3);
+                        return msg.msgReturn(res, 0, places);
+//                     });
                 }
             }
         });
