@@ -219,10 +219,10 @@ router.route('/getAll').get((req, res) => {
             },
             {
                 $project: {
-                    auth: 0,
-                    location: 0,
-                    status: 0,
-                    __v: 0
+                    info: 1,
+                    work_info: 1
+                    // history: 1,
+                    // __v: 0
                 }
             }
         ], (error, places) => {
