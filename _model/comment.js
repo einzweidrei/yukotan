@@ -10,6 +10,7 @@ var CommentSchema = new Schema(
     {
         fromId: { type: ObjectId },
         toId: { type: ObjectId },
+        task: { type: ObjectId, ref: 'Task' },
         content: { type: String },
         evaluation_point: { type: Number },
         createAt: { type: Date },

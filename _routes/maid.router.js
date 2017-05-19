@@ -44,24 +44,24 @@ router.use(function (req, res, next) {
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
-            if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
-                Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 14);
-                        } else {
-                            req.cookies['userId'] = data.auth.userId;
-                            next();
-                        }
-                    }
-                });
-            } else {
-                return msg.msgReturn(res, 14);
-            }
-            // next();
+            // if (req.headers.hbbgvauth) {
+            //     let token = req.headers.hbbgvauth;
+            //     Session.findOne({ 'auth.token': token }).exec((error, data) => {
+            //         if (error) {
+            //             return msg.msgReturn(res, 3);
+            //         } else {
+            //             if (validate.isNullorEmpty(data)) {
+            //                 return msg.msgReturn(res, 14);
+            //             } else {
+            //                 req.cookies['userId'] = data.auth.userId;
+            //                 next();
+            //             }
+            //         }
+            //     });
+            // } else {
+            //     return msg.msgReturn(res, 14);
+            // }
+            next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -583,6 +583,7 @@ router.route('/comment').post((req, res) => {
         let comment = new Comment();
         comment.fromId = req.cookies.userId;
         comment.toId = req.body.toId;
+        comment.task = req.body.task;
         comment.content = req.body.content;
         comment.evaluation_point = req.body.evaluation_point;
         comment.createAt = new Date();
@@ -595,33 +596,43 @@ router.route('/comment').post((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    let ep_2 = data.evaluation_point;
-                    let new_ep = (comment.evaluation_point + ep_2) / 2;
+                    Comment.findOne({ fromId: comment.fromId, task: comment.task }).exec((error, cmt) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            if (validate.isNullorEmpty(cmt)) {
+                                let ep_2 = data.evaluation_point;
+                                let new_ep = (comment.evaluation_point + ep_2) / 2;
 
-                    Owner.findOneAndUpdate(
-                        {
-                            _id: comment.toId,
-                            status: true
-                        },
-                        {
-                            $set: {
-                                evaluation_point: new_ep
-                            }
-                        },
-                        {
-                            upsert: true
-                        },
-                        (error) => {
-                            if (error) {
-                                return msg.msgReturn(res, 3);
+                                Owner.findOneAndUpdate(
+                                    {
+                                        _id: comment.toId,
+                                        status: true
+                                    },
+                                    {
+                                        $set: {
+                                            evaluation_point: new_ep
+                                        }
+                                    },
+                                    {
+                                        upsert: true
+                                    },
+                                    (error) => {
+                                        if (error) {
+                                            return msg.msgReturn(res, 3);
+                                        } else {
+                                            comment.save((error) => {
+                                                if (error) return msg.msgReturn(res, 3);
+                                                return msg.msgReturn(res, 0);
+                                            });
+                                        }
+                                    }
+                                );
                             } else {
-                                comment.save((error) => {
-                                    if (error) return msg.msgReturn(res, 3);
-                                    return msg.msgReturn(res, 0);
-                                });
+                                return msg.msgReturn(res, 2);
                             }
                         }
-                    );
+                    });
                 }
             }
         });
@@ -634,7 +645,7 @@ router.route('/getComment').get((req, res) => {
     try {
         let id = req.query.id;
 
-        let limit = req.query.limit || 20;
+        let limit = parseFloat(req.query.limit) || 20;
         let page = req.query.page || 1;
         // let skip = (page - 1) * limit;
 
