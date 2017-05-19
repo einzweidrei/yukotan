@@ -634,8 +634,8 @@ router.route('/getComment').get((req, res) => {
     try {
         let id = req.query.id;
 
-        let limit = req.body.limit || 20;
-        let page = req.body.page || 1;
+        let limit = req.query.limit || 20;
+        let page = req.query.page || 1;
         // let skip = (page - 1) * limit;
 
         let query = { toId: id };
