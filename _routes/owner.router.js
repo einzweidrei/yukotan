@@ -346,7 +346,8 @@ router.route('/getComment').get((req, res) => {
 
         let query = { toId: id };
         let options = {
-            select: 'evaluation_point content createAt fromId',
+            select: 'evaluation_point content task createAt fromId',
+            populate: { path: 'task', select: 'info.title' },
             sort: {
                 createAt: -1
             },
