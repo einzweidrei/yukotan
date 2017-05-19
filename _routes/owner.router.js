@@ -331,27 +331,55 @@ router.route('/getComment').get((req, res) => {
 
         let limit = req.body.limit || 20;
         let page = req.body.page || 1;
-        let skip = (page - 1) * limit;
+        // let skip = (page - 1) * limit;
 
-        Comment.find({ toId: id }).select('evaluation_point content createAt fromId').skip(skip).limit(limit).sort({ createAt: -1 }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
+        let query = { toId: id };
+        let options = {
+            select: 'evaluation_point content createAt fromId',
+            sort: {
+                createAt: -1
+            },
+            page: page,
+            limit: limit
+        };
+
+        // Comment.find({ toId: id }).select('evaluation_point content createAt fromId').skip(skip).limit(limit).sort({ createAt: -1 }).exec((error, data) => {
+        //     if (error) {
+        //         return msg.msgReturn(res, 3);
+        //     } else {
+        //         if (validate.isNullorEmpty(data)) {
+        //             return msg.msgReturn(res, 4);
+        //         } else {
+        //             Maid.populate(data, { path: 'fromId', select: 'info' }, (error, data) => {
+        //                 if (error) {
+        //                     return msg.msgReturn(res, 3);
+        //                 } else {
+        //                     if (validate.isNullorEmpty(data)) {
+        //                         return msg.msgReturn(res, 4);
+        //                     } else {
+        //                         return msg.msgReturn(res, 0, data);
+        //                     }
+        //                 }
+        //             });
+        //         }
+        //     }
+        // });
+
+        Comment.paginate(query, options).then((data) => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4);
             } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Maid.populate(data, { path: 'fromId', select: 'info' }, (error, data) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
+                Maid.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            return msg.msgReturn(res, 4);
                         } else {
-                            if (validate.isNullorEmpty(data)) {
-                                return msg.msgReturn(res, 4);
-                            } else {
-                                return msg.msgReturn(res, 0, data);
-                            }
+                            return msg.msgReturn(res, 0, data);
                         }
-                    });
-                }
+                    }
+                });
             }
         });
     } catch (error) {

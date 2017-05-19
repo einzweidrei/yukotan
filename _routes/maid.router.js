@@ -140,8 +140,8 @@ router.route('/getAll').get((req, res) => {
         var page = req.query.page || 1;
         var skip = (page - 1) * limit;
 
-//         var name = req.body.name;
-//         var work = req.body.work;
+        //         var name = req.body.name;
+        //         var work = req.body.work;
 
         var sortBy = req.query.sortBy || "distance"; //distance & price
         var sortType = req.query.sortType || "asc"; //asc & desc
@@ -180,21 +180,21 @@ router.route('/getAll').get((req, res) => {
 
         var matchQuery = { status: true };
 
-//         if (work) {
-//             var arr = new Array();
-//             if (work instanceof Array) {
-//                 for (var i = 0; i < work.length; i++) {
-//                     arr.push(new ObjectId(work[i]));
-//                 }
-//                 matchQuery['work_info.ability.work'] = {
-//                     $in: arr
-//                 }
-//             }
-//         }
+        //         if (work) {
+        //             var arr = new Array();
+        //             if (work instanceof Array) {
+        //                 for (var i = 0; i < work.length; i++) {
+        //                     arr.push(new ObjectId(work[i]));
+        //                 }
+        //                 matchQuery['work_info.ability.work'] = {
+        //                     $in: arr
+        //                 }
+        //             }
+        //         }
 
-//         if (name) {
-//             matchQuery['info.name'] = new RegExp(name, 'i');
-//         }
+        //         if (name) {
+        //             matchQuery['info.name'] = new RegExp(name, 'i');
+        //         }
 
         Maid.aggregate([
             {
@@ -234,10 +234,10 @@ router.route('/getAll').get((req, res) => {
                 if (validate.isNullorEmpty(places)) {
                     return msg.msgReturn(res, 4);
                 } else {
-//                     Work.populate(places, { path: 'work_info.ability.work', select: 'name' }, (error, data) => {
-//                         if (error) return msg.msgReturn(res, 3);
-                        return msg.msgReturn(res, 0, places);
-//                     });
+                    //                     Work.populate(places, { path: 'work_info.ability.work', select: 'name' }, (error, data) => {
+                    //                         if (error) return msg.msgReturn(res, 3);
+                    return msg.msgReturn(res, 0, places);
+                    //                     });
                 }
             }
         });
@@ -636,30 +636,59 @@ router.route('/getComment').get((req, res) => {
 
         let limit = req.body.limit || 20;
         let page = req.body.page || 1;
-        let skip = (page - 1) * limit;
+        // let skip = (page - 1) * limit;
 
-        Comment.find({ toId: id }).select('evaluation_point content createAt fromId').skip(skip).limit(limit).sort({ createAt: -1 }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
+        let query = { toId: id };
+        let options = {
+            select: 'evaluation_point content createAt fromId',
+            sort: {
+                createAt: -1
+            },
+            page: page,
+            limit: limit
+        };
+
+        // Comment.find({ toId: id }).select('evaluation_point content createAt fromId').skip(skip).limit(limit).sort({ createAt: -1 }).exec((error, data) => {
+        //     if (error) {
+        //         return msg.msgReturn(res, 3);
+        //     } else {
+        //         if (validate.isNullorEmpty(data)) {
+        //             return msg.msgReturn(res, 4);
+        //         } else {
+        //             Owner.populate(data, { path: 'fromId', select: 'info' }, (error, data) => {
+        //                 if (error) {
+        //                     return msg.msgReturn(res, 3);
+        //                 } else {
+        //                     if (validate.isNullorEmpty(data)) {
+        //                         return msg.msgReturn(res, 4);
+        //                     } else {
+        //                         return msg.msgReturn(res, 0, data);
+        //                     }
+        //                 }
+        //             });
+        //         }
+        //     }
+        // });
+
+        Comment.paginate(query, options).then((data) => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4);
             } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Owner.populate(data, { path: 'fromId', select: 'info' }, (error, data) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
+                Owner.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            return msg.msgReturn(res, 4);
                         } else {
-                            if (validate.isNullorEmpty(data)) {
-                                return msg.msgReturn(res, 4);
-                            } else {
-                                return msg.msgReturn(res, 0, data);
-                            }
+                            return msg.msgReturn(res, 0, data);
                         }
-                    });
-                }
+                    }
+                });
             }
         });
     } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
