@@ -18,6 +18,7 @@ var Work = require('../_model/work');
 var Task = require('../_model/task');
 var Process = require('../_model/process');
 var Maid = require('../_model/maid');
+var Comment = require('../_model/comment');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 var bodyparser = require('body-parser');
@@ -60,6 +61,7 @@ router.use(function (req, res, next) {
             } else {
                 return msg.msgReturn(res, 14);
             }
+            // next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -571,6 +573,92 @@ router.route('/getAllWorkedOwner').get((req, res) => {
                 }
             }
         );
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/comment').post((req, res) => {
+    try {
+        let comment = new Comment();
+        comment.fromId = req.cookies.userId;
+        comment.toId = req.body.toId;
+        comment.content = req.body.content;
+        comment.evaluation_point = req.body.evaluation_point;
+        comment.createAt = new Date();
+        comment.status = true;
+
+        Owner.findOne({ _id: comment.toId, status: true }).select('evaluation_point').exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    let ep_2 = data.evaluation_point;
+                    let new_ep = (comment.evaluation_point + ep_2) / 2;
+
+                    Owner.findOneAndUpdate(
+                        {
+                            _id: comment.toId,
+                            status: true
+                        },
+                        {
+                            $set: {
+                                evaluation_point: new_ep
+                            }
+                        },
+                        {
+                            upsert: true
+                        },
+                        (error) => {
+                            if (error) {
+                                return msg.msgReturn(res, 3);
+                            } else {
+                                comment.save((error) => {
+                                    if (error) return msg.msgReturn(res, 3);
+                                    return msg.msgReturn(res, 0);
+                                });
+                            }
+                        }
+                    );
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/getComment').get((req, res) => {
+    try {
+        let id = req.query.id;
+
+        let limit = req.body.limit || 20;
+        let page = req.body.page || 1;
+        let skip = (page - 1) * limit;
+
+        Comment.find({ toId: id }).select('evaluation_point content createAt fromId').skip(skip).limit(limit).sort({ createAt: -1 }).exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    Owner.populate(data, { path: 'fromId', select: 'info' }, (error, data) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            if (validate.isNullorEmpty(data)) {
+                                return msg.msgReturn(res, 4);
+                            } else {
+                                return msg.msgReturn(res, 0, data);
+                            }
+                        }
+                    });
+                }
+            }
+        });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
