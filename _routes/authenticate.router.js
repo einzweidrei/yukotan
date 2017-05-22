@@ -187,8 +187,8 @@ router.route('/register').post((req, res) => {
 
 		Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
-				if (!req.files.avatar.path) {
-					owner.info['image'] = req.body.image || "";
+				if (!req.files.image) {
+					owner.info['image'] = "";
 					owner.save((error, data) => {
 						if (error) {
 							return msg.msgReturn(res, 3);
@@ -220,7 +220,7 @@ router.route('/register').post((req, res) => {
 					});
 				} else {
 					cloudinary.uploader.upload(
-						req.files.avatar.path,
+						req.files.image.path,
 						function (result) {
 							owner.info['image'] = result.url;
 							owner.save((error, data) => {
@@ -261,6 +261,7 @@ router.route('/register').post((req, res) => {
 			}
 		})
 	} catch (error) {
+		console.log(error);
 		return msg.msgReturn(res, 3);
 	}
 });
@@ -339,7 +340,7 @@ router.route('/update').put((req, res) => {
 				if (validate.isNullorEmpty(data)) {
 					return msg.msgReturn(res, 4);
 				} else {
-					if (!req.files.avatar.path) {
+					if (!req.files.image) {
 						owner.info['image'] = req.body.image || "";
 						Owner.findOneAndUpdate(
 							{
@@ -363,7 +364,7 @@ router.route('/update').put((req, res) => {
 						);
 					} else {
 						cloudinary.uploader.upload(
-							req.files.avatar.path,
+							req.files.image.path,
 							function (result) {
 								owner.info['image'] = result.url;
 								Owner.findOneAndUpdate(
@@ -554,7 +555,7 @@ router.route('/maid/register').post((req, res) => {
 				return msg.msgReturn(res, 3);
 			} else {
 				if (validate.isNullorEmpty(data)) {
-					if (!req.files.avatar.path) {
+					if (!req.files.image) {
 						maid.info['image'] = req.body.image || "";
 						maid.save((error) => {
 							if (error) return msg.msgReturn(res, 3);
@@ -562,7 +563,7 @@ router.route('/maid/register').post((req, res) => {
 						});
 					} else {
 						cloudinary.uploader.upload(
-							req.files.avatar.path,
+							req.files.image.path,
 							function (result) {
 								maid.info['image'] = result.url;
 								maid.save((error) => {
@@ -642,7 +643,7 @@ router.route('/maid/update').put((req, res) => {
 				if (validate.isNullorEmpty(data)) {
 					return msg.msgReturn(res, 4);
 				} else {
-					if (!req.files.avatar.path) {
+					if (!req.files.image) {
 						maid.info['image'] = req.body.image || "";
 						Maid.findOneAndUpdate(
 							{
@@ -667,7 +668,7 @@ router.route('/maid/update').put((req, res) => {
 						);
 					} else {
 						cloudinary.uploader.upload(
-							req.files.avatar.path,
+							req.files.image.path,
 							function (result) {
 								maid.info['image'] = result.url;
 								Maid.findOneAndUpdate(
