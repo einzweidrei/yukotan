@@ -20,6 +20,11 @@ var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
 var Term = require('../_model/term');
+var Work = require('../_model/work');
+var Task = require('../_model/task');
+var Process = require('../_model/process');
+var Maid = require('../_model/maid');
+var Comment = require('../_model/comment');
 
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
@@ -148,6 +153,146 @@ router.route('/resetPassword').post((req, res) => {
                             }
                         }
                     )
+                }
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        return msg.msgReturn(res, 3);
+    }
+});
+
+/** GET - Get All Maids
+ * info {
+ *      type: GET
+ *      url: /getAllMaids
+ *      role: Owner
+ *      name: Get All Maids
+ *      description: Get all maids which is around [input location]
+ * }
+ * 
+ * params {
+ *      lat: Number
+ *      lng: Number
+ *      minDistance: Number
+ *      maxDistance: Number
+ *      limit: Number
+ *      page: Number
+ *      sortBy: "distance" | "price"
+ *      sortType: "asc" | "desc"
+ * }
+ */
+router.route('/getAllMaids').get((req, res) => {
+    try {
+        // var language = req.cookies.language;
+        // Package.setDefaultLanguage(language);
+        // Work.setDefaultLanguage(language);
+        // Process.setDefaultLanguage(language);
+
+        var minDistance = req.query.minDistance || 1;
+        var maxDistance = req.query.maxDistance || 2000;
+        var limit = req.query.limit || 20;
+        var page = req.query.page || 1;
+        var skip = (page - 1) * limit;
+
+        //         var name = req.body.name;
+        //         var work = req.body.work;
+
+        var sortBy = req.query.sortBy || "distance"; //distance & price
+        var sortType = req.query.sortType || "asc"; //asc & desc
+
+        var sortQuery = {};
+
+        if (sortType == "desc") {
+            if (sortBy == "price") {
+                sortQuery = {
+                    'work_info.price': -1
+                }
+            } else {
+                sortQuery = {
+                    'dist.calculated': -1
+                }
+            }
+        } else {
+            if (sortBy == "price") {
+                sortQuery = {
+                    'work_info.price': 1
+                }
+            } else {
+                sortQuery = {
+                    'dist.calculated': 1
+                }
+            }
+        };
+
+        var loc = {
+            type: 'Point',
+            coordinates: [
+                parseFloat(req.query.lng) || 0,
+                parseFloat(req.query.lat) || 0
+            ]
+        };
+
+        var matchQuery = { status: true };
+
+        //         if (work) {
+        //             var arr = new Array();
+        //             if (work instanceof Array) {
+        //                 for (var i = 0; i < work.length; i++) {
+        //                     arr.push(new ObjectId(work[i]));
+        //                 }
+        //                 matchQuery['work_info.ability.work'] = {
+        //                     $in: arr
+        //                 }
+        //             }
+        //         }
+
+        //         if (name) {
+        //             matchQuery['info.name'] = new RegExp(name, 'i');
+        //         }
+
+        Maid.aggregate([
+            {
+                $geoNear: {
+                    near: loc,
+                    distanceField: 'dist.calculated',
+                    minDistance: minDistance,
+                    maxDistance: maxDistance,
+                    num: limit,
+                    spherical: true
+                }
+            },
+            {
+                $match: matchQuery
+            },
+            {
+                // $sort: {
+                //     'dist.calculated': 1
+                // }
+                $sort: sortQuery
+            },
+            {
+                $skip: skip
+            },
+            {
+                $project: {
+                    info: 1,
+                    work_info: 1
+                    // history: 1,
+                    // __v: 0
+                }
+            }
+        ], (error, places) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(places)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    Work.populate(places, { path: 'work_info.ability.work', select: 'name' }, (error, data) => {
+                        if (error) return msg.msgReturn(res, 3);
+                        return msg.msgReturn(res, 0, places);
+                    });
                 }
             }
         });

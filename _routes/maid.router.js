@@ -44,24 +44,24 @@ router.use(function (req, res, next) {
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
-            // if (req.headers.hbbgvauth) {
-            //     let token = req.headers.hbbgvauth;
-            //     Session.findOne({ 'auth.token': token }).exec((error, data) => {
-            //         if (error) {
-            //             return msg.msgReturn(res, 3);
-            //         } else {
-            //             if (validate.isNullorEmpty(data)) {
-            //                 return msg.msgReturn(res, 14);
-            //             } else {
-            //                 req.cookies['userId'] = data.auth.userId;
-            //                 next();
-            //             }
-            //         }
-            //     });
-            // } else {
-            //     return msg.msgReturn(res, 14);
-            // }
-            next();
+            if (req.headers.hbbgvauth) {
+                let token = req.headers.hbbgvauth;
+                Session.findOne({ 'auth.token': token }).exec((error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            return msg.msgReturn(res, 14);
+                        } else {
+                            req.cookies['userId'] = data.auth.userId;
+                            next();
+                        }
+                    }
+                });
+            } else {
+                return msg.msgReturn(res, 14);
+            }
+            // next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -234,10 +234,10 @@ router.route('/getAll').get((req, res) => {
                 if (validate.isNullorEmpty(places)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    //                     Work.populate(places, { path: 'work_info.ability.work', select: 'name' }, (error, data) => {
-                    //                         if (error) return msg.msgReturn(res, 3);
-                    return msg.msgReturn(res, 0, places);
-                    //                     });
+                    Work.populate(places, { path: 'work_info.ability.work', select: 'name' }, (error, data) => {
+                        if (error) return msg.msgReturn(res, 3);
+                        return msg.msgReturn(res, 0, places);
+                    });
                 }
             }
         });

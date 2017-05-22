@@ -516,6 +516,7 @@ router.route('/maid/register').post((req, res) => {
 			username: req.body.username || "",
 			email: req.body.email || "",
 			phone: req.body.phone || "",
+			name: req.body.name || "",
 			address: {
 				name: req.body.addressName || "",
 				coordinates: {
@@ -616,6 +617,7 @@ router.route('/maid/update').put((req, res) => {
 			username: req.body.username || "",
 			email: req.body.email || "",
 			phone: req.body.phone || "",
+			name: req.body.name || "",
 			address: {
 				name: req.body.addressName || "",
 				coordinates: {
