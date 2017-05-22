@@ -151,17 +151,18 @@ router.route('/register').post((req, res) => {
 		var owner = new Owner();
 
 		owner.info = {
-			username: req.body.username,
-			email: req.body.email,
-			phone: req.body.phone,
+			username: req.body.username || "",
+			email: req.body.email || "",
+			phone: req.body.phone || "",
+			name: req.body.name || "",
 			address: {
-				name: req.body.addressName,
+				name: req.body.addressName || "",
 				coordinates: {
-					lat: req.body.lat,
-					lng: req.body.lng
+					lat: req.body.lat || 0,
+					lng: req.body.lng || 0
 				}
 			},
-			gender: req.body.gender,
+			gender: req.body.gender || 0,
 		};
 
 		owner.evaluation_point = 2.5;
@@ -318,6 +319,7 @@ router.route('/update').put((req, res) => {
 			username: req.body.username || "",
 			email: req.body.email || "",
 			phone: req.body.phone || "",
+			name: req.body.name || "",
 			address: {
 				name: req.body.addressName || "",
 				coordinates: {
