@@ -203,6 +203,10 @@ router.route('/getAllTasks').get((req, res) => {
                 select: 'name image'
             },
             {
+                path: 'stakeholders.received',
+                select: 'info'
+            },
+            {
                 path: 'process',
                 select: 'name'
             }
