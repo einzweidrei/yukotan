@@ -651,7 +651,7 @@ router.route('/getComment').get((req, res) => {
         let query = { toId: id };
         let options = {
             select: 'evaluation_point content task createAt fromId',
-            populate: { path: 'task', select: 'info.title' },
+            populate: { path: 'task', select: 'info' },
             sort: {
                 createAt: -1
             },
@@ -660,6 +660,7 @@ router.route('/getComment').get((req, res) => {
         };
 
         Comment.paginate(query, options).then((data) => {
+            console.log(data);
             if (validate.isNullorEmpty(data)) {
                 return msg.msgReturn(res, 4);
             } else {
