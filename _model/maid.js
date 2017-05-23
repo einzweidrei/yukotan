@@ -13,6 +13,7 @@ var MaidSchema = new Schema(
             name: { type: String },
             phone: { type: String },
             image: { type: String },
+            age: { type: Number },
             address: {
                 name: { type: String },
                 coordinates: {

@@ -184,19 +184,19 @@ router.route('/resetPassword').post((req, res) => {
  */
 router.route('/getAllMaids').get((req, res) => {
     try {
-        // var language = req.cookies.language;
-        // Package.setDefaultLanguage(language);
-        // Work.setDefaultLanguage(language);
-        // Process.setDefaultLanguage(language);
+        let minDistance = req.query.minDistance || 1;
+        let maxDistance = req.query.maxDistance || 2000;
+        let limit = req.query.limit || 20;
+        let page = req.query.page || 1;
+        let skip = (page - 1) * limit;
 
-        var minDistance = req.query.minDistance || 1;
-        var maxDistance = req.query.maxDistance || 2000;
-        var limit = req.query.limit || 20;
-        var page = req.query.page || 1;
-        var skip = (page - 1) * limit;
+        let priceMin = req.query.priceMin;
+        let priceMax = req.query.priceMax;
 
-        //         var name = req.body.name;
-        //         var work = req.body.work;
+        let ageMin = req.query.ageMin;
+        let ageMax = req.query.ageMax;
+
+        let workId = req.query.workId;
 
         var sortBy = req.query.sortBy || "distance"; //distance & price
         var sortType = req.query.sortType || "asc"; //asc & desc
@@ -235,21 +235,37 @@ router.route('/getAllMaids').get((req, res) => {
 
         var matchQuery = { status: true };
 
-        //         if (work) {
-        //             var arr = new Array();
-        //             if (work instanceof Array) {
-        //                 for (var i = 0; i < work.length; i++) {
-        //                     arr.push(new ObjectId(work[i]));
-        //                 }
-        //                 matchQuery['work_info.ability.work'] = {
-        //                     $in: arr
-        //                 }
-        //             }
-        //         }
+        if (ageMin || ageMax) {
+            let query = {};
 
-        //         if (name) {
-        //             matchQuery['info.name'] = new RegExp(name, 'i');
-        //         }
+            if (ageMin) {
+                query['$gte'] = ageMin;
+            }
+
+            if (ageMax) {
+                query['$lte'] = ageMax;
+            }
+
+            findQuery['info.age'] = query;
+        }
+
+        if (priceMin || priceMax) {
+            let query = {};
+
+            if (priceMin) {
+                query['$gte'] = priceMin;
+            }
+
+            if (priceMax) {
+                query['$lte'] = priceMax;
+            }
+
+            findQuery['work_info.price'] = query;
+        }
+
+        if (workId) {
+            findQuery['work_info.ability.work'] = workId;
+        }
 
         Maid.aggregate([
             {
@@ -266,9 +282,6 @@ router.route('/getAllMaids').get((req, res) => {
                 $match: matchQuery
             },
             {
-                // $sort: {
-                //     'dist.calculated': 1
-                // }
                 $sort: sortQuery
             },
             {
@@ -278,8 +291,6 @@ router.route('/getAllMaids').get((req, res) => {
                 $project: {
                     info: 1,
                     work_info: 1
-                    // history: 1,
-                    // __v: 0
                 }
             }
         ], (error, places) => {
@@ -291,13 +302,12 @@ router.route('/getAllMaids').get((req, res) => {
                 } else {
                     Work.populate(places, { path: 'work_info.ability.work', select: 'name' }, (error, data) => {
                         if (error) return msg.msgReturn(res, 3);
-                        return msg.msgReturn(res, 0, places);
+                        return msg.msgReturn(res, 0, data);
                     });
                 }
             }
         });
     } catch (error) {
-        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
