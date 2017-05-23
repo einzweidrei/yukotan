@@ -539,7 +539,7 @@ router.route('/getAllTasks').get((req, res) => {
             .find(findQuery)
             .populate(populateQuery)
             .sort({ 'history.createAt': -1 })
-            .limit(limit)
+            .limit(parseFloat(limit))
             .select('-location -status -__v').exec((error, data) => {
                 if (error) {
                     return msg.msgReturn(res, 3);

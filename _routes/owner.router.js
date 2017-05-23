@@ -177,6 +177,7 @@ router.route('/getAllDeniedTasks').get((req, res) => {
 router.route('/getAllTasks').get((req, res) => {
     try {
         let id = req.cookies.userId;
+        // let id = '5911460ae740560cb422ac35';
         let process = req.query.process;
 
         let startAt = req.query.startAt;
@@ -234,9 +235,10 @@ router.route('/getAllTasks').get((req, res) => {
             .find(findQuery)
             .populate(populateQuery)
             .sort({ 'history.createAt': -1 })
-            .limit(limit)
+            .limit(parseFloat(limit))
             .select('-location -status -__v').exec((error, data) => {
                 if (error) {
+                    console.log(error);
                     return msg.msgReturn(res, 3);
                 } else {
                     if (validate.isNullorEmpty(data)) {
