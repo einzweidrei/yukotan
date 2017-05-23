@@ -653,6 +653,7 @@ router.route('/update').put((req, res) => {
                 });
             }
         }, (error, result) => {
+            return msg.msgReturn(res, 0, result)
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
