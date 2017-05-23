@@ -481,8 +481,11 @@ router.route('/getAllRequest').post((req, res) => {
  */
 router.route('/getAllTasks').get((req, res) => {
     try {
-        var id = req.cookies.userId;
-        var process = req.query.process;
+        let id = req.cookies.userId;
+        let process = req.query.process;
+        let startAt = req.query.startAt;
+        let endAt = req.query.endAt;
+        let limit = req.query.limit || 0;
 
         var findQuery = {
             status: true
@@ -513,17 +516,41 @@ router.route('/getAllTasks').get((req, res) => {
             }
         ]
 
-        Task.find(findQuery).populate(populateQuery).select('-location -status -__v').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    return msg.msgReturn(res, 0, data);
-                }
+        if (startAt || endAt) {
+            let timeQuery = {};
+
+            if (startAt) {
+                let date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
             }
-        });
+
+            if (endAt) {
+                let date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            findQuery['history.createAt'] = timeQuery;
+        }
+
+        Task
+            .find(findQuery)
+            .populate(populateQuery)
+            .sort({ 'history.createAt': -1 })
+            .limit(limit)
+            .select('-location -status -__v').exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        return msg.msgReturn(res, 0, data);
+                    }
+                }
+            });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }

@@ -179,9 +179,9 @@ router.route('/getAllTasks').get((req, res) => {
         let id = req.cookies.userId;
         let process = req.query.process;
 
-        let today = new Date();
-        let startAt = req.query.startAt || new Date(today.getTime() - 1000 * 3600 * 24 * 7);
-        let endAt = req.query.endAt || today;
+        let startAt = req.query.startAt;
+        let endAt = req.query.endAt;
+        let limit = req.query.limit || 0;
 
         let findQuery = {
             'stakeholders.owner': id,
@@ -192,10 +192,24 @@ router.route('/getAllTasks').get((req, res) => {
             findQuery['process'] = process;
         }
 
-        startAt.setHours(0, 0, 0, 0);
-        endAt.setHours(0, 0, 0, 0);
-        endAt = new Date(endAt.getTime() + 1000 * 3600 * 24 * 1);
-        findQuery['history.createAt'] = { $gte: startAt, $lt: endAt };
+        if (startAt || endAt) {
+            let timeQuery = {};
+
+            if (startAt) {
+                let date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                let date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            findQuery['history.createAt'] = timeQuery;
+        }
 
         var populateQuery = [
             {
@@ -220,6 +234,7 @@ router.route('/getAllTasks').get((req, res) => {
             .find(findQuery)
             .populate(populateQuery)
             .sort({ 'history.createAt': -1 })
+            .limit(limit)
             .select('-location -status -__v').exec((error, data) => {
                 if (error) {
                     return msg.msgReturn(res, 3);
@@ -232,6 +247,7 @@ router.route('/getAllTasks').get((req, res) => {
                 }
             });
     } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
