@@ -239,32 +239,32 @@ router.route('/getAllMaids').get((req, res) => {
             let query = {};
 
             if (ageMin) {
-                query['$gte'] = ageMin;
+                query['$gte'] = parseFloat(ageMin);
             }
 
             if (ageMax) {
-                query['$lte'] = ageMax;
+                query['$lte'] = parseFloat(ageMax);
             }
 
-            findQuery['info.age'] = query;
+            matchQuery['info.age'] = query;
         }
 
         if (priceMin || priceMax) {
             let query = {};
 
             if (priceMin) {
-                query['$gte'] = priceMin;
+                query['$gte'] = parseFloat(priceMin);
             }
 
             if (priceMax) {
-                query['$lte'] = priceMax;
+                query['$lte'] = parseFloat(priceMax);
             }
 
-            findQuery['work_info.price'] = query;
+            matchQuery['work_info.price'] = query;
         }
 
         if (workId) {
-            findQuery['work_info.ability.work'] = workId;
+            matchQuery['work_info.ability.work'] = workId;
         }
 
         Maid.aggregate([
@@ -308,6 +308,7 @@ router.route('/getAllMaids').get((req, res) => {
             }
         });
     } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });

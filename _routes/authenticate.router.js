@@ -155,6 +155,7 @@ router.route('/register').post((req, res) => {
 			email: req.body.email || "",
 			phone: req.body.phone || "",
 			name: req.body.name || "",
+			age: req.body.age || 18,
 			address: {
 				name: req.body.addressName || "",
 				coordinates: {
@@ -320,6 +321,7 @@ router.route('/update').put((req, res) => {
 			email: req.body.email || "",
 			phone: req.body.phone || "",
 			name: req.body.name || "",
+			age: req.body.age || 18,
 			address: {
 				name: req.body.addressName || "",
 				coordinates: {
@@ -519,6 +521,7 @@ router.route('/maid/register').post((req, res) => {
 			email: req.body.email || "",
 			phone: req.body.phone || "",
 			name: req.body.name || "",
+			age: req.body.age || 18,
 			address: {
 				name: req.body.addressName || "",
 				coordinates: {
@@ -620,6 +623,7 @@ router.route('/maid/update').put((req, res) => {
 			email: req.body.email || "",
 			phone: req.body.phone || "",
 			name: req.body.name || "",
+			age: req.body.age || 18,
 			address: {
 				name: req.body.addressName || "",
 				coordinates: {
