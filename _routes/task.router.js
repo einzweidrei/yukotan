@@ -417,7 +417,7 @@ router.route('/create').post((req, res) => {
                 } else {
                     async.parallel({
                         work: function (callback) {
-                            Work.findOne({ _id: req.body.work }).exec((error, data) => {
+                            Work.findOne({ _id: new ObjectId(req.body.work) }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
                                 }
@@ -431,7 +431,7 @@ router.route('/create').post((req, res) => {
                             });
                         },
                         package: function (callback) {
-                            Package.findOne({ _id: req.body.package }).exec((error, data) => {
+                            Package.findOne({ _id: new ObjectId(req.body.package) }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
                                 }
@@ -445,7 +445,7 @@ router.route('/create').post((req, res) => {
                             });
                         },
                         process: function (callback) {
-                            Process.findOne({ _id: req.body.process }).exec((error, data) => {
+                            Process.findOne({ _id: new ObjectId(req.body.process) }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
                                 }
