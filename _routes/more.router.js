@@ -270,7 +270,7 @@ router.route('/getAllMaids').get((req, res) => {
         }
 
         if (gender) {
-            matchQuery['info.gender'] = gender;
+            matchQuery['info.gender'] = parseFloat(gender);
         }
 
         Maid.aggregate([
@@ -314,7 +314,6 @@ router.route('/getAllMaids').get((req, res) => {
             }
         });
     } catch (error) {
-        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
