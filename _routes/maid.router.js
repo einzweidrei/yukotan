@@ -532,13 +532,13 @@ router.route('/getAllTasks').get((req, res) => {
                 timeQuery['$lt'] = date;
             }
 
-            findQuery['history.createAt'] = timeQuery;
+            findQuery['info.time.startAt'] = timeQuery;
         }
 
         Task
             .find(findQuery)
             .populate(populateQuery)
-            .sort({ 'history.createAt': -1 })
+            .sort({ 'info.time.startAt': -1 })
             .limit(parseFloat(limit))
             .select('-location -status -__v').exec((error, data) => {
                 if (error) {
