@@ -54,24 +54,24 @@ router.use(function (req, res, next) {
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
-            if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
-                Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 14);
-                        } else {
-                            req.cookies['userId'] = data.auth.userId;
-                            next();
-                        }
-                    }
-                });
-            } else {
-                return msg.msgReturn(res, 14);
-            }
-            // next();
+            // if (req.headers.hbbgvauth) {
+            //     let token = req.headers.hbbgvauth;
+            //     Session.findOne({ 'auth.token': token }).exec((error, data) => {
+            //         if (error) {
+            //             return msg.msgReturn(res, 3);
+            //         } else {
+            //             if (validate.isNullorEmpty(data)) {
+            //                 return msg.msgReturn(res, 14);
+            //             } else {
+            //                 req.cookies['userId'] = data.auth.userId;
+            //                 next();
+            //             }
+            //         }
+            //     });
+            // } else {
+            //     return msg.msgReturn(res, 14);
+            // }
+            next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -176,15 +176,14 @@ router.route('/getAllDeniedTasks').get((req, res) => {
  */
 router.route('/getAllTasks').get((req, res) => {
     try {
-        // var language = req.cookies.language;
-        // Package.setDefaultLanguage(language);
-        // Work.setDefaultLanguage(language);
-        // Process.setDefaultLanguage(language);
+        let id = req.cookies.userId;
+        let process = req.query.process;
 
-        var id = req.cookies.userId;
-        var process = req.query.process;
+        let today = new Date();
+        let startAt = req.query.startAt || new Date(today.getTime() - 1000 * 3600 * 24 * 7);
+        let endAt = req.query.endAt || today;
 
-        var findQuery = {
+        let findQuery = {
             'stakeholders.owner': id,
             status: true
         }
@@ -192,6 +191,11 @@ router.route('/getAllTasks').get((req, res) => {
         if (process) {
             findQuery['process'] = process;
         }
+
+        startAt.setHours(0, 0, 0, 0);
+        endAt.setHours(0, 0, 0, 0);
+        endAt = new Date(endAt.getTime() + 1000 * 3600 * 24 * 1);
+        findQuery['history.createAt'] = { $gte: startAt, $lt: endAt };
 
         var populateQuery = [
             {
@@ -210,19 +214,23 @@ router.route('/getAllTasks').get((req, res) => {
                 path: 'process',
                 select: 'name'
             }
-        ]
+        ];
 
-        Task.find(findQuery).populate(populateQuery).select('-location -status -__v').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
+        Task
+            .find(findQuery)
+            .populate(populateQuery)
+            .sort({ 'history.createAt': -1 })
+            .select('-location -status -__v').exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
                 } else {
-                    return msg.msgReturn(res, 0, data);
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        return msg.msgReturn(res, 0, data);
+                    }
                 }
-            }
-        });
+            });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
