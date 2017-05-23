@@ -631,6 +631,12 @@ router.route('/comment').post((req, res) => {
                                 let ep_2 = data.evaluation_point;
                                 let new_ep = (comment.evaluation_point + ep_2) / 2;
 
+                                if ((comment.evaluation_point + ep_2) % 2 >= 5) {
+                                    new_ep = Math.ceil(new_ep);
+                                } else {
+                                    new_ep = Math.round(new_ep);
+                                }
+
                                 Owner.findOneAndUpdate(
                                     {
                                         _id: comment.toId,

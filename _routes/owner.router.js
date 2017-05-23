@@ -54,24 +54,24 @@ router.use(function (req, res, next) {
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
-            if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
-                Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 14);
-                        } else {
-                            req.cookies['userId'] = data.auth.userId;
-                            next();
-                        }
-                    }
-                });
-            } else {
-                return msg.msgReturn(res, 14);
-            }
-            // next();
+            // if (req.headers.hbbgvauth) {
+            //     let token = req.headers.hbbgvauth;
+            //     Session.findOne({ 'auth.token': token }).exec((error, data) => {
+            //         if (error) {
+            //             return msg.msgReturn(res, 3);
+            //         } else {
+            //             if (validate.isNullorEmpty(data)) {
+            //                 return msg.msgReturn(res, 14);
+            //             } else {
+            //                 req.cookies['userId'] = data.auth.userId;
+            //                 next();
+            //             }
+            //         }
+            //     });
+            // } else {
+            //     return msg.msgReturn(res, 14);
+            // }
+            next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -307,6 +307,7 @@ router.route('/comment').post((req, res) => {
     try {
         let comment = new Comment();
         comment.fromId = req.cookies.userId;
+        // comment.fromId = req.body.fromId;
         comment.toId = req.body.toId;
         comment.task = req.body.task;
         comment.content = req.body.content;
@@ -328,6 +329,12 @@ router.route('/comment').post((req, res) => {
                             if (validate.isNullorEmpty(cmt)) {
                                 let ep_2 = data.work_info.evaluation_point;
                                 let new_ep = (comment.evaluation_point + ep_2) / 2;
+
+                                if ((comment.evaluation_point + ep_2) % 2 >= 5) {
+                                    new_ep = Math.ceil(new_ep);
+                                } else {
+                                    new_ep = Math.round(new_ep);
+                                }
 
                                 Maid.findOneAndUpdate(
                                     {

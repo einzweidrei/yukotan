@@ -198,6 +198,8 @@ router.route('/getAllMaids').get((req, res) => {
 
         let workId = req.query.workId;
 
+        let gender = req.query.gender;
+
         var sortBy = req.query.sortBy || "distance"; //distance & price
         var sortType = req.query.sortType || "asc"; //asc & desc
 
@@ -265,6 +267,10 @@ router.route('/getAllMaids').get((req, res) => {
 
         if (workId) {
             matchQuery['work_info.ability.work'] = workId;
+        }
+
+        if (gender) {
+            matchQuery['info.gender'] = gender;
         }
 
         Maid.aggregate([
