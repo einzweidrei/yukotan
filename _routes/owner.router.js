@@ -223,7 +223,7 @@ router.route('/getAllTasks').get((req, res) => {
             },
             {
                 path: 'stakeholders.received',
-                select: 'info'
+                select: 'info work_info'
             },
             {
                 path: 'process',
