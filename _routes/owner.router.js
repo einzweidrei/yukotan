@@ -183,6 +183,7 @@ router.route('/getAllTasks').get((req, res) => {
         let startAt = req.query.startAt;
         let endAt = req.query.endAt;
         let limit = req.query.limit || 0;
+        let sortByTaskTime = req.query.sortByTaskTime;
 
         let findQuery = {
             'stakeholders.owner': id,
@@ -231,10 +232,16 @@ router.route('/getAllTasks').get((req, res) => {
             }
         ];
 
+        let sortQuery = { 'history.createAt': -1 };
+
+        if (sortByTaskTime) {
+            sortQuery = { 'info.time.endAt': 1 };
+        }
+
         Task
             .find(findQuery)
             .populate(populateQuery)
-            .sort({ 'info.time.startAt': -1 })
+            .sort(sortQuery)
             .limit(parseFloat(limit))
             .select('-location -status -__v').exec((error, data) => {
                 if (error) {

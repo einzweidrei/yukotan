@@ -100,6 +100,7 @@ app.use('/:language/more', require('./_routes/more.router'));
 app.use('/:language/comment', require('./_routes/comment.router'));
 
 app.use('/microsoft', require('./_routes/microsoftApi.router'));
+app.use('/al', require('./_routes/algorithm.router'));
 // app.use('/image', require('./_routes/uploadImage.router'));
 
 // /:language(en|vi)
