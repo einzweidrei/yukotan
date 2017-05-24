@@ -278,7 +278,7 @@ router.route('/getHistoryTasks').get((req, res) => {
 
         let startAt = req.query.startAt;
         let endAt = req.query.endAt;
-        let limit = req.query.limit || 0;
+        let limit = req.query.limit || 10;
         let page = req.query.page || 1;
 
         let findQuery = {
