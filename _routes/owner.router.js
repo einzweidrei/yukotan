@@ -54,6 +54,7 @@ router.use(function (req, res, next) {
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
+            // next();
             if (req.headers.hbbgvauth) {
                 let token = req.headers.hbbgvauth;
                 Session.findOne({ 'auth.token': token }).exec((error, data) => {
@@ -71,7 +72,6 @@ router.use(function (req, res, next) {
             } else {
                 return msg.msgReturn(res, 14);
             }
-            // next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -274,7 +274,7 @@ router.route('/getHistoryTasks').get((req, res) => {
     try {
         let id = req.cookies.userId;
         // let id = '5911460ae740560cb422ac35';
-        let process = req.query.process;
+        let process = req.query.process || '000000000000000000000005';
 
         let startAt = req.query.startAt;
         let endAt = req.query.endAt;
@@ -334,8 +334,8 @@ router.route('/getHistoryTasks').get((req, res) => {
             sort: {
                 'info.time.startAt': -1
             },
-            page: page,
-            limit: limit
+            page: parseFloat(page),
+            limit: parseFloat(limit)
         };
 
         // Task

@@ -66,6 +66,6 @@ var TaskSchema = new Schema(
 TaskSchema.index({ 'location': '2dsphere' });
 
 //plugin Pagination
-// TaskSchema.plugin(mongoosePaginate);
+TaskSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Task', TaskSchema);		
