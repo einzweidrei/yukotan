@@ -398,11 +398,11 @@ router.route('/create').post((req, res) => {
 
         task.status = true;
 
-        let start = new Date(task.info.time.startAt);
-        let end = new Date(task.info.time.endAt);
-        if (start >= end) {
-            return msg.msgReturn(res, 9);
-        }
+//         let start = new Date(task.info.time.startAt);
+//         let end = new Date(task.info.time.endAt);
+//         if (start >= end) {
+//             return msg.msgReturn(res, 9);
+//         }
 
         // if (task.info.time.startAt >= task.info.time.endAt) {
         //     return msg.msgReturn(res, 9);
