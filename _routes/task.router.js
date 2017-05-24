@@ -382,7 +382,6 @@ router.route('/create').post((req, res) => {
         };
 
         task.process = new ObjectId('000000000000000000000001');
-        // task.process = req.body.process;
 
         task.location = {
             type: 'Point',
@@ -416,48 +415,48 @@ router.route('/create').post((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     async.parallel({
-//                         work: function (callback) {
-//                             Work.findOne({ _id: req.body.work }).exec((error, data) => {
-//                                 if (error) {
-//                                     callback(null, 2);
-//                                 }
-//                                 else {
-//                                     if (validate.isNullorEmpty(data)) {
-//                                         callback(null, 1);
-//                                     } else {
-//                                         callback(null, 0);
-//                                     }
-//                                 }
-//                             });
-//                         },
-//                         package: function (callback) {
-//                             Package.findOne({ _id: req.body.package }).exec((error, data) => {
-//                                 if (error) {
-//                                     callback(null, 2);
-//                                 }
-//                                 else {
-//                                     if (validate.isNullorEmpty(data)) {
-//                                         callback(null, 1);
-//                                     } else {
-//                                         callback(null, 0);
-//                                     }
-//                                 }
-//                             });
-//                         },
-//                         process: function (callback) {
-//                             Process.findOne({ _id: req.body.process }).exec((error, data) => {
-//                                 if (error) {
-//                                     callback(null, 2);
-//                                 }
-//                                 else {
-//                                     if (validate.isNullorEmpty(data)) {
-//                                         callback(null, 1);
-//                                     } else {
-//                                         callback(null, 0);
-//                                     }
-//                                 }
-//                             });
-//                         },
+                        work: function (callback) {
+                            Work.findOne({ _id: req.body.work }).exec((error, data) => {
+                                if (error) {
+                                    callback(null, 2);
+                                }
+                                else {
+                                    if (validate.isNullorEmpty(data)) {
+                                        callback(null, 1);
+                                    } else {
+                                        callback(null, 0);
+                                    }
+                                }
+                            });
+                        },
+                        package: function (callback) {
+                            Package.findOne({ _id: req.body.package }).exec((error, data) => {
+                                if (error) {
+                                    callback(null, 2);
+                                }
+                                else {
+                                    if (validate.isNullorEmpty(data)) {
+                                        callback(null, 1);
+                                    } else {
+                                        callback(null, 0);
+                                    }
+                                }
+                            });
+                        },
+                        process: function (callback) {
+                            Process.findOne({ _id: req.body.process }).exec((error, data) => {
+                                if (error) {
+                                    callback(null, 2);
+                                }
+                                else {
+                                    if (validate.isNullorEmpty(data)) {
+                                        callback(null, 1);
+                                    } else {
+                                        callback(null, 0);
+                                    }
+                                }
+                            });
+                        },
                         task: function (callback) {
                             Task.find(
                                 {
@@ -479,11 +478,10 @@ router.route('/create').post((req, res) => {
                                 });
                         }
                     }, (error, result) => {
-//                           return msg.msgReturn(res, 0, result);
                         if (error) {
                             return msg.msgReturn(res, 3);
                         } else {
-//                             if (result.work == 0 && result.package == 0 && result.process == 0) {
+                            if (result.work == 0 && result.package == 0 && result.process == 0) {
                                 if (result.task == 0) {
                                     task.save((error) => {
                                         if (error) {
@@ -500,13 +498,13 @@ router.route('/create').post((req, res) => {
                                 else {
                                     return msg.msgReturn(res, 3);
                                 }
-//                             } else {
-//                                 if (result.work == 1 || result.package == 1 || result.process == 1) {
-//                                     return msg.msgReturn(res, 4);
-//                                 } else {
-//                                     return msg.msgReturn(res, 3);
-//                                 }
-//                             }
+                            } else {
+                                if (result.work == 1 || result.package == 1 || result.process == 1) {
+                                    return msg.msgReturn(res, 4);
+                                } else {
+                                    return msg.msgReturn(res, 3);
+                                }
+                            }
                         }
                     });
                 }
