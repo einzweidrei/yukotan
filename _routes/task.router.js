@@ -444,7 +444,7 @@ router.route('/create').post((req, res) => {
                             });
                         },
                         process: function (callback) {
-                            Process.findOne({ _id: req.body.process }).exec((error, data) => {
+                            Process.findOne({ _id: task.process }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
                                 }
