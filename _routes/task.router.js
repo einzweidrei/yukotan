@@ -864,7 +864,11 @@ router.route('/reserve').post((req, res) => {
                 Task.findOne(
                     {
                         _id: id,
-                        process: { $in: ['000000000000000000000001', '000000000000000000000002'] },
+                        process: {
+                            $in: ['000000000000000000000001'
+                                // , '000000000000000000000002'
+                            ]
+                        },
                         status: true
                     }).exec((error, data) => {
                         if (error) {
@@ -891,13 +895,17 @@ router.route('/reserve').post((req, res) => {
                     Task.findOneAndUpdate(
                         {
                             _id: id,
-                            process: { $in: ['000000000000000000000001', '000000000000000000000002'] },
+                            process: {
+                                $in: ['000000000000000000000001'
+                                    // , '000000000000000000000002'
+                                ]
+                            },
                             status: true
                         },
                         {
                             $push: {
                                 'stakeholders.request': maid,
-                                process: new ObjectId('000000000000000000000002')
+                                // process: new ObjectId('000000000000000000000002')
                             }
                         },
                         {
@@ -970,7 +978,11 @@ router.route('/submit').post((req, res) => {
                     {
                         _id: id,
                         'stakeholders.owner': ownerId,
-                        process: { $in: ['000000000000000000000001', '000000000000000000000002'] },
+                        process: {
+                            $in: ['000000000000000000000001',
+                                //  '000000000000000000000002'
+                            ]
+                        },
                         status: true
                     }).exec((error, data) => {
                         if (error) {
@@ -1052,7 +1064,11 @@ router.route('/submit').post((req, res) => {
                         {
                             _id: id,
                             'stakeholders.owner': ownerId,
-                            process: { $in: ['000000000000000000000001', '000000000000000000000002'] },
+                            process: {
+                                $in: ['000000000000000000000001',
+                                    // '000000000000000000000002'
+                                ]
+                            },
                             status: true
                         },
                         {
