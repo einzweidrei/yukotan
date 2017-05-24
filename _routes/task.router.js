@@ -370,7 +370,7 @@ router.route('/create').post((req, res) => {
                 }
             },
             time: {
-                startAt: req.body.startAt || new Date() - 1,
+                startAt: req.body.startAt || new Date(),
                 endAt: req.body.endAt || new Date(),
                 hour: req.body.hour || 0
             },
@@ -468,7 +468,7 @@ router.route('/create').post((req, res) => {
                                         callback(null, 2);
                                     }
                                     else {
-                                        if (validate.isNullorEmpty(data) || !data || data.length <= 5) {
+                                        if (validate.isNullorEmpty(data) || !data || data.length <= 10) {
                                             callback(null, 0);
                                         }
                                         else {
