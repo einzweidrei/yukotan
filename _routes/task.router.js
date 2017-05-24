@@ -400,12 +400,16 @@ router.route('/create').post((req, res) => {
 
         if (task.info.time.startAt >= task.info.time.endAt) {
             return msg.msgReturn(res, 9);
-        } else {
-            var h = task.info.time.startAt.getHours() + task.info.time.endAt.getHours();
-            if (task.info.time.hour > h) {
-                return msg.msgReturn(res, 9);
-            }
         }
+
+        // if (task.info.time.startAt >= task.info.time.endAt) {
+        //     return msg.msgReturn(res, 9);
+        // } else {
+        //     var h = task.info.time.startAt.getHours() + task.info.time.endAt.getHours();
+        //     if (task.info.time.hour > h) {
+        //         return msg.msgReturn(res, 9);
+        //     }
+        // }
 
         Owner.findOne({ _id: req.cookies.userId }).exec((error, owner) => {
             if (error) {
