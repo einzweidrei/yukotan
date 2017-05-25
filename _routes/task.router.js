@@ -21,6 +21,7 @@ var Work = require('../_model/work');
 var Task = require('../_model/task');
 var Process = require('../_model/process');
 var Maid = require('../_model/maid');
+var Bill = require('../_model/bill');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 
@@ -398,11 +399,11 @@ router.route('/create').post((req, res) => {
 
         task.status = true;
 
-//         let start = new Date(task.info.time.startAt);
-//         let end = new Date(task.info.time.endAt);
-//         if (start >= end) {
-//             return msg.msgReturn(res, 9);
-//         }
+        //         let start = new Date(task.info.time.startAt);
+        //         let end = new Date(task.info.time.endAt);
+        //         if (start >= end) {
+        //             return msg.msgReturn(res, 9);
+        //         }
 
         // if (task.info.time.startAt >= task.info.time.endAt) {
         //     return msg.msgReturn(res, 9);
@@ -954,7 +955,8 @@ router.route('/reserve').post((req, res) => {
 router.route('/submit').post((req, res) => {
     try {
         var id = req.body.id;
-        var ownerId = req.cookies.userId;
+        // var ownerId = req.cookies.userId;
+        var ownerId = '5911460ae740560cb422ac35';
         var maidId = req.body.maidId;
 
         async.parallel({
@@ -1061,7 +1063,7 @@ router.route('/submit').post((req, res) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
-                if (result.maid == 0 && result.task == 0) {
+                if (result.maid == 2 && result.task == 2) {
                     Task.findOneAndUpdate(
                         {
                             _id: id,
@@ -1126,7 +1128,8 @@ router.route('/submit').post((req, res) => {
 router.route('/checkin').post((req, res) => {
     try {
         var id = req.body.id;
-        var ownerId = req.cookies.userId;
+        // var ownerId = req.cookies.userId;
+        var ownerId = '5911460ae740560cb422ac35';
 
         async.parallel({
             //check owner exist
@@ -1240,26 +1243,10 @@ router.route('/checkin').post((req, res) => {
 router.route('/checkout').post((req, res) => {
     try {
         var id = req.body.id;
-        var ownerId = req.cookies.userId;
+        // var ownerId = req.cookies.userId;
+        var ownerId = '5911460ae740560cb422ac35';
 
         async.parallel({
-            //check owner exist
-            // owner: function (callback) {
-            //     Owner.findOne({ _id: ownerId }).exec((error, data) => {
-            //         if (error) {
-            //             callback(null, 2);
-            //         }
-            //         else {
-            //             if (validate.isNullorEmpty(data)) {
-            //                 callback(null, 1);
-            //             } else {
-            //                 callback(null, 0);
-            //             }
-            //         }
-            //     });
-            // },
-
-            //check task exist
             task: function (callback) {
                 Task.findOne(
                     {
@@ -1292,9 +1279,8 @@ router.route('/checkout').post((req, res) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
-                if (
-                    // result.owner == 0 && 
-                    result.task == 0) {
+                if (result.task == 0) {
+                    let checkOut = new Date();
                     Task.findOneAndUpdate(
                         {
                             _id: id,
@@ -1305,21 +1291,89 @@ router.route('/checkout').post((req, res) => {
                         {
                             $set: {
                                 process: new ObjectId('000000000000000000000005'),
-                                'check.check_out': new Date()
+                                'check.check_out': checkOut
                             }
                         },
                         {
                             upsert: true
                         },
-                        (error) => {
+                        (error, task) => {
                             if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0);
+                            else {
+                                let bill = new Bill();
+                                bill.owner = task.stakeholders.owner;
+                                bill.maid = task.stakeholders.received;
+                                bill.task = task._id;
+                                bill.isSolved = false;
+                                bill.date = new Date();
+                                bill.createAt = new Date();
+                                bill.status = true;
+
+                                if (task.info.package == '000000000000000000000001') {
+                                    bill.price = task.info.price;
+
+                                    bill.save((error) => {
+                                        if (error) return msg.msgReturn(res, 3);
+                                        return msg.msgReturn(res, 0);
+                                    });
+                                }
+
+                                if (task.info.package == '000000000000000000000002') {
+                                    Maid.findOne({ _id: task.stakeholders.received, status: true }).exec((error, maid) => {
+                                        console.log(maid);
+                                        if (error) {
+                                            return msg.msgReturn(res, 0);
+                                        } else {
+                                            if (validate.isNullorEmpty(maid)) {
+                                                return msg.msgReturn(res, 4);
+                                            } else {
+                                                let timeIn = new Date(task.check.check_in);
+                                                let timeOut = new Date(checkOut);
+                                                // console.log(timeIn);
+                                                // console.log(timeOut);
+
+                                                let t = new Date(timeOut.getTime() - timeIn.getTime());
+                                                // console.log(t);
+
+                                                var price = 0;
+                                                // console.log(price);
+
+                                                let maidPrice = maid.work_info.price;
+                                                // console.log(maidPrice);
+
+                                                let hours = t.getUTCHours();
+                                                let minutes = t.getUTCMinutes();
+
+                                                if (hours == 0) {
+                                                    price = maidPrice;
+                                                } else {
+                                                    if (minutes >= 0 && minutes < 15) {
+                                                        price = maidPrice * hours + maidPrice / 4;
+                                                    } else if (minutes >= 15 && minutes < 30) {
+                                                        price = maidPrice * hours + maidPrice / 2;
+                                                    } else if (minutes >= 30 && minutes < 45) {
+                                                        price = maidPrice * hours + maidPrice * (3 / 4);
+                                                    } else {
+                                                        price = maidPrice * (hours + 1);
+                                                    }
+                                                }
+                                                // console.log('price: ' + price);
+
+                                                bill.price = price;
+
+                                                bill.save((error) => {
+                                                    if (error) return msg.msgReturn(res, 3);
+                                                    return msg.msgReturn(res, 0);
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                            }
                         }
                     );
                 } else {
-                    if (
-                        // result.owner == 1 || 
-                        result.task == 1) {
+                    if (result.task == 1) {
                         return msg.msgReturn(res, 4);
                     }
                     else if (result.task == 3) {

@@ -32,6 +32,29 @@ router.use(function (req, res, next) {
     next();
 });
 
+router.route('/testTime').post((req, res) => {
+    try {
+        let timeIn = new Date('2017-05-24T12:00:39.311Z');
+        let timeOut = new Date('2017-05-24T15:50:39.311Z');
+
+        console.log(timeIn.getTime());
+        console.log(timeOut.getTime());
+
+        console.log(timeIn.getUTCHours());
+        console.log(timeOut.getUTCHours());
+
+
+        // let e = timeOut.getDate() - timeIn.getDate();
+
+        console.log(e);
+        let d = new Date(e);
+
+        console.log(d);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
 router.route('/get').post((req, res) => {
     try {
         let num = req.body.num;
