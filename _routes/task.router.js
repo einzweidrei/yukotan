@@ -485,7 +485,9 @@ router.route('/create').post((req, res) => {
                                 });
                         }
                     }, (error, result) => {
+                        console.log(result);
                         if (error) {
+                            console.log(error);
                             return msg.msgReturn(res, 3);
                         } else {
                             if (result.work == 0 && result.package == 0 && result.process == 0) {
@@ -518,6 +520,7 @@ router.route('/create').post((req, res) => {
             }
         });
     } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
@@ -645,10 +648,12 @@ router.route('/update').put((req, res) => {
                 });
             }
         }, (error, result) => {
+            console.log(result);
             if (error) {
+                console.log(error);
                 return msg.msgReturn(res, 3);
             } else {
-                if (result.work == 0 && result.package == 0 && result.process == 0 && result.task == 0) {
+                if (result.work == 0 && result.package == 0 && result.task == 0) {
                     Task.findOneAndUpdate(
                         {
                             _id: id,
@@ -675,7 +680,7 @@ router.route('/update').put((req, res) => {
                         }
                     )
                 } else {
-                    if (result.work == 1 || result.package == 1 || result.process == 1 || result.task == 1) {
+                    if (result.work == 1 || result.package == 1 || result.task == 1) {
                         return msg.msgReturn(res, 4);
                     } else if (result.task == 3) {
                         return msg.msgReturn(res, 7);
@@ -686,6 +691,7 @@ router.route('/update').put((req, res) => {
             }
         });
     } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
