@@ -578,7 +578,7 @@ router.route('/update').put((req, res) => {
             tools: req.body.tools || false
         };
 
-        task.process = req.body.process;
+        // task.process = req.body.process;
 
         task.location = {
             type: 'Point',
@@ -588,14 +588,14 @@ router.route('/update').put((req, res) => {
             ]
         };
 
-        if (task.info.time.startAt >= task.info.time.endAt) {
-            return msg.msgReturn(res, 9);
-        } else {
-            var h = task.info.time.startAt.getHours() + task.info.time.endAt.getHours();
-            if (task.info.time.hour > h) {
-                return msg.msgReturn(res, 9);
-            }
-        }
+        // if (task.info.time.startAt >= task.info.time.endAt) {
+        //     return msg.msgReturn(res, 9);
+        // } else {
+        //     var h = task.info.time.startAt.getHours() + task.info.time.endAt.getHours();
+        //     if (task.info.time.hour > h) {
+        //         return msg.msgReturn(res, 9);
+        //     }
+        // }
 
         async.parallel({
             work: function (callback) {
@@ -614,20 +614,6 @@ router.route('/update').put((req, res) => {
             },
             package: function (callback) {
                 Package.findOne({ _id: req.body.package, status: true }).exec((error, data) => {
-                    if (error) {
-                        callback(null, 2);
-                    }
-                    else {
-                        if (validate.isNullorEmpty(data)) {
-                            callback(null, 1);
-                        } else {
-                            callback(null, 0);
-                        }
-                    }
-                });
-            },
-            process: function (callback) {
-                Process.findOne({ _id: req.body.process, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, 2);
                     }
@@ -672,7 +658,7 @@ router.route('/update').put((req, res) => {
                         {
                             $set: {
                                 info: task.info,
-                                process: task.process,
+                                // process: task.process,
                                 location: task.location,
                                 'history.updateAt': new Date()
                             }
