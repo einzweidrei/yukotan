@@ -42,7 +42,7 @@ router.use(bodyparser.json());
  * 
  */
 router.use(function (req, res, next) {
-    console.log('owner_router is connecting');
+    console.log('cms-owner_router is connecting');
 
     try {
         var baseUrl = req.baseUrl;
@@ -54,24 +54,24 @@ router.use(function (req, res, next) {
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
-            // next();
-            if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
-                Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 14);
-                        } else {
-                            req.cookies['userId'] = data.auth.userId;
-                            next();
-                        }
-                    }
-                });
-            } else {
-                return msg.msgReturn(res, 14);
-            }
+            next();
+            // if (req.headers.hbbgvauth) {
+            //     let token = req.headers.hbbgvauth;
+            //     Session.findOne({ 'auth.token': token }).exec((error, data) => {
+            //         if (error) {
+            //             return msg.msgReturn(res, 3);
+            //         } else {
+            //             if (validate.isNullorEmpty(data)) {
+            //                 return msg.msgReturn(res, 14);
+            //             } else {
+            //                 req.cookies['userId'] = data.auth.userId;
+            //                 next();
+            //             }
+            //         }
+            //     });
+            // } else {
+            //     return msg.msgReturn(res, 14);
+            // }
         }
         else {
             return msg.msgReturn(res, 6);
@@ -80,6 +80,8 @@ router.use(function (req, res, next) {
         return msg.msgReturn(res, 3);
     }
 });
+
+
 
 /** GET - Get Owner By Owner ID
  * info {
@@ -379,31 +381,9 @@ router.route('/getAllWorkedMaid').get((req, res) => {
     try {
         let id = req.cookies.userId;
 
-        let startAt = req.query.startAt;
-        let endAt = req.query.endAt;
-
         var matchQuery = {
             process: new ObjectId('000000000000000000000005'),
             'stakeholders.owner': new ObjectId(id)
-        };
-
-        if (startAt || endAt) {
-            let timeQuery = {};
-
-            if (startAt) {
-                let date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                let date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            matchQuery['info.time.startAt'] = timeQuery;
         };
 
         Task.aggregate([
