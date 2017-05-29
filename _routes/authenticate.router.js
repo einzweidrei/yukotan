@@ -3,7 +3,7 @@ var mongoose = require('mongoose');
 var router = express.Router();
 
 var messageService = require('../_services/message.service');
-var mess = new messageService();
+var mess = messageService;
 var msg = new messageService.Message();
 
 var validationService = require('../_services/validation.service');

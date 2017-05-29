@@ -418,6 +418,7 @@ router.route('/getAllWorkedMaid').get((req, res) => {
             {
                 $group: {
                     _id: '$stakeholders.received',
+                    time: '$info.time.startAt'
                 }
             }
         ],
