@@ -3,6 +3,7 @@ var mongoose = require('mongoose');
 var router = express.Router();
 
 var messageService = require('../_services/message.service');
+var mess = new messageService();
 var msg = new messageService.Message();
 
 var validationService = require('../_services/validation.service');
@@ -93,7 +94,7 @@ router.route('/login').post((req, res) => {
 										} else {
 											return res.status(200).json({
 												status: true,
-												message: msg.msg_success,
+												message: mess.msg_success,
 												data: {
 													token: newToken,
 													user: {
@@ -123,7 +124,7 @@ router.route('/login').post((req, res) => {
 										(error, result) => {
 											return res.status(200).json({
 												status: true,
-												message: msg.msg_success,
+												message: mess.msg_success,
 												data: {
 													token: newToken,
 													user: {

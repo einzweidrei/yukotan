@@ -411,6 +411,11 @@ router.route('/getAllWorkedMaid').get((req, res) => {
                 $match: matchQuery
             },
             {
+                $sort: {
+                    'info.time.startAt': -1
+                },
+            },
+            {
                 $group: {
                     _id: '$stakeholders.received',
                 }

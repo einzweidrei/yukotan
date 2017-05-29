@@ -81,8 +81,6 @@ router.use(function (req, res, next) {
     }
 });
 
-
-
 /** GET - Get Owner By Owner ID
  * info {
  *      type: GET
