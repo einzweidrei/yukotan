@@ -72,7 +72,7 @@ router.route('/login').post((req, res) => {
 					return msg.msgReturn(res, 3);
 				} else {
 					if (data.auth.password != password) {
-						return msg.msgReturn(res, 5);
+						return msg.msgReturn(res, 5, {});
 					} else {
 						Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
 							if (error) {
@@ -259,7 +259,7 @@ router.route('/register').post((req, res) => {
 					)
 				}
 			} else {
-				return msg.msgReturn(res, 2);
+				return msg.msgReturn(res, 2, {});
 			}
 		})
 	} catch (error) {
