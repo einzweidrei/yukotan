@@ -100,7 +100,7 @@ router.route('/login').post((req, res) => {
 													info: data.info
 												}
 											}
-											return msg.msgReturn(res, 0, data);
+											return msg.msgReturn(res, 0, dt);
 
 											// return res.status(200).json({
 											// 	status: true,
@@ -139,7 +139,7 @@ router.route('/login').post((req, res) => {
 													info: data.info
 												}
 											}
-											return msg.msgReturn(res, 0, data);
+											return msg.msgReturn(res, 0, dt);
 											// return res.status(200).json({
 											// 	status: true,
 											// 	message: mess.msg_success,
