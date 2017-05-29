@@ -119,7 +119,7 @@ router.route('/getById').get((req, res) => {
 
 router.route('/getMyInfo').get((req, res) => {
     try {
-        var id = req.cookies.id;
+        var id = req.cookies.userId;
 
         Owner.findOne({ _id: id }).select('-auth -status -location -__v').exec((error, data) => {
             if (error) {
