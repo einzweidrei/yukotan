@@ -3,7 +3,7 @@ var mongoose = require('mongoose');
 var router = express.Router();
 
 var messageService = require('../_services/message.service');
-var mess = messageService;
+// var mess = messageService.Message;
 var msg = new messageService.Message();
 
 var validationService = require('../_services/validation.service');
@@ -25,6 +25,7 @@ router.use(multipartMiddleware);
 
 router.use(function (req, res, next) {
 	try {
+		// console.log(mess.msg_success);
 		console.log(req.cookies);
 
 		var baseUrl = req.baseUrl;
@@ -92,17 +93,26 @@ router.route('/login').post((req, res) => {
 										if (error) {
 											return msg.msgReturn(res, 3);
 										} else {
-											return res.status(200).json({
-												status: true,
-												message: mess.msg_success,
-												data: {
-													token: newToken,
-													user: {
-														_id: data._id,
-														info: data.info
-													}
+											let dt = {
+												token: newToken,
+												user: {
+													_id: data._id,
+													info: data.info
 												}
-											});
+											}
+											return msg.msgReturn(res, 0, data);
+
+											// return res.status(200).json({
+											// 	status: true,
+											// 	message: mess.msg_success,
+											// 	data: {
+											// 		token: newToken,
+											// 		user: {
+											// 			_id: data._id,
+											// 			info: data.info
+											// 		}
+											// 	}
+											// });
 										}
 									});
 								} else {
@@ -122,17 +132,25 @@ router.route('/login').post((req, res) => {
 											upsert: true
 										},
 										(error, result) => {
-											return res.status(200).json({
-												status: true,
-												message: mess.msg_success,
-												data: {
-													token: newToken,
-													user: {
-														_id: data._id,
-														info: data.info
-													}
+											let dt = {
+												token: newToken,
+												user: {
+													_id: data._id,
+													info: data.info
 												}
-											});
+											}
+											return msg.msgReturn(res, 0, data);
+											// return res.status(200).json({
+											// 	status: true,
+											// 	message: mess.msg_success,
+											// 	data: {
+											// 		token: newToken,
+											// 		user: {
+											// 			_id: data._id,
+											// 			info: data.info
+											// 		}
+											// 	}
+											// });
 										}
 									)
 								}
