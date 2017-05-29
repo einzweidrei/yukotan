@@ -101,7 +101,7 @@ router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
 
-        Owner.findOne({ _id: id }).select('-auth -status -location -__v').exec((error, data) => {
+        Owner.findOne({ _id: id }).select('-history -wallet -auth -status -location -__v').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {

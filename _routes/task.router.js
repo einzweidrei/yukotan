@@ -22,6 +22,7 @@ var Task = require('../_model/task');
 var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Bill = require('../_model/bill');
+var Comment = require('../_model/comment');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 
@@ -1798,6 +1799,28 @@ router.route('/getRequest').get((req, res) => {
     } catch (error) {
         console.log(error);
         return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/getComment').get((req, res) => {
+    try {
+        let id = req.cookies.userId;
+        let task = req.query.task;
+
+        console.log(id);
+        Comment.findOne({ fromId: id, task: task, status: true }).select('createAt evaluation_point content').exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3, {});
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4, {});
+                } else {
+                    return msg.msgReturn(res, 0, data);
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3, {});
     }
 });
 
