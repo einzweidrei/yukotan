@@ -68,17 +68,17 @@ router.route('/login').post((req, res) => {
 
 		Owner.findOne({ 'info.username': username }).select('_id info auth').exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
-				return msg.msgReturn(res, 3);
+				return msg.msgReturn(res, 3, {});
 			} else {
 				if (error) {
-					return msg.msgReturn(res, 3);
+					return msg.msgReturn(res, 3, {});
 				} else {
 					if (data.auth.password != password) {
 						return msg.msgReturn(res, 5, {});
 					} else {
 						Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
 							if (error) {
-								return msg.msgReturn(res, 3);
+								return msg.msgReturn(res, 3, {});
 							} else {
 								var newToken = getToken();
 
@@ -91,7 +91,7 @@ router.route('/login').post((req, res) => {
 
 									session.save((error) => {
 										if (error) {
-											return msg.msgReturn(res, 3);
+											return msg.msgReturn(res, 3, {});
 										} else {
 											let dt = {
 												token: newToken,
@@ -161,7 +161,7 @@ router.route('/login').post((req, res) => {
 			}
 		});
 	} catch (error) {
-		return msg.msgReturn(res, 3);
+		return msg.msgReturn(res, 3, {});
 	}
 });
 

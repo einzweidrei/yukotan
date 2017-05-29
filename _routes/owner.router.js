@@ -117,6 +117,26 @@ router.route('/getById').get((req, res) => {
     }
 });
 
+router.route('/getMyInfo').get((req, res) => {
+    try {
+        var id = req.cookies.id;
+
+        Owner.findOne({ _id: id }).select('-auth -status -location -__v').exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    return msg.msgReturn(res, 0, data);
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 router.route('/getAllDeniedTasks').get((req, res) => {
     try {
         let ownerId = req.cookies.userId;
