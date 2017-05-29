@@ -68,7 +68,7 @@ router.route('/login').post((req, res) => {
 
 		Owner.findOne({ 'info.username': username }).select('_id info auth').exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
-				return msg.msgReturn(res, 3, {});
+				return msg.msgReturn(res, 4, {});
 			} else {
 				if (error) {
 					return msg.msgReturn(res, 3, {});
@@ -161,6 +161,8 @@ router.route('/login').post((req, res) => {
 			}
 		});
 	} catch (error) {
+		console.log(error);
+		console.log(error.message);
 		return msg.msgReturn(res, 3, {});
 	}
 });
