@@ -59,8 +59,6 @@ router.use(function (req, res, next) {
                             return msg.msgReturn(res, 14);
                         } else {
                             req.cookies['userId'] = data.auth.userId;
-
-                            console.log(req.cookies);
                             next();
                         }
                     }
@@ -68,7 +66,7 @@ router.use(function (req, res, next) {
             } else {
                 return msg.msgReturn(res, 14);
             }
-            next();
+            // next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -400,11 +398,11 @@ router.route('/create').post((req, res) => {
 
         task.status = true;
 
-        //         let start = new Date(task.info.time.startAt);
-        //         let end = new Date(task.info.time.endAt);
-        //         if (start >= end) {
-        //             return msg.msgReturn(res, 9);
-        //         }
+        let start = new Date(task.info.time.startAt);
+        let end = new Date(task.info.time.endAt);
+        if (start >= end) {
+            return msg.msgReturn(res, 9);
+        }
 
         // if (task.info.time.startAt >= task.info.time.endAt) {
         //     return msg.msgReturn(res, 9);
@@ -591,6 +589,12 @@ router.route('/update').put((req, res) => {
                 req.body.lat || 0
             ]
         };
+
+        // let start = new Date(task.info.time.startAt);
+        // let end = new Date(task.info.time.endAt);
+        // if (start >= end) {
+        //     return msg.msgReturn(res, 9);
+        // }
 
         // if (task.info.time.startAt >= task.info.time.endAt) {
         //     return msg.msgReturn(res, 9);
@@ -1437,6 +1441,12 @@ router.route('/sendRequest').post((req, res) => {
 
         task.status = true;
 
+        // let start = new Date(task.info.time.startAt);
+        // let end = new Date(task.info.time.endAt);
+        // if (start >= end) {
+        //     return msg.msgReturn(res, 9);
+        // }
+
         // if (task.info.time.startAt >= task.info.time.endAt) {
         //     return msg.msgReturn(res, 9);
         // } else {
@@ -1446,7 +1456,9 @@ router.route('/sendRequest').post((req, res) => {
         //     }
         // }
 
-        Owner.findOne({ _id: ownerId }).exec((error, owner) => {
+        // console.log(task);
+
+        Owner.findOne({ _id: ownerId, status: true }).exec((error, owner) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -1481,62 +1493,12 @@ router.route('/sendRequest').post((req, res) => {
                                     }
                                 }
                             });
-                        },
-                        package: function (callback) {
-                            Package.findOne({ _id: req.body.package }).exec((error, data) => {
-                                if (error) {
-                                    callback(null, 2);
-                                }
-                                else {
-                                    if (validate.isNullorEmpty(data)) {
-                                        callback(null, 1);
-                                    } else {
-                                        callback(null, 0);
-                                    }
-                                }
-                            });
-                        },
-                        // process: function (callback) {
-                        //     Process.findOne({ _id: req.body.process }).exec((error, data) => {
-                        //         if (error) {
-                        //             callback(null, 2);
-                        //         }
-                        //         else {
-                        //             if (validate.isNullorEmpty(data)) {
-                        //                 callback(null, 1);
-                        //             } else {
-                        //                 callback(null, 0);
-                        //             }
-                        //         }
-                        //     });
-                        // }
-                        // task: function (callback) {
-                        //     Task.find(
-                        //         {
-                        //             'stakeholders.owner': req.body.owner,
-                        //             process: '000000000000000000000001',
-                        //             status: true
-                        //         }).exec((error, data) => {
-                        //             if (error) {
-                        //                 callback(null, 2);
-                        //             }
-                        //             else {
-                        //                 if (validate.isNullorEmpty(data) || !data || data.length <= 5) {
-                        //                     callback(null, 0);
-                        //                 }
-                        //                 else {
-                        //                     callback(null, 4);
-                        //                 }
-                        //             }
-                        //         });
-                        // }
+                        }
                     }, (error, result) => {
                         if (error) {
                             return msg.msgReturn(res, 3);
                         } else {
-                            if (result.work == 0 && result.package == 0
-                                // && result.process == 0
-                            ) {
+                            if (result.work == 0) {
                                 task.save((error) => {
                                     if (error) {
                                         return msg.msgReturn(res, 3);
@@ -1545,26 +1507,8 @@ router.route('/sendRequest').post((req, res) => {
                                         return msg.msgReturn(res, 0);
                                     }
                                 });
-                                // if (result.task == 0) {
-                                //     task.save((error) => {
-                                //         if (error) {
-                                //             return msg.msgReturn(res, 3);
-                                //         }
-                                //         else {
-                                //             return msg.msgReturn(res, 0);
-                                //         }
-                                //     });
-                                // }
-                                // else if (result.task == 4) {
-                                //     return msg.msgReturn(res, 8);
-                                // }
-                                // else {
-                                //     return msg.msgReturn(res, 3);
-                                // }
                             } else {
-                                if (result.work == 1 || result.package == 1
-                                    // || result.process == 1
-                                ) {
+                                if (result.work == 1) {
                                     return msg.msgReturn(res, 4);
                                 } else {
                                     return msg.msgReturn(res, 3);
