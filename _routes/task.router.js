@@ -3,6 +3,7 @@ var mongoose = require('mongoose');
 var requestLanguage = require('express-request-language');
 var cookieParser = require('cookie-parser');
 var async = require('promise-async');
+var request = require('request');
 var router = express.Router();
 
 var messageService = require('../_services/message.service');
@@ -23,6 +24,11 @@ var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Bill = require('../_model/bill');
 var Comment = require('../_model/comment');
+
+var cloudinary = require('cloudinary');
+
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
 
 var ObjectId = require('mongoose').Types.ObjectId;
 
@@ -49,24 +55,24 @@ router.use(function (req, res, next) {
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
-            if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
-                Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 14);
-                        } else {
-                            req.cookies['userId'] = data.auth.userId;
-                            next();
-                        }
-                    }
-                });
-            } else {
-                return msg.msgReturn(res, 14);
-            }
-            // next();
+            // if (req.headers.hbbgvauth) {
+            //     let token = req.headers.hbbgvauth;
+            //     Session.findOne({ 'auth.token': token }).exec((error, data) => {
+            //         if (error) {
+            //             return msg.msgReturn(res, 3);
+            //         } else {
+            //             if (validate.isNullorEmpty(data)) {
+            //                 return msg.msgReturn(res, 14);
+            //             } else {
+            //                 req.cookies['userId'] = data.auth.userId;
+            //                 next();
+            //             }
+            //         }
+            //     });
+            // } else {
+            //     return msg.msgReturn(res, 14);
+            // }
+            next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -1122,98 +1128,135 @@ router.route('/submit').post((req, res) => {
  *      ownerId: owner_ID
  * }
  */
-router.route('/checkin').post((req, res) => {
+router.route('/checkin').post(multipartMiddleware, (req, res) => {
     try {
-        var id = req.body.id;
-        // var ownerId = req.cookies.userId;
-        var ownerId = '5911460ae740560cb422ac35';
+        let id = req.body.id;
+        // let ownerId = req.cookies.userId;
+        let ownerId = req.body.ownerId;
+        let subs_key = '8f22becb14664c0c87864d840dfcf114';
 
-        async.parallel({
-            //check owner exist
-            // owner: function (callback) {
-            //     Owner.findOne({ _id: ownerId, status: true }).exec((error, data) => {
-            //         if (error) {
-            //             callback(null, 2);
-            //         }
-            //         else {
-            //             if (validate.isNullorEmpty(data)) {
-            //                 callback(null, 1);
-            //             } else {
-            //                 callback(null, 0);
-            //             }
-            //         }
-            //     });
-            // },
+        Task.findOne(
+            {
+                _id: id,
+                'stakeholders.owner': ownerId,
+                process: '000000000000000000000003',
+                status: true
+            })
+            .populate('stakeholders.owner')
+            .exec((error, data) => {
+                // console.log(data.stakeholders.owner.info);
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                }
+                else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        if (validate.isNullorEmpty(data.check.check_in)) {
+                            cloudinary.uploader.upload(
+                                req.files.image.path,
+                                function (result) {
 
-            //check task exist
-            task: function (callback) {
-                Task.findOne(
-                    {
-                        _id: id,
-                        'stakeholders.owner': ownerId,
-                        process: '000000000000000000000003',
-                        status: true
-                    }).exec((error, data) => {
-                        if (error) {
-                            callback(null, 2);
+                                    let imgUrl = data.stakeholders.owner.info.image;
+                                    console.log(imgUrl);
+
+                                    async.parallel({
+                                        faceId1: function (callback) {
+                                            request({
+                                                method: 'POST',
+                                                preambleCRLF: true,
+                                                postambleCRLF: true,
+                                                uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'Ocp-Apim-Subscription-Key': subs_key
+                                                },
+                                                body: JSON.stringify(
+                                                    {
+                                                        url: imgUrl
+                                                    }
+                                                )
+                                            },
+                                                function (error, response, body) {
+                                                    if (error) {
+                                                        console.error('upload failed:', error);
+                                                        callback(null, null);
+                                                    }
+                                                    console.log('FaceId1 successful!  Server responded with:', body);
+                                                    var data = JSON.parse(body);
+                                                    callback(null, data[0].faceId);
+                                                });
+                                        },
+                                        faceId2: function (callback) {
+                                            request({
+                                                method: 'POST',
+                                                preambleCRLF: true,
+                                                postambleCRLF: true,
+                                                uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'Ocp-Apim-Subscription-Key': subs_key
+                                                },
+                                                body: JSON.stringify(
+                                                    {
+                                                        url: result.url
+                                                    }
+                                                )
+                                            },
+                                                function (error, response, body) {
+                                                    if (error) {
+                                                        // console.error('upload failed:', error);
+                                                        callback(null, null);
+                                                    }
+                                                    console.log('FaceId2 successful!  Server responded with:', body);
+                                                    var data = JSON.parse(body);
+                                                    callback(null, data[0].faceId);
+                                                });
+                                        }
+                                    }, (error, data) => {
+                                        if (error) {
+                                            return msg.msgReturn(res, 3);
+                                        } else {
+                                            if (validate.isNullorEmpty(data.faceId1) || validate.isNullorEmpty(data.faceId2)) {
+                                                return msg.msgReturn(res, 3);
+                                            }
+                                            else {
+                                                request({
+                                                    method: 'POST',
+                                                    preambleCRLF: true,
+                                                    postambleCRLF: true,
+                                                    uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/verify',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'Ocp-Apim-Subscription-Key': subs_key
+                                                    },
+                                                    body: JSON.stringify(
+                                                        {
+                                                            "faceId1": data.faceId1,
+                                                            "faceId2": data.faceId2
+                                                        }
+                                                    )
+                                                },
+                                                    function (error, response, body) {
+                                                        if (error) {
+                                                            console.error('upload failed:', error);
+                                                            return msg.msgReturn(res, 3);
+                                                        }
+                                                        console.log('Verify successful!  Server responded with:', body);
+                                                        return msg.msgReturn(res, 0, body);
+                                                    });
+                                            }
+                                        }
+                                    });
+                                }
+                            );
                         }
                         else {
-                            if (validate.isNullorEmpty(data)) {
-                                callback(null, 1);
-                            } else {
-                                if (validate.isNullorEmpty(data.check.check_in)) {
-                                    callback(null, 0);
-                                }
-                                else {
-                                    callback(null, 3);
-                                }
-                            }
+                            return msg.msgReturn(res, 11);
                         }
-                    });
-            }
-        }, (error, result) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (
-                    // result.owner == 0 && 
-                    result.task == 0) {
-                    Task.findOneAndUpdate(
-                        {
-                            _id: id,
-                            'stakeholders.owner': ownerId,
-                            process: '000000000000000000000003',
-                            status: true
-                        },
-                        {
-                            $set: {
-                                process: new ObjectId('000000000000000000000004'),
-                                'check.check_in': new Date()
-                            }
-                        },
-                        {
-                            upsert: true
-                        },
-                        (error) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0);
-                        }
-                    );
-                } else {
-                    if (
-                        // result.owner == 1 || 
-                        result.task == 1) {
-                        return msg.msgReturn(res, 4);
-                    }
-                    else if (result.task == 3) {
-                        return msg.msgReturn(res, 11);
-                    }
-                    else {
-                        return msg.msgReturn(res, 3);
                     }
                 }
-            }
-        });
+            });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
