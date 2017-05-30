@@ -330,7 +330,7 @@ router.route('/update').put((req, res) => {
 
 						owner.info = {
 							// username: req.body.username || "",
-							email: req.body.email || "",
+							// email: req.body.email || "",
 							phone: req.body.phone || "",
 							name: req.body.name || "",
 							age: req.body.age || 18,
