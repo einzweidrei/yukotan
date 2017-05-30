@@ -329,7 +329,7 @@ router.route('/update').put((req, res) => {
 						var id = data.auth.userId;
 
 						owner.info = {
-							username: req.body.username || "",
+							// username: req.body.username || "",
 							email: req.body.email || "",
 							phone: req.body.phone || "",
 							name: req.body.name || "",
