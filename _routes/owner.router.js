@@ -301,7 +301,6 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     if (!req.files.image) {
-                        owner.info['image'] = req.body.image || "";
                         Owner.findOneAndUpdate(
                             {
                                 _id: id,
@@ -330,7 +329,6 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                         cloudinary.uploader.upload(
                             req.files.image.path,
                             function (result) {
-                                owner.info['image'] = result.url;
                                 Owner.findOneAndUpdate(
                                     {
                                         _id: id,
@@ -343,6 +341,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                                             'info.age': age,
                                             'info.address': address,
                                             'info.gender': gender,
+                                            'info.image': result.url,
                                             location: location,
                                             'history.updateAt': new Date()
                                         }
