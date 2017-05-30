@@ -335,7 +335,7 @@ router.route('/check').get((req, res) => {
 router.route('/update').put((req, res) => {
 	try {
 		var owner = new Owner();
-		var id = req.body.id;
+		var id = req.cookies.userId;
 
 		owner.info = {
 			username: req.body.username || "",
