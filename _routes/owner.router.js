@@ -151,7 +151,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
             coordinates: [req.body.lng || 0, req.body.lat || 0]
         }
 
-        Owner.findOne({ _id: id }).exec((error, data) => {
+        Owner.findOne({ _id: id, status: true }).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -167,13 +167,11 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                             },
                             {
                                 $set: {
-                                    info: {
-                                        phone: phone,
-                                        name: name,
-                                        age: age,
-                                        address: address,
-                                        gender: gender
-                                    },
+                                    'info.phone': phone,
+                                    'info.name': name,
+                                    'info.age': age,
+                                    'info.address': address,
+                                    'info.gender': gender,
                                     location: location,
                                     'history.updateAt': new Date()
                                 }
@@ -198,13 +196,11 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                                     },
                                     {
                                         $set: {
-                                            info: {
-                                                phone: phone,
-                                                name: name,
-                                                age: age,
-                                                address: address,
-                                                gender: gender
-                                            },
+                                            'info.phone': phone,
+                                            'info.name': name,
+                                            'info.age': age,
+                                            'info.address': address,
+                                            'info.gender': gender,
                                             location: location,
                                             'history.updateAt': new Date()
                                         }
