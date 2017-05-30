@@ -97,22 +97,12 @@ router.route('/login').post((req, res) => {
 												token: newToken,
 												user: {
 													_id: data._id,
-													info: data.info
+													info: data.info,
+													evaluation_point: data.evaluation_point,
+													wallet: data.wallet
 												}
 											}
 											return msg.msgReturn(res, 0, dt);
-
-											// return res.status(200).json({
-											// 	status: true,
-											// 	message: mess.msg_success,
-											// 	data: {
-											// 		token: newToken,
-											// 		user: {
-											// 			_id: data._id,
-											// 			info: data.info
-											// 		}
-											// 	}
-											// });
 										}
 									});
 								} else {
@@ -136,21 +126,12 @@ router.route('/login').post((req, res) => {
 												token: newToken,
 												user: {
 													_id: data._id,
-													info: data.info
+													info: data.info,
+													evaluation_point: data.evaluation_point,
+													wallet: data.wallet
 												}
 											}
 											return msg.msgReturn(res, 0, dt);
-											// return res.status(200).json({
-											// 	status: true,
-											// 	message: mess.msg_success,
-											// 	data: {
-											// 		token: newToken,
-											// 		user: {
-											// 			_id: data._id,
-											// 			info: data.info
-											// 		}
-											// 	}
-											// });
 										}
 									)
 								}
