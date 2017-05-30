@@ -21,6 +21,9 @@ var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
 var Report = require('../_model/report');
 
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
+
 var ObjectId = require('mongoose').Types.ObjectId;
 
 var bodyparser = require('body-parser');
@@ -118,6 +121,104 @@ router.route('/getById').get((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     return msg.msgReturn(res, 0, data);
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/update').put(multipartMiddleware, (req, res) => {
+    try {
+        var owner = new Owner();
+        var id = req.cookies.userId;
+
+        let phone = req.body.phone || "";
+        let name = req.body.name || "";
+        let age = req.body.age || 18;
+        let address = {
+            name: req.body.addressName || "",
+            coordinates: {
+                lat: req.body.lat || 0,
+                lng: req.body.lng || 0
+            }
+        };
+        let gender = req.body.gender || 0;
+
+        let location = {
+            type: 'Point',
+            coordinates: [req.body.lng || 0, req.body.lat || 0]
+        }
+
+        Owner.findOne({ _id: id }).exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    if (!req.files.image) {
+                        owner.info['image'] = req.body.image || "";
+                        Owner.findOneAndUpdate(
+                            {
+                                _id: id,
+                                status: true
+                            },
+                            {
+                                $set: {
+                                    info: {
+                                        phone: phone,
+                                        name: name,
+                                        age: age,
+                                        address: address,
+                                        gender: gender
+                                    },
+                                    location: location,
+                                    'history.updateAt': new Date()
+                                }
+                            },
+                            {
+                                upsert: true
+                            },
+                            (error, result) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                return msg.msgReturn(res, 0);
+                            }
+                        );
+                    } else {
+                        cloudinary.uploader.upload(
+                            req.files.image.path,
+                            function (result) {
+                                owner.info['image'] = result.url;
+                                Owner.findOneAndUpdate(
+                                    {
+                                        _id: id,
+                                        status: true
+                                    },
+                                    {
+                                        $set: {
+                                            info: {
+                                                phone: phone,
+                                                name: name,
+                                                age: age,
+                                                address: address,
+                                                gender: gender
+                                            },
+                                            location: location,
+                                            'history.updateAt': new Date()
+                                        }
+                                    },
+                                    {
+                                        upsert: true
+                                    },
+                                    (error, result) => {
+                                        if (error) return msg.msgReturn(res, 3);
+                                        return msg.msgReturn(res, 0);
+                                    }
+                                );
+                            });
+                    }
                 }
             }
         });

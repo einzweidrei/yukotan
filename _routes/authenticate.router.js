@@ -313,111 +313,111 @@ router.route('/check').get((req, res) => {
  *      gender: Number
  * }
  */
-router.route('/update').put((req, res) => {
-	try {
-		if (req.headers.hbbgvauth) {
-			let token = req.headers.hbbgvauth;
-			Session.findOne({ 'auth.token': token }).exec((error, data) => {
-				if (error) {
-					return msg.msgReturn(res, 3);
-				} else {
-					if (validate.isNullorEmpty(data)) {
-						return msg.msgReturn(res, 14);
-					} else {
-						// req.cookies['userId'] = data.auth.userId;
-						var owner = new Owner();
-						var id = data.auth.userId;
+// router.route('/update').put((req, res) => {
+// 	try {
+// 		if (req.headers.hbbgvauth) {
+// 			let token = req.headers.hbbgvauth;
+// 			Session.findOne({ 'auth.token': token }).exec((error, data) => {
+// 				if (error) {
+// 					return msg.msgReturn(res, 3);
+// 				} else {
+// 					if (validate.isNullorEmpty(data)) {
+// 						return msg.msgReturn(res, 14);
+// 					} else {
+// 						// req.cookies['userId'] = data.auth.userId;
+// 						var owner = new Owner();
+// 						var id = data.auth.userId;
 
-						owner.info = {
-							// username: req.body.username || "",
-							// email: req.body.email || "",
-							phone: req.body.phone || "",
-							name: req.body.name || "",
-							age: req.body.age || 18,
-							address: {
-								name: req.body.addressName || "",
-								coordinates: {
-									lat: req.body.lat || 0,
-									lng: req.body.lng || 0
-								}
-							},
-							gender: req.body.gender || 0
-						}
+// 						owner.info = {
+// 							// username: req.body.username || "",
+// 							// email: req.body.email || "",
+// 							phone: req.body.phone || "",
+// 							name: req.body.name || "",
+// 							age: req.body.age || 18,
+// 							address: {
+// 								name: req.body.addressName || "",
+// 								coordinates: {
+// 									lat: req.body.lat || 0,
+// 									lng: req.body.lng || 0
+// 								}
+// 							},
+// 							gender: req.body.gender || 0
+// 						}
 
-						owner.location = {
-							type: 'Point',
-							coordinates: [req.body.lng || 0, req.body.lat || 0]
-						}
+// 						owner.location = {
+// 							type: 'Point',
+// 							coordinates: [req.body.lng || 0, req.body.lat || 0]
+// 						}
 
-						Owner.findOne({ _id: id }).exec((error, data) => {
-							if (error) {
-								return msg.msgReturn(res, 3);
-							} else {
-								if (validate.isNullorEmpty(data)) {
-									return msg.msgReturn(res, 4);
-								} else {
-									if (!req.files.image) {
-										owner.info['image'] = req.body.image || "";
-										Owner.findOneAndUpdate(
-											{
-												_id: id,
-												status: true
-											},
-											{
-												$set: {
-													info: owner.info,
-													location: owner.location,
-													'history.updateAt': new Date()
-												}
-											},
-											{
-												upsert: true
-											},
-											(error, result) => {
-												if (error) return msg.msgReturn(res, 3);
-												return msg.msgReturn(res, 0);
-											}
-										);
-									} else {
-										cloudinary.uploader.upload(
-											req.files.image.path,
-											function (result) {
-												owner.info['image'] = result.url;
-												Owner.findOneAndUpdate(
-													{
-														_id: id,
-														status: true
-													},
-													{
-														$set: {
-															info: owner.info,
-															location: owner.location,
-															'history.updateAt': new Date()
-														}
-													},
-													{
-														upsert: true
-													},
-													(error, result) => {
-														if (error) return msg.msgReturn(res, 3);
-														return msg.msgReturn(res, 0);
-													}
-												);
-											});
-									}
-								}
-							}
-						});
-					}
-				}
-			});
-		} else {
-			return msg.msgReturn(res, 14);
-		}
-	} catch (error) {
-		return msg.msgReturn(res, 3);
-	}
-});
+// 						Owner.findOne({ _id: id }).exec((error, data) => {
+// 							if (error) {
+// 								return msg.msgReturn(res, 3);
+// 							} else {
+// 								if (validate.isNullorEmpty(data)) {
+// 									return msg.msgReturn(res, 4);
+// 								} else {
+// 									if (!req.files.image) {
+// 										owner.info['image'] = req.body.image || "";
+// 										Owner.findOneAndUpdate(
+// 											{
+// 												_id: id,
+// 												status: true
+// 											},
+// 											{
+// 												$set: {
+// 													info: owner.info,
+// 													location: owner.location,
+// 													'history.updateAt': new Date()
+// 												}
+// 											},
+// 											{
+// 												upsert: true
+// 											},
+// 											(error, result) => {
+// 												if (error) return msg.msgReturn(res, 3);
+// 												return msg.msgReturn(res, 0);
+// 											}
+// 										);
+// 									} else {
+// 										cloudinary.uploader.upload(
+// 											req.files.image.path,
+// 											function (result) {
+// 												owner.info['image'] = result.url;
+// 												Owner.findOneAndUpdate(
+// 													{
+// 														_id: id,
+// 														status: true
+// 													},
+// 													{
+// 														$set: {
+// 															info: owner.info,
+// 															location: owner.location,
+// 															'history.updateAt': new Date()
+// 														}
+// 													},
+// 													{
+// 														upsert: true
+// 													},
+// 													(error, result) => {
+// 														if (error) return msg.msgReturn(res, 3);
+// 														return msg.msgReturn(res, 0);
+// 													}
+// 												);
+// 											});
+// 									}
+// 								}
+// 							}
+// 						});
+// 					}
+// 				}
+// 			});
+// 		} else {
+// 			return msg.msgReturn(res, 14);
+// 		}
+// 	} catch (error) {
+// 		return msg.msgReturn(res, 3);
+// 	}
+// });
 
 router.route('/maid/login').post((req, res) => {
 	try {
