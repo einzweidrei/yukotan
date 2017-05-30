@@ -68,7 +68,7 @@ router.use(function (req, res, next) {
             } else {
                 return msg.msgReturn(res, 14);
             }
-            // next();
+            next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -1437,14 +1437,14 @@ router.route('/sendRequest').post((req, res) => {
 
         task.status = true;
 
-        if (task.info.time.startAt >= task.info.time.endAt) {
-            return msg.msgReturn(res, 9);
-        } else {
-            var h = task.info.time.startAt.getHours() + task.info.time.endAt.getHours();
-            if (task.info.time.hour > h) {
-                return msg.msgReturn(res, 9);
-            }
-        }
+        // if (task.info.time.startAt >= task.info.time.endAt) {
+        //     return msg.msgReturn(res, 9);
+        // } else {
+        //     var h = task.info.time.startAt.getHours() + task.info.time.endAt.getHours();
+        //     if (task.info.time.hour > h) {
+        //         return msg.msgReturn(res, 9);
+        //     }
+        // }
 
         Owner.findOne({ _id: ownerId }).exec((error, owner) => {
             if (error) {
@@ -1496,20 +1496,20 @@ router.route('/sendRequest').post((req, res) => {
                                 }
                             });
                         },
-                        process: function (callback) {
-                            Process.findOne({ _id: req.body.process }).exec((error, data) => {
-                                if (error) {
-                                    callback(null, 2);
-                                }
-                                else {
-                                    if (validate.isNullorEmpty(data)) {
-                                        callback(null, 1);
-                                    } else {
-                                        callback(null, 0);
-                                    }
-                                }
-                            });
-                        }
+                        // process: function (callback) {
+                        //     Process.findOne({ _id: req.body.process }).exec((error, data) => {
+                        //         if (error) {
+                        //             callback(null, 2);
+                        //         }
+                        //         else {
+                        //             if (validate.isNullorEmpty(data)) {
+                        //                 callback(null, 1);
+                        //             } else {
+                        //                 callback(null, 0);
+                        //             }
+                        //         }
+                        //     });
+                        // }
                         // task: function (callback) {
                         //     Task.find(
                         //         {
@@ -1534,7 +1534,9 @@ router.route('/sendRequest').post((req, res) => {
                         if (error) {
                             return msg.msgReturn(res, 3);
                         } else {
-                            if (result.work == 0 && result.package == 0 && result.process == 0) {
+                            if (result.work == 0 && result.package == 0
+                                // && result.process == 0
+                            ) {
                                 task.save((error) => {
                                     if (error) {
                                         return msg.msgReturn(res, 3);
@@ -1560,7 +1562,9 @@ router.route('/sendRequest').post((req, res) => {
                                 //     return msg.msgReturn(res, 3);
                                 // }
                             } else {
-                                if (result.work == 1 || result.package == 1 || result.process == 1) {
+                                if (result.work == 1 || result.package == 1
+                                    // || result.process == 1
+                                ) {
                                     return msg.msgReturn(res, 4);
                                 } else {
                                     return msg.msgReturn(res, 3);
