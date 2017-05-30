@@ -82,6 +82,14 @@ router.use(function (req, res, next) {
     }
 });
 
+router.route('/checkToken').get((req, res) => {
+    try {
+        return msg.msgReturn(res, 0);
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 /** GET - Get Owner By Owner ID
  * info {
  *      type: GET
@@ -589,13 +597,13 @@ router.route('/getComment').get((req, res) => {
 router.route('/report').post((req, res) => {
     try {
         let report = new Report();
-        comment.fromId = req.cookies.userId;
-        comment.toId = req.body.toId;
-        comment.content = req.body.content;
-        comment.createAt = new Date();
-        comment.status = true;
+        report.fromId = req.cookies.userId;
+        report.toId = req.body.toId;
+        report.content = req.body.content;
+        report.createAt = new Date();
+        report.status = true;
 
-        Maid.findOne({ _id: comment.toId, status: true }).select('work_info').exec((error, data) => {
+        Maid.findOne({ _id: report.toId, status: true }).select('work_info').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -610,6 +618,7 @@ router.route('/report').post((req, res) => {
             }
         });
     } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
