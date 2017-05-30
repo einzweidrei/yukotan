@@ -586,14 +586,12 @@ router.route('/getComment').get((req, res) => {
     }
 });
 
-router.route('/comment').post((req, res) => {
+router.route('/report').post((req, res) => {
     try {
-        let comment = new Comment();
+        let report = new Report();
         comment.fromId = req.cookies.userId;
         comment.toId = req.body.toId;
-        comment.task = req.body.task;
         comment.content = req.body.content;
-        comment.evaluation_point = req.body.evaluation_point;
         comment.createAt = new Date();
         comment.status = true;
 
@@ -604,49 +602,9 @@ router.route('/comment').post((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    let report = new Report();
-                    Comment.findOne({ fromId: comment.fromId, task: comment.task }).exec((error, cmt) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            if (validate.isNullorEmpty(cmt)) {
-                                let ep_2 = data.work_info.evaluation_point;
-                                let new_ep = (comment.evaluation_point + ep_2) / 2;
-
-                                if ((comment.evaluation_point + ep_2) % 2 >= 5) {
-                                    new_ep = Math.ceil(new_ep);
-                                } else {
-                                    new_ep = Math.round(new_ep);
-                                }
-
-                                Maid.findOneAndUpdate(
-                                    {
-                                        _id: comment.toId,
-                                        status: true
-                                    },
-                                    {
-                                        $set: {
-                                            'work_info.evaluation_point': new_ep
-                                        }
-                                    },
-                                    {
-                                        upsert: true
-                                    },
-                                    (error) => {
-                                        if (error) {
-                                            return msg.msgReturn(res, 3);
-                                        } else {
-                                            comment.save((error) => {
-                                                if (error) return msg.msgReturn(res, 3);
-                                                return msg.msgReturn(res, 0);
-                                            });
-                                        }
-                                    }
-                                );
-                            } else {
-                                return msg.msgReturn(res, 2);
-                            }
-                        }
+                    report.save((error) => {
+                        if (error) return msg.msgReturn(res, 3);
+                        return msg.msgReturn(res, 0);
                     });
                 }
             }
