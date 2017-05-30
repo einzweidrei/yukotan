@@ -237,6 +237,8 @@ router.route('/register').post((req, res) => {
 						req.files.image.path,
 						function (result) {
 							owner.info.image = result.url;
+
+							console.log(owner);
 							owner.save((error, data) => {
 								if (error) {
 									return msg.msgReturn(res, 3);
