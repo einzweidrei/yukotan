@@ -176,15 +176,15 @@ router.route('/getAll').get((req, res) => {
 
         Owner.paginate(query, options).then((data) => {
             if (validate.isNullorEmpty(data)) {
-                logs.info(2, metadata);
+                // logs.info(2, metadata);
                 return msg.msgReturn(res, 4);
             } else {
-                logs.info(0, metadata);
+                // logs.info(0, metadata);
                 return msg.msgReturn(res, 0, data);
             }
         });
     } catch (error) {
-        logs.error(error, metadata);
+        // logs.error(error, metadata);
         return msg.msgReturn(res, 3);
     }
 });
