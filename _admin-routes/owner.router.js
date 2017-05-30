@@ -170,8 +170,8 @@ router.route('/getAll').get((req, res) => {
             select: 'evaluation_point info wallet history',
             // populate: { path: 'task', select: 'info' },
             sort: sortQuery,
-            page: page,
-            limit: limit
+            page: parseFloat(page),
+            limit: parseFloat(limit)
         };
 
         Owner.paginate(query, options).then((data) => {
