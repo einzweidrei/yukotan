@@ -2,6 +2,10 @@ var express = require('express');
 var mongoose = require('mongoose');
 var router = express.Router();
 
+// var log4js = require('log4js');
+
+// var winston = require('winston');
+
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
 
@@ -10,6 +14,9 @@ var validate = new validationService.Validation();
 
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
+
+var logsService = require('../_services/log.service');
+var logs = new logsService.Logs();
 
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
@@ -24,9 +31,22 @@ var ObjectId = require('mongoose').Types.ObjectId;
 
 var bodyparser = require('body-parser');
 
-router.use(bodyparser.json({
-    limit: '50mb',
-}));
+// var logger = log4js.getLogger('logs/logs-' + new Date().getUTCDate() + new Date().getUTCMonth() + new Date().getUTCFullYear() + '.log');
+// router.use(bodyparser.json({
+//     limit: '50mb',
+// }));
+
+const hash_key = 'LULULUL';
+// const hash_key = 'HBBSolution';
+const token_length = 64;
+
+function hash(content) {
+    const crypto = require('crypto');
+    const hash = crypto.createHmac('sha256', hash_key)
+        .update(content)
+        .digest('hex');
+    return hash;
+}
 
 // setting limit of FILE
 router.use(bodyparser.urlencoded({
@@ -38,22 +58,29 @@ router.use(bodyparser.urlencoded({
 // // parse application/json
 router.use(bodyparser.json());
 
+let metadata = {
+    route: 'owner'
+};
+
 /** Middle Ware
  * 
  */
 router.use(function (req, res, next) {
     console.log('cms-owner_router is connecting');
-
     try {
         var baseUrl = req.baseUrl;
-        var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
+        metadata['router'] = baseUrl;
 
+        var language = baseUrl.substring(baseUrl.indexOf('/admin/') + 7, baseUrl.lastIndexOf('/'));
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
             Package.setDefaultLanguage(language);
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
+            // log4js.info('Success');
+
+            metadata['userId'] = '';
             next();
             // if (req.headers.hbbgvauth) {
             //     let token = req.headers.hbbgvauth;
@@ -77,6 +104,87 @@ router.use(function (req, res, next) {
             return msg.msgReturn(res, 6);
         }
     } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/getAll').get((req, res) => {
+    try {
+        metadata['api'] = '/getAll';
+        metadata['query'] = req.query;
+        metadata['body'] = req.body;
+
+        let startAt = req.query.startAt;
+        let endAt = req.query.endAt;
+        let page = req.query.page || 1;
+        let limit = req.query.limit || 10;
+        let sortByTime = req.query.sortByTime;
+
+        let email = req.query.email;
+        let username = req.query.username;
+        let name = req.query.name;
+        let gender = req.query.gender;
+
+        if (startAt || endAt) {
+            let timeQuery = {};
+
+            if (startAt) {
+                let date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                let date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            findQuery['history.createAt'] = timeQuery;
+        }
+
+        let sortQuery = { 'history.createAt': -1 };
+
+        if (sortByTime) {
+            switch (sortByTime) {
+                case 'asc':
+                    sortQuery = { 'history.createAt': -1 };
+                    break;
+                case 'desc':
+                    sortQuery = { 'history.createAt': -1 };
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        let query = {};
+
+        if (email) query['info.email'] = new RegExp(email, 'i');
+        if (username) query['info.username'] = new RegExp(username, 'i');
+        if (name) query['info.name'] = new RegExp(name, 'i');
+        if (gender) query['info.gender'] = new RegExp(gender, 'i');
+
+        let options = {
+            select: 'evaluation_point info wallet history',
+            // populate: { path: 'task', select: 'info' },
+            sort: sortQuery,
+            page: page,
+            limit: limit
+        };
+
+        Owner.paginate(query, options).then((data) => {
+            if (validate.isNullorEmpty(data)) {
+                logs.info(2, metadata);
+                return msg.msgReturn(res, 4);
+            } else {
+                logs.info(0, metadata);
+                return msg.msgReturn(res, 0, data);
+            }
+        });
+    } catch (error) {
+        logs.error(error, metadata);
         return msg.msgReturn(res, 3);
     }
 });

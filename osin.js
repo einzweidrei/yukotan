@@ -8,6 +8,9 @@ var cloudinary = require('cloudinary');
 // var multer = require('multer')
 // var upload = multer({ dest: 'uploads/' })
 var multipart = require('connect-multiparty');
+// var log4js = require('log4js');
+
+var winston = require('winston');
 var multipartMiddleware = multipart();
 
 var messageService = require('./_services/message.service');
@@ -46,6 +49,31 @@ cloudinary.config({
     cloud_name: 'einzweidrei2',
     api_key: '923252816135765',
     api_secret: '5bBDapVrya9p73sXqvZNZc029lE'
+});
+
+// log4js.configure({
+//     appenders: { cheese: { type: 'file', filename: 'cheese.log' } },
+//     categories: { default: { appenders: ['cheese'], level: 'error' } }
+// });
+
+let today = new Date();
+let strToday = today.getDate() + today.getMonth() + today.getFullYear();
+
+winston.configure({
+    transports: [
+        new (winston.transports.File)({
+            name: 'info-file',
+            filename: 'logs/filelog-info.log',
+            level: 'info'
+        }),
+        new (winston.transports.File)({
+            name: 'error-file',
+            filename: 'logs/filelog-error.log',
+            level: 'error',
+            handleExceptions: true,
+            humanReadableUnhandledException: true
+        })
+    ]
 });
 
 // Add headers
@@ -98,6 +126,8 @@ app.use('/:language/task', require('./_routes/task.router'));
 app.use('/:language/process', require('./_routes/process.router'));
 app.use('/:language/more', require('./_routes/more.router'));
 app.use('/:language/comment', require('./_routes/comment.router'));
+
+app.use('/admin/:language/owner', require('./_admin-routes/owner.router'));
 
 app.use('/microsoft', require('./_routes/microsoftApi.router'));
 app.use('/al', require('./_routes/algorithm.router'));

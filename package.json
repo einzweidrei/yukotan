@@ -22,6 +22,7 @@
     "fcm-push": "^1.1.2",
     "firebase": "^3.9.0",
     "firebase-admin": "^4.2.1",
+    "log4js": "^1.1.1",
     "mongodb": "^2.2.16",
     "mongoose": "^4.7.4",
     "mongoose-intl": "^2.0.1",
@@ -33,6 +34,7 @@
     "promise-async": "^0.2.0",
     "randomstring": "^1.1.5",
     "request": "^2.81.0",
-    "session-mongoose": "^0.5.2"
+    "session-mongoose": "^0.5.2",
+    "winston": "^2.3.1"
   }
 }

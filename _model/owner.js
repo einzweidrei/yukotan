@@ -50,6 +50,6 @@ var OwnerSchema = new Schema(
 // OwnerSchema.index({ 'info.address.location': '2dsphere' });
 
 //plugin Pagination
-// OwnerSchema.plugin(mongoosePaginate);
+OwnerSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Owner', OwnerSchema);		
