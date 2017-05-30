@@ -51,31 +51,6 @@ cloudinary.config({
     api_secret: '5bBDapVrya9p73sXqvZNZc029lE'
 });
 
-// log4js.configure({
-//     appenders: { cheese: { type: 'file', filename: 'cheese.log' } },
-//     categories: { default: { appenders: ['cheese'], level: 'error' } }
-// });
-
-let today = new Date();
-let strToday = today.getDate() + today.getMonth() + today.getFullYear();
-
-winston.configure({
-    transports: [
-        new (winston.transports.File)({
-            name: 'info-file',
-            filename: 'logs/filelog-info.log',
-            level: 'info'
-        }),
-        new (winston.transports.File)({
-            name: 'error-file',
-            filename: 'logs/filelog-error.log',
-            level: 'error',
-            handleExceptions: true,
-            humanReadableUnhandledException: true
-        })
-    ]
-});
-
 // Add headers
 app.use(function (req, res, next) {
 
