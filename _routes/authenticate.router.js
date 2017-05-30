@@ -66,7 +66,7 @@ router.route('/login').post((req, res) => {
 		var username = req.body.username || "";
 		var password = hash(req.body.password) || "";
 
-		Owner.findOne({ 'info.username': username }).select('_id info auth').exec((error, data) => {
+		Owner.findOne({ 'info.username': username }).select('_id info evaluation_point wallet auth').exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
 				return msg.msgReturn(res, 4, {});
 			} else {
