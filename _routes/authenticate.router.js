@@ -217,17 +217,6 @@ router.route('/register').post((req, res) => {
 										}
 									};
 									return msg.msgReturn(res, 0, dt);
-									// return res.status(200).json({
-									// 	status: true,
-									// 	message: msg.msg_success,
-									// 	data: {
-									// 		token: session.auth.token,
-									// 		user: {
-									// 			_id: data._id,
-									// 			info: data.info
-									// 		}
-									// 	}
-									// });
 								}
 							});
 						}
@@ -237,8 +226,6 @@ router.route('/register').post((req, res) => {
 						req.files.image.path,
 						function (result) {
 							owner.info.image = result.url;
-
-							console.log(owner);
 							owner.save((error, data) => {
 								if (error) {
 									return msg.msgReturn(res, 3);
@@ -263,17 +250,6 @@ router.route('/register').post((req, res) => {
 												}
 											};
 											return msg.msgReturn(res, 0, dt);
-											// return res.status(200).json({
-											// 	status: true,
-											// 	message: msg.msg_success,
-											// 	data: {
-											// 		token: session.auth.token,
-											// 		user: {
-											// 			_id: data._id,
-											// 			info: data.info
-											// 		}
-											// 	}
-											// });
 										}
 									});
 								}
@@ -286,7 +262,6 @@ router.route('/register').post((req, res) => {
 			}
 		})
 	} catch (error) {
-		console.log(error);
 		return msg.msgReturn(res, 3);
 	}
 });
