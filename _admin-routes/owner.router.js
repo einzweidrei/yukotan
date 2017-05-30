@@ -230,123 +230,99 @@ router.route('/getById').get((req, res) => {
 
 router.route('/create').post(multipartMiddleware, (req, res) => {
     try {
-
-        console.log(req.body);
-
         var owner = new Owner();
 
-		owner.info = {
-			username: req.body.username || "",
-			email: req.body.email || "",
-			phone: req.body.phone || "",
-			name: req.body.name || "",
-			age: req.body.age || 18,
-			address: {
-				name: req.body.addressName || "",
-				coordinates: {
-					lat: req.body.lat || 0,
-					lng: req.body.lng || 0
-				}
-			},
-			gender: req.body.gender || 0,
-		};
+        owner.info = {
+            username: req.body.username || "",
+            email: req.body.email || "",
+            phone: req.body.phone || "",
+            name: req.body.name || "",
+            age: req.body.age || 18,
+            address: {
+                name: req.body.addressName || "",
+                coordinates: {
+                    lat: req.body.lat || 0,
+                    lng: req.body.lng || 0
+                }
+            },
+            gender: req.body.gender || 0,
+        };
 
-		owner.evaluation_point = 2.5;
+        owner.evaluation_point = 2.5;
 
-		owner.wallet = 0;
+        owner.wallet = 0;
 
-		owner.auth = {
-			password: hash(req.body.password),
-			device_token: req.body.device_token
-		};
+        owner.auth = {
+            password: hash(req.body.password),
+            device_token: req.body.device_token || ""
+        };
 
-		owner.history = {
-			createAt: new Date(),
-			updateAt: new Date()
-		};
+        owner.history = {
+            createAt: new Date(),
+            updateAt: new Date()
+        };
 
-		owner.status = true;
+        owner.status = true;
 
-		owner.location = {
-			type: 'Point',
-			coordinates: [req.body.lng, req.body.lat]
-		};
+        owner.location = {
+            type: 'Point',
+            coordinates: [req.body.lng, req.body.lat]
+        };
 
-		Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
-			if (validate.isNullorEmpty(data)) {
-				if (!req.files.image) {
-					owner.info['image'] = "";
-					owner.save((error, data) => {
-						if (error) {
-							return msg.msgReturn(res, 3);
-						} else {
-							var session = new Session();
-							session.auth.userId = data._id;
-							session.auth.token = getToken();
-							session.loginAt = new Date();
-							session.status = true;
+        Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
+            if (validate.isNullorEmpty(data)) {
+                if (!req.files.image) {
+                    owner.info['image'] = "";
+                    owner.save((error, data) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            var session = new Session();
+                            session.auth.userId = data._id;
+                            session.auth.token = getToken();
+                            session.loginAt = new Date();
+                            session.status = true;
 
-							session.save((error) => {
-								if (error) {
-									return msg.msgReturn(res, 3);
-								} else {
-									return res.status(200).json({
-										status: true,
-										message: msg.msg_success,
-										data: {
-											token: session.auth.token,
-											user: {
-												_id: data._id,
-												info: data.info
-											}
-										}
-									});
-								}
-							});
-						}
-					});
-				} else {
-					cloudinary.uploader.upload(
-						req.files.image.path,
-						function (result) {
-							owner.info['image'] = result.url;
-							owner.save((error, data) => {
-								console.log(result);
-								if (error) {
-									return msg.msgReturn(res, 3);
-								} else {
-									var session = new Session();
-									session.auth.userId = data._id;
-									session.auth.token = getToken();
-									session.loginAt = new Date();
-									session.status = true;
+                            session.save((error) => {
+                                if (error) {
+                                    return msg.msgReturn(res, 3);
+                                } else {
+                                    return msg.msgReturn(res, 0);
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    cloudinary.uploader.upload(
+                        req.files.image.path,
+                        function (result) {
+                            owner.info['image'] = result.url;
+                            owner.save((error, data) => {
+                                if (error) {
+                                    return msg.msgReturn(res, 3);
+                                } else {
+                                    var session = new Session();
+                                    session.auth.userId = data._id;
+                                    session.auth.token = getToken();
+                                    session.loginAt = new Date();
+                                    session.status = true;
 
-									session.save((error) => {
-										if (error) {
-											return msg.msgReturn(res, 3);
-										} else {
-											return res.status(200).json({
-												status: true,
-												message: msg.msg_success,
-												data: {
-													token: session.auth.token,
-													user: {
-														_id: data._id,
-														info: data.info
-													}
-												}
-											});
-										}
-									});
-								}
-							});
-						}
-					)
-				}
-			} else {
-				return msg.msgReturn(res, 2, {});
-			}
-		})
+                                    session.save((error) => {
+                                        if (error) {
+                                            return msg.msgReturn(res, 3);
+                                        } else {
+                                            return msg.msgReturn(res, 0);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    )
+                }
+            } else {
+                return msg.msgReturn(res, 2);
+            }
+        });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
