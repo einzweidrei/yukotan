@@ -192,7 +192,7 @@ router.route('/register').post((req, res) => {
 		Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
 				if (!req.files.image) {
-					owner.info['image'] = "";
+					owner.info.image = "";
 					owner.save((error, data) => {
 						if (error) {
 							return msg.msgReturn(res, 3);
@@ -207,17 +207,27 @@ router.route('/register').post((req, res) => {
 								if (error) {
 									return msg.msgReturn(res, 3);
 								} else {
-									return res.status(200).json({
-										status: true,
-										message: msg.msg_success,
-										data: {
-											token: session.auth.token,
-											user: {
-												_id: data._id,
-												info: data.info
-											}
+									let dt = {
+										token: session.auth.token,
+										user: {
+											_id: data._id,
+											info: data.info,
+											evaluation_point: data.evaluation_point,
+											wallet: data.wallet
 										}
-									});
+									};
+									return msg.msgReturn(res, 0, dt);
+									// return res.status(200).json({
+									// 	status: true,
+									// 	message: msg.msg_success,
+									// 	data: {
+									// 		token: session.auth.token,
+									// 		user: {
+									// 			_id: data._id,
+									// 			info: data.info
+									// 		}
+									// 	}
+									// });
 								}
 							});
 						}
@@ -226,9 +236,8 @@ router.route('/register').post((req, res) => {
 					cloudinary.uploader.upload(
 						req.files.image.path,
 						function (result) {
-							owner.info['image'] = result.url;
+							owner.info.image = result.url;
 							owner.save((error, data) => {
-								console.log(result);
 								if (error) {
 									return msg.msgReturn(res, 3);
 								} else {
@@ -242,17 +251,27 @@ router.route('/register').post((req, res) => {
 										if (error) {
 											return msg.msgReturn(res, 3);
 										} else {
-											return res.status(200).json({
-												status: true,
-												message: msg.msg_success,
-												data: {
-													token: session.auth.token,
-													user: {
-														_id: data._id,
-														info: data.info
-													}
+											let dt = {
+												token: session.auth.token,
+												user: {
+													_id: data._id,
+													info: data.info,
+													evaluation_point: data.evaluation_point,
+													wallet: data.wallet
 												}
-											});
+											};
+											return msg.msgReturn(res, 0, dt);
+											// return res.status(200).json({
+											// 	status: true,
+											// 	message: msg.msg_success,
+											// 	data: {
+											// 		token: session.auth.token,
+											// 		user: {
+											// 			_id: data._id,
+											// 			info: data.info
+											// 		}
+											// 	}
+											// });
 										}
 									});
 								}
