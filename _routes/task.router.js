@@ -728,39 +728,41 @@ router.route('/delete').delete((req, res) => {
     try {
         var id = req.body.id;
         var ownerId = req.cookies.userId;
-
-        Task.findOne({ _id: id, 'stakeholders.owner': req.cookies.userId, status: true }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
+        Task.findOne(
+            {
+                _id: id,
+                'stakeholders.owner': ownerId,
+                status: true
+            }).exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
                 } else {
-                    // if (data.process == '000000000000000000000001') {
-                    Task.findOneAndUpdate(
-                        {
-                            _id: id, 'stakeholders.owner': req.cookies.userId, status: true
-                        },
-                        {
-                            $set: {
-                                'history.updateAt': new Date(),
-                                status: false
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        Task.findOneAndUpdate(
+                            {
+                                _id: id,
+                                'stakeholders.owner': ownerId,
+                                status: true
+                            },
+                            {
+                                $set: {
+                                    'history.updateAt': new Date(),
+                                    status: false
+                                }
+                            },
+                            {
+                                upsert: true
+                            },
+                            (error, result) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                return msg.msgReturn(res, 0);
                             }
-                        },
-                        {
-                            upsert: true
-                        },
-                        (error, result) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0);
-                        }
-                    )
-                    // } else {
-                    // return msg.msgReturn(res, 7);
-                    // }
+                        )
+                    }
                 }
-            }
-        });
+            });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
