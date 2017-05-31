@@ -328,46 +328,6 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
     }
 });
 
-// router.route('/getAllDeniedTasks').get((req, res) => {
-//     try {
-//         let ownerId = req.cookies.userId;
-
-//         var populateQuery = [
-//             {
-//                 path: 'info.package',
-//                 select: 'name'
-//             },
-//             {
-//                 path: 'info.work',
-//                 select: 'name image'
-//             },
-//             {
-//                 path: 'stakeholders.received',
-//                 select: 'info'
-//             },
-//             {
-//                 path: 'process',
-//                 select: 'name'
-//             }
-//         ];
-
-//         Task.find(
-//             {
-//                 'stakeholders.owner': ownerId,
-//                 process: {
-//                     $in: ['000000000000000000000003', '000000000000000000000004']
-//                 },
-//                 status: false
-//             }
-//         ).populate(populateQuery).exec((error, data) => {
-//             if (error) return msg.msgReturn(res, 3);
-//             return msg.msgReturn(res, 0, data);
-//         });
-//     } catch (error) {
-//         return msg.msgReturn(res, 3);
-//     }
-// });
-
 /** GET - Get All Tasks By Owner ID
  * info {
  *      type: GET
@@ -395,6 +355,8 @@ router.route('/getAllTasks').get((req, res) => {
         let limit = req.query.limit || 10;
         let page = req.query.page || 1;
         let sortByTime = req.query.sortByTime;
+
+        let title = req.query.title;
 
         let findQuery = {
             'stakeholders.owner': id,
@@ -457,6 +419,8 @@ router.route('/getAllTasks').get((req, res) => {
                     break;
             }
         }
+
+        if (title) findQuery['info.title'] = new RegExp(title, 'i');
 
         let options = {
             select: '-location -status -__v',
