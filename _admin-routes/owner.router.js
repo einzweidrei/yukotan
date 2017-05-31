@@ -368,116 +368,122 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
 //     }
 // });
 
-// /** GET - Get All Tasks By Owner ID
-//  * info {
-//  *      type: GET
-//  *      url: /getAllTasks
-//  *      name: Get All Tasks By Owner ID
-//  *      description: Get tasks by Owner's ID
-//  * }
-//  * 
-//  * params {
-//  *      id: owner_ID
-//  *      process: process_ID
-//  * }
-//  * 
-//  * body {
-//  *      null
-//  * } 
-//  */
-// router.route('/getAllTasks').get((req, res) => {
-//     try {
-//         let id = req.query.id;
-//         // let id = '5911460ae740560cb422ac35';
-//         let process = req.query.process;
+/** GET - Get All Tasks By Owner ID
+ * info {
+ *      type: GET
+ *      url: /getAllTasks
+ *      name: Get All Tasks By Owner ID
+ *      description: Get tasks by Owner's ID
+ * }
+ * 
+ * params {
+ *      id: owner_ID
+ *      process: process_ID
+ * }
+ * 
+ * body {
+ *      null
+ * } 
+ */
+router.route('/getAllTasks').get((req, res) => {
+    try {
+        let id = req.query.id;
+        let process = req.query.process;
 
-//         let startAt = req.query.startAt;
-//         let endAt = req.query.endAt;
-//         let limit = req.query.limit || 0;
-//         let sortByTaskTime = req.query.sortByTaskTime;
+        let startAt = req.query.startAt;
+        let endAt = req.query.endAt;
+        let limit = req.query.limit || 0;
+        let sortByTaskTime = req.query.sortByTaskTime;
 
-//         let findQuery = {
-//             'stakeholders.owner': id,
-//             status: true
-//         }
+        let findQuery = {
+            'stakeholders.owner': id,
+            status: true
+        }
 
-//         if (process) {
-//             findQuery['process'] = process;
-//         }
+        if (process) {
+            findQuery['process'] = process;
+        }
 
-//         if (startAt || endAt) {
-//             let timeQuery = {};
+        if (startAt || endAt) {
+            let timeQuery = {};
 
-//             if (startAt) {
-//                 let date = new Date(startAt);
-//                 date.setUTCHours(0, 0, 0, 0);
-//                 timeQuery['$gte'] = date;
-//             }
+            if (startAt) {
+                let date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
 
-//             if (endAt) {
-//                 let date = new Date(endAt);
-//                 date.setUTCHours(0, 0, 0, 0);
-//                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-//                 timeQuery['$lt'] = date;
-//             }
+            if (endAt) {
+                let date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
 
-//             findQuery['info.time.startAt'] = timeQuery;
-//         }
+            findQuery['info.time.startAt'] = timeQuery;
+        }
 
-//         var populateQuery = [
-//             {
-//                 path: 'info.package',
-//                 select: 'name'
-//             },
-//             {
-//                 path: 'info.work',
-//                 select: 'name image'
-//             },
-//             {
-//                 path: 'stakeholders.received',
-//                 select: 'info work_info'
-//             },
-//             {
-//                 path: 'process',
-//                 select: 'name'
-//             }
-//         ];
+        var populateQuery = [
+            {
+                path: 'info.package',
+                select: 'name'
+            },
+            {
+                path: 'info.work',
+                select: 'name image'
+            },
+            {
+                path: 'stakeholders.received',
+                select: 'info work_info'
+            },
+            {
+                path: 'process',
+                select: 'name'
+            }
+        ];
 
-//         let sortQuery = { 'history.createAt': -1 };
+        let sortQuery = { 'history.createAt': -1 };
 
-//         if (sortByTaskTime) {
-//             sortQuery = { 'info.time.endAt': 1 };
-//         }
+        if (sortByTaskTime) {
+            sortQuery = { 'info.time.endAt': 1 };
+        }
 
-//         let options = {
-//             select: '-location -status -__v',
-//             // populate: { p },
-//             sort: sortQuery,
-//             page: parseFloat(page),
-//             limit: parseFloat(limit)
-//         };
+        let options = {
+            select: '-location -status -__v',
+            populate: populateQuery,
+            sort: sortQuery,
+            page: parseFloat(page),
+            limit: parseFloat(limit)
+        };
 
-//         Task
-//             .find(findQuery)
-//             .populate(populateQuery)
-//             .sort(sortQuery)
-//             .limit(parseFloat(limit))
-//             .select('-location -status -__v').exec((error, data) => {
-//                 if (error) {
-//                     return msg.msgReturn(res, 3);
-//                 } else {
-//                     if (validate.isNullorEmpty(data)) {
-//                         return msg.msgReturn(res, 4);
-//                     } else {
-//                         return msg.msgReturn(res, 0, data);
-//                     }
-//                 }
-//             });
-//     } catch (error) {
-//         console.log(error);
-//         return msg.msgReturn(res, 3);
-//     }
-// });
+        Task.paginate(findQuery, options).then((data) => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4);
+            } else {
+                return msg.msgReturn(res, 0, data);
+            }
+        });
+
+        // Task
+        //     .find(findQuery)
+        //     .populate(populateQuery)
+        //     .sort(sortQuery)
+        //     .limit(parseFloat(limit))
+        //     .select('-location -status -__v').exec((error, data) => {
+        //         if (error) {
+        //             return msg.msgReturn(res, 3);
+        //         } else {
+        //             if (validate.isNullorEmpty(data)) {
+        //                 return msg.msgReturn(res, 4);
+        //             } else {
+        //                 return msg.msgReturn(res, 0, data);
+        //             }
+        //         }
+        //     });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
 
 // /** GET - Get All Tasks By Owner ID
 //  * info {
