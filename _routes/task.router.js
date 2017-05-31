@@ -960,8 +960,8 @@ router.route('/reserve').post((req, res) => {
 router.route('/submit').post((req, res) => {
     try {
         var id = req.body.id;
-        // var ownerId = req.cookies.userId;
-        var ownerId = '5911460ae740560cb422ac35';
+        var ownerId = req.cookies.userId;
+        // var ownerId = '5911460ae740560cb422ac35';
         var maidId = req.body.maidId;
 
         async.parallel({
