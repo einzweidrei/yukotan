@@ -392,8 +392,9 @@ router.route('/getAllTasks').get((req, res) => {
 
         let startAt = req.query.startAt;
         let endAt = req.query.endAt;
-        let limit = req.query.limit || 0;
-        let sortByTaskTime = req.query.sortByTaskTime;
+        let limit = req.query.limit || 10;
+        let page = req.query.page || 1;
+        let sortByTime = req.query.sortByTime;
 
         let findQuery = {
             'stakeholders.owner': id,
@@ -444,8 +445,17 @@ router.route('/getAllTasks').get((req, res) => {
 
         let sortQuery = { 'history.createAt': -1 };
 
-        if (sortByTaskTime) {
-            sortQuery = { 'info.time.endAt': 1 };
+        if (sortByTime) {
+            switch (sortByTime) {
+                case 'asc':
+                    sortQuery = { 'history.createAt': -1 };
+                    break;
+                case 'desc':
+                    sortQuery = { 'history.createAt': -1 };
+                    break;
+                default:
+                    break;
+            }
         }
 
         let options = {
