@@ -563,7 +563,7 @@ router.route('/getAllWorkedMaid').get((req, res) => {
                     if (validate.isNullorEmpty(data)) {
                         return msg.msgReturn(res, 4);
                     } else {
-                        Maid.populate(data, { path: '_id', select: 'info' }, (error, owner) => {
+                        Maid.populate(data, { path: '_id', select: 'info work_info' }, (error, owner) => {
                             if (error) {
                                 return msg.msgReturn(res, 3);
                             } else {
