@@ -170,7 +170,7 @@ router.route('/getAll').get((req, res) => {
             }
         }
 
-        let query = {};
+        let query = { status: true };
 
         if (email) query['info.email'] = new RegExp(email, 'i');
         if (username) query['info.username'] = new RegExp(username, 'i');
@@ -220,7 +220,7 @@ router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
 
-        Owner.findOne({ _id: id }).select('evaluation_point info wallet history').exec((error, data) => {
+        Owner.findOne({ _id: id, status: true }).select('evaluation_point info wallet history').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
