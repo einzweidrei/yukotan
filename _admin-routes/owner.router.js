@@ -581,7 +581,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
 router.route('/delete').delete((req, res) => {
     try {
         var owner = new Owner();
-        var id = req.body.id;
+        var id = req.query.id;
 
         Owner.findOne({ _id: id, status: true }).exec((error, data) => {
             if (error) {
