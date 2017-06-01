@@ -578,6 +578,45 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
     }
 });
 
+router.route('/delete').delete((req, res) => {
+    try {
+        var owner = new Owner();
+        var id = req.body.id;
+
+        Owner.findOne({ _id: id, status: true }).exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    Owner.findOneAndUpdate(
+                        {
+                            _id: id,
+                            status: true
+                        },
+                        {
+                            $set: {
+                                'history.updateAt': new Date(),
+                                status: false
+                            }
+                        },
+                        {
+                            upsert: true
+                        },
+                        (error, result) => {
+                            if (error) return msg.msgReturn(res, 3);
+                            return msg.msgReturn(res, 0);
+                        }
+                    );
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 // /** GET - Get All Tasks By Owner ID
 //  * info {
 //  *      type: GET
