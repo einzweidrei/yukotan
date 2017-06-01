@@ -53,6 +53,12 @@ function hash(content) {
     return hash;
 }
 
+function getToken() {
+    var crypto = require('crypto');
+    var token = crypto.randomBytes(token_length).toString('hex');
+    return token;
+}
+
 // setting limit of FILE
 router.use(bodyparser.urlencoded({
     // limit: '50mb',
@@ -268,7 +274,7 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
 
         owner.location = {
             type: 'Point',
-            coordinates: [req.body.lng, req.body.lat]
+            coordinates: [req.body.lng || 0, req.body.lat || 0]
         };
 
         Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
