@@ -272,7 +272,7 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
         Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
             if (validate.isNullorEmpty(data)) {
                 if (!req.files.image) {
-                    owner.info['image'] = "";
+                    owner.info.image = "";
                     owner.save((error, data) => {
                         if (error) {
                             return msg.msgReturn(res, 3);
@@ -287,7 +287,16 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
                                 if (error) {
                                     return msg.msgReturn(res, 3);
                                 } else {
-                                    return msg.msgReturn(res, 0);
+                                    let dt = {
+                                        token: session.auth.token,
+                                        user: {
+                                            _id: data._id,
+                                            info: data.info,
+                                            evaluation_point: data.evaluation_point,
+                                            wallet: data.wallet
+                                        }
+                                    };
+                                    return msg.msgReturn(res, 0, dt);
                                 }
                             });
                         }
@@ -296,7 +305,7 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
                     cloudinary.uploader.upload(
                         req.files.image.path,
                         function (result) {
-                            owner.info['image'] = result.url;
+                            owner.info.image = result.url;
                             owner.save((error, data) => {
                                 if (error) {
                                     return msg.msgReturn(res, 3);
@@ -311,7 +320,16 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
                                         if (error) {
                                             return msg.msgReturn(res, 3);
                                         } else {
-                                            return msg.msgReturn(res, 0);
+                                            let dt = {
+                                                token: session.auth.token,
+                                                user: {
+                                                    _id: data._id,
+                                                    info: data.info,
+                                                    evaluation_point: data.evaluation_point,
+                                                    wallet: data.wallet
+                                                }
+                                            };
+                                            return msg.msgReturn(res, 0, dt);
                                         }
                                     });
                                 }
@@ -320,7 +338,7 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
                     )
                 }
             } else {
-                return msg.msgReturn(res, 2);
+                return msg.msgReturn(res, 2, {});
             }
         });
     } catch (error) {

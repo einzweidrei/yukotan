@@ -111,11 +111,6 @@ router.use(function (req, res, next) {
  */
 router.route('/getAll').post((req, res) => {
     try {
-        // var language = req.cookies.language;
-        // Package.setDefaultLanguage(language);
-        // Work.setDefaultLanguage(language);
-        // Process.setDefaultLanguage(language);
-
         var minDistance = req.body.minDistance || 1;
         var maxDistance = req.body.maxDistance || 2000;
         var limit = req.body.limit || 20;
@@ -252,7 +247,15 @@ router.route('/getAll').post((req, res) => {
                                 if (error) return msg.msgReturn(res, 3);
                                 Process.populate(data, { path: 'process', select: 'name' }, (error, data) => {
                                     if (error) return msg.msgReturn(res, 3);
-                                    return msg.msgReturn(res, 0, data);
+                                    else {
+                                        let d = {
+                                            docs: data,
+                                            limit: limit,
+                                            page: page,
+                                            pages: Math.ceil(data.length / limit)
+                                        }
+                                        return msg.msgReturn(res, 0, d);
+                                    }
                                 });
                             });
                         });
@@ -1245,7 +1248,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                             return msg.msgReturn(res, 3);
                                                         }
                                                         console.log('Verify successful!  Server responded with:', body);
-                                                        return msg.msgReturn(res, 0, body);
+                                                        return msg.msgReturn(res, 0, JSON.stringify(body));
                                                     });
                                             }
                                         }
