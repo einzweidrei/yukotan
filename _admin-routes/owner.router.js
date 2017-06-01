@@ -485,6 +485,99 @@ router.route('/getAllTasks').get((req, res) => {
     }
 });
 
+router.route('/update').put(multipartMiddleware, (req, res) => {
+    try {
+        var owner = new Owner();
+        var id = req.body.id;
+
+        let phone = req.body.phone || "";
+        let name = req.body.name || "";
+        let age = req.body.age || 18;
+        let address = {
+            name: req.body.addressName || "",
+            coordinates: {
+                lat: req.body.lat || 0,
+                lng: req.body.lng || 0
+            }
+        };
+        let gender = req.body.gender || 0;
+
+        let location = {
+            type: 'Point',
+            coordinates: [req.body.lng || 0, req.body.lat || 0]
+        }
+
+        Owner.findOne({ _id: id, status: true }).exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    if (!req.files.image) {
+                        Owner.findOneAndUpdate(
+                            {
+                                _id: id,
+                                status: true
+                            },
+                            {
+                                $set: {
+                                    'info.phone': phone,
+                                    'info.name': name,
+                                    'info.age': age,
+                                    'info.address': address,
+                                    'info.gender': gender,
+                                    location: location,
+                                    'history.updateAt': new Date()
+                                }
+                            },
+                            {
+                                upsert: true
+                            },
+                            (error, result) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                return msg.msgReturn(res, 0);
+                            }
+                        );
+                    } else {
+                        cloudinary.uploader.upload(
+                            req.files.image.path,
+                            function (result) {
+                                Owner.findOneAndUpdate(
+                                    {
+                                        _id: id,
+                                        status: true
+                                    },
+                                    {
+                                        $set: {
+                                            'info.phone': phone,
+                                            'info.name': name,
+                                            'info.age': age,
+                                            'info.address': address,
+                                            'info.gender': gender,
+                                            'info.image': result.url,
+                                            location: location,
+                                            'history.updateAt': new Date()
+                                        }
+                                    },
+                                    {
+                                        upsert: true
+                                    },
+                                    (error, result) => {
+                                        if (error) return msg.msgReturn(res, 3);
+                                        return msg.msgReturn(res, 0);
+                                    }
+                                );
+                            });
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 // /** GET - Get All Tasks By Owner ID
 //  * info {
 //  *      type: GET
