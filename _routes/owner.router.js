@@ -1,5 +1,6 @@
 var express = require('express');
 var mongoose = require('mongoose');
+var async = require('promise-async');
 var router = express.Router();
 
 var messageService = require('../_services/message.service');
@@ -20,6 +21,7 @@ var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
 var Report = require('../_model/report');
+var Bill = require('../_model/bill');
 
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
@@ -59,24 +61,24 @@ router.use(function (req, res, next) {
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
-            // next();
-            if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
-                Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 14);
-                        } else {
-                            req.cookies['userId'] = data.auth.userId;
-                            next();
-                        }
-                    }
-                });
-            } else {
-                return msg.msgReturn(res, 14);
-            }
+            next();
+            // if (req.headers.hbbgvauth) {
+            //     let token = req.headers.hbbgvauth;
+            //     Session.findOne({ 'auth.token': token }).exec((error, data) => {
+            //         if (error) {
+            //             return msg.msgReturn(res, 3);
+            //         } else {
+            //             if (validate.isNullorEmpty(data)) {
+            //                 return msg.msgReturn(res, 14);
+            //             } else {
+            //                 req.cookies['userId'] = data.auth.userId;
+            //                 next();
+            //             }
+            //         }
+            //     });
+            // } else {
+            //     return msg.msgReturn(res, 14);
+            // }
         }
         else {
             return msg.msgReturn(res, 6);
@@ -716,6 +718,119 @@ router.route('/report').post((req, res) => {
         });
     } catch (error) {
         console.log(error);
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/statistical').get((req, res) => {
+    try {
+        const id = req.cookies.userId;
+        // const id = '5911460ae740560cb422ac35';
+        const startAt = req.query.startAt;
+        const endAt = req.query.endAt;
+
+        const billQuery = {
+            owner: new ObjectId(id),
+            isSolved: true
+        };
+
+        const taskQuery = {
+            'stakeholders.owner': new ObjectId(id),
+            status: true
+        };
+
+        if (startAt || endAt) {
+            const timeQuery = {};
+
+            if (startAt) {
+                let date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                let date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            billQuery['createAt'] = timeQuery;
+            taskQuery['info.time.startAt'] = timeQuery;
+        };
+
+
+        async.parallel(
+            {
+                bill: function (callback) {
+                    Bill.aggregate([
+                        {
+                            $match: billQuery
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                totalPrice: {
+                                    $sum: '$price'
+                                }
+                            }
+                        },
+                    ], (error, data) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            if (validate.isNullorEmpty(data)) {
+                                const d = {
+                                    _id: null,
+                                    totalPrice: 0
+                                }
+                                callback(null, d);
+                            } else {
+                                callback(null, data);
+                            }
+                        }
+                    });
+                },
+                task: function (callback) {
+                    Task.aggregate([
+                        {
+                            $match: taskQuery
+                        },
+                        {
+                            $group: {
+                                _id: '$process',
+                                task: {
+                                    $push: '$_id'
+                                }
+                            }
+                        }
+                    ], (error, data) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            callback(null, data);
+                        }
+                    });
+                }
+            }, (error, result) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    let task = result.task;
+                    let bill = result.bill;
+
+                    let g = {};
+
+                    const d = {
+                        totalPrice: bill.totalPrice,
+                        task: task
+                    }
+
+                    return msg.msgReturn(res, 0, d);
+                }
+            }
+        );
+    } catch (error) {
         return msg.msgReturn(res, 3);
     }
 });
