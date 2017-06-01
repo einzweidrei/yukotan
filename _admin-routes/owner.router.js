@@ -31,6 +31,8 @@ var ObjectId = require('mongoose').Types.ObjectId;
 
 var bodyparser = require('body-parser');
 
+var cloudinary = require('cloudinary');
+
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 
