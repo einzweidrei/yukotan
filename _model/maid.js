@@ -56,5 +56,6 @@ var MaidSchema = new Schema(
 );
 
 MaidSchema.index({ 'location': '2dsphere' });
+MaidSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Maid', MaidSchema);		

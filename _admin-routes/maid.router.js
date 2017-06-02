@@ -191,6 +191,7 @@ router.route('/getAll').get((req, res) => {
             }
         });
     } catch (error) {
+        console.log(error);
         // logs.error(error, metadata);
         return msg.msgReturn(res, 3);
     }
