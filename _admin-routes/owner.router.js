@@ -488,7 +488,7 @@ router.route('/getAllTasks').get((req, res) => {
 router.route('/update').put(multipartMiddleware, (req, res) => {
     try {
         var owner = new Owner();
-        var id = req.body.id;
+        var id = req.query.id;
 
         let phone = req.body.phone || "";
         let name = req.body.name || "";
