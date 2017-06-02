@@ -70,17 +70,17 @@ router.use(bodyparser.urlencoded({
 router.use(bodyparser.json());
 
 let metadata = {
-    route: 'owner'
+    route: 'maid'
 };
 
 /** Middle Ware
  * 
  */
 router.use(function (req, res, next) {
-    console.log('cms-owner_router is connecting');
+    console.log('cms-maid_router is connecting');
     try {
         var baseUrl = req.baseUrl;
-        metadata['router'] = baseUrl;
+        // metadata['router'] = baseUrl;
 
         var language = baseUrl.substring(baseUrl.indexOf('/admin/') + 7, baseUrl.lastIndexOf('/'));
         if (lnService.isValidLanguage(language)) {
@@ -91,7 +91,7 @@ router.use(function (req, res, next) {
 
             // log4js.info('Success');
 
-            metadata['userId'] = '';
+            // metadata['userId'] = '';
             next();
             // if (req.headers.hbbgvauth) {
             //     let token = req.headers.hbbgvauth;
@@ -121,10 +121,6 @@ router.use(function (req, res, next) {
 
 router.route('/getAll').get((req, res) => {
     try {
-        metadata['api'] = '/getAll';
-        metadata['query'] = req.query;
-        metadata['body'] = req.body;
-
         let startAt = req.query.startAt;
         let endAt = req.query.endAt;
         let page = req.query.page || 1;
@@ -178,14 +174,14 @@ router.route('/getAll').get((req, res) => {
         if (gender) query['info.gender'] = new RegExp(gender, 'i');
 
         let options = {
-            select: 'evaluation_point info wallet history',
+            select: 'info work_info history',
             // populate: { path: 'task', select: 'info' },
             sort: sortQuery,
             page: parseFloat(page),
             limit: parseFloat(limit)
         };
 
-        Owner.paginate(query, options).then((data) => {
+        Maid.paginate(query, options).then((data) => {
             if (validate.isNullorEmpty(data)) {
                 // logs.info(2, metadata);
                 return msg.msgReturn(res, 4);
@@ -220,7 +216,7 @@ router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
 
-        Owner.findOne({ _id: id, status: true }).select('evaluation_point info wallet history').exec((error, data) => {
+        Maid.findOne({ _id: id, status: true }).select('info work_info history').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -238,9 +234,9 @@ router.route('/getById').get((req, res) => {
 
 router.route('/create').post(multipartMiddleware, (req, res) => {
     try {
-        var owner = new Owner();
+        var maid = new Maid();
 
-        owner.info = {
+        maid.info = {
             username: req.body.username || "",
             email: req.body.email || "",
             phone: req.body.phone || "",
@@ -256,32 +252,33 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
             gender: req.body.gender || 0,
         };
 
-        owner.evaluation_point = 2.5;
-
-        owner.wallet = 0;
-
-        owner.auth = {
-            password: hash(req.body.password),
-            device_token: req.body.device_token || ""
+        maid.work_info = {
+            evaluation_point: 0,
+            price: 0
         };
 
-        owner.history = {
+        maid.auth = {
+            password: hash(req.body.password),
+            device_token: req.body.device_token
+        };
+
+        maid.history = {
             createAt: new Date(),
             updateAt: new Date()
         };
 
-        owner.status = true;
+        maid.status = true;
 
-        owner.location = {
+        maid.location = {
             type: 'Point',
-            coordinates: [req.body.lng || 0, req.body.lat || 0]
+            coordinates: [req.body.lng, req.body.lat]
         };
 
-        Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
+        Maid.findOne({ 'info.username': req.body.username }).exec((error, data) => {
             if (validate.isNullorEmpty(data)) {
                 if (!req.files.image) {
-                    owner.info.image = "";
-                    owner.save((error, data) => {
+                    maid.info.image = "";
+                    maid.save((error, data) => {
                         if (error) {
                             return msg.msgReturn(res, 3);
                         } else {
@@ -300,8 +297,7 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
                                         user: {
                                             _id: data._id,
                                             info: data.info,
-                                            evaluation_point: data.evaluation_point,
-                                            wallet: data.wallet
+                                            work_info: data.work_info
                                         }
                                     };
                                     return msg.msgReturn(res, 0, dt);
@@ -313,8 +309,8 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
                     cloudinary.uploader.upload(
                         req.files.image.path,
                         function (result) {
-                            owner.info.image = result.url;
-                            owner.save((error, data) => {
+                            maid.info.image = result.url;
+                            maid.save((error, data) => {
                                 if (error) {
                                     return msg.msgReturn(res, 3);
                                 } else {
@@ -333,8 +329,7 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
                                                 user: {
                                                     _id: data._id,
                                                     info: data.info,
-                                                    evaluation_point: data.evaluation_point,
-                                                    wallet: data.wallet
+                                                    work_info: data.work_info
                                                 }
                                             };
                                             return msg.msgReturn(res, 0, dt);
@@ -371,123 +366,106 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
  *      null
  * } 
  */
-router.route('/getAllTasks').get((req, res) => {
-    try {
-        let id = req.query.id;
-        let process = req.query.process;
+// router.route('/getAllTasks').get((req, res) => {
+//     try {
+//         let id = req.query.id;
+//         let process = req.query.process;
 
-        let startAt = req.query.startAt;
-        let endAt = req.query.endAt;
-        let limit = req.query.limit || 10;
-        let page = req.query.page || 1;
-        let sortByTime = req.query.sortByTime;
+//         let startAt = req.query.startAt;
+//         let endAt = req.query.endAt;
+//         let limit = req.query.limit || 10;
+//         let page = req.query.page || 1;
+//         let sortByTime = req.query.sortByTime;
 
-        let title = req.query.title;
+//         let title = req.query.title;
 
-        let findQuery = {
-            'stakeholders.owner': id,
-            status: true
-        }
+//         let findQuery = {
+//             'stakeholders.owner': id,
+//             status: true
+//         }
 
-        if (process) {
-            findQuery['process'] = process;
-        }
+//         if (process) {
+//             findQuery['process'] = process;
+//         }
 
-        if (startAt || endAt) {
-            let timeQuery = {};
+//         if (startAt || endAt) {
+//             let timeQuery = {};
 
-            if (startAt) {
-                let date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
+//             if (startAt) {
+//                 let date = new Date(startAt);
+//                 date.setUTCHours(0, 0, 0, 0);
+//                 timeQuery['$gte'] = date;
+//             }
 
-            if (endAt) {
-                let date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
+//             if (endAt) {
+//                 let date = new Date(endAt);
+//                 date.setUTCHours(0, 0, 0, 0);
+//                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+//                 timeQuery['$lt'] = date;
+//             }
 
-            findQuery['info.time.startAt'] = timeQuery;
-        }
+//             findQuery['info.time.startAt'] = timeQuery;
+//         }
 
-        var populateQuery = [
-            {
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.received',
-                select: 'info work_info'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }
-        ];
+//         var populateQuery = [
+//             {
+//                 path: 'info.package',
+//                 select: 'name'
+//             },
+//             {
+//                 path: 'info.work',
+//                 select: 'name image'
+//             },
+//             {
+//                 path: 'stakeholders.owner',
+//                 select: 'info evaluation_point'
+//             },
+//             {
+//                 path: 'process',
+//                 select: 'name'
+//             }
+//         ];
 
-        let sortQuery = { 'history.createAt': -1 };
+//         let sortQuery = { 'history.createAt': -1 };
 
-        if (sortByTime) {
-            switch (sortByTime) {
-                case 'asc':
-                    sortQuery = { 'history.createAt': -1 };
-                    break;
-                case 'desc':
-                    sortQuery = { 'history.createAt': -1 };
-                    break;
-                default:
-                    break;
-            }
-        }
+//         if (sortByTime) {
+//             switch (sortByTime) {
+//                 case 'asc':
+//                     sortQuery = { 'history.createAt': 1 };
+//                     break;
+//                 case 'desc':
+//                     sortQuery = { 'history.createAt': -1 };
+//                     break;
+//                 default:
+//                     break;
+//             }
+//         }
 
-        if (title) findQuery['info.title'] = new RegExp(title, 'i');
+//         if (title) findQuery['info.title'] = new RegExp(title, 'i');
 
-        let options = {
-            select: '-location -status -__v',
-            populate: populateQuery,
-            sort: sortQuery,
-            page: parseFloat(page),
-            limit: parseFloat(limit)
-        };
+//         let options = {
+//             select: '-location -status -__v',
+//             populate: populateQuery,
+//             sort: sortQuery,
+//             page: parseFloat(page),
+//             limit: parseFloat(limit)
+//         };
 
-        Task.paginate(findQuery, options).then((data) => {
-            if (validate.isNullorEmpty(data)) {
-                return msg.msgReturn(res, 4);
-            } else {
-                return msg.msgReturn(res, 0, data);
-            }
-        });
-
-        // Task
-        //     .find(findQuery)
-        //     .populate(populateQuery)
-        //     .sort(sortQuery)
-        //     .limit(parseFloat(limit))
-        //     .select('-location -status -__v').exec((error, data) => {
-        //         if (error) {
-        //             return msg.msgReturn(res, 3);
-        //         } else {
-        //             if (validate.isNullorEmpty(data)) {
-        //                 return msg.msgReturn(res, 4);
-        //             } else {
-        //                 return msg.msgReturn(res, 0, data);
-        //             }
-        //         }
-        //     });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
+//         Task.paginate(findQuery, options).then((data) => {
+//             if (validate.isNullorEmpty(data)) {
+//                 return msg.msgReturn(res, 4);
+//             } else {
+//                 return msg.msgReturn(res, 0, data);
+//             }
+//         });
+//     } catch (error) {
+//         return msg.msgReturn(res, 3);
+//     }
+// });
 
 router.route('/update').put(multipartMiddleware, (req, res) => {
     try {
-        var owner = new Owner();
+        var maid = new Maid();
         var id = req.query.id;
 
         let phone = req.body.phone || "";
@@ -507,7 +485,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
             coordinates: [req.body.lng || 0, req.body.lat || 0]
         }
 
-        Owner.findOne({ _id: id, status: true }).exec((error, data) => {
+        Maid.findOne({ _id: id, status: true }).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -515,7 +493,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     if (!req.files.image) {
-                        Owner.findOneAndUpdate(
+                        Maid.findOneAndUpdate(
                             {
                                 _id: id,
                                 status: true
@@ -543,7 +521,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                         cloudinary.uploader.upload(
                             req.files.image.path,
                             function (result) {
-                                Owner.findOneAndUpdate(
+                                Maid.findOneAndUpdate(
                                     {
                                         _id: id,
                                         status: true
@@ -580,17 +558,16 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
 
 router.route('/delete').delete((req, res) => {
     try {
-        var owner = new Owner();
         var id = req.query.id;
 
-        Owner.findOne({ _id: id, status: true }).exec((error, data) => {
+        Maid.findOne({ _id: id, status: true }).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    Owner.findOneAndUpdate(
+                    Maid.findOneAndUpdate(
                         {
                             _id: id,
                             status: true
