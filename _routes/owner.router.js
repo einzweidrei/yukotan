@@ -407,8 +407,8 @@ router.route('/getAllTasks').get((req, res) => {
  */
 router.route('/getHistoryTasks').get((req, res) => {
     try {
-        let id = req.cookies.userId;
-        // let id = '5911460ae740560cb422ac35';
+        // let id = req.cookies.userId;
+        let id = '5911460ae740560cb422ac35';
         let process = req.query.process || '000000000000000000000005';
 
         let startAt = req.query.startAt;
@@ -848,9 +848,9 @@ router.route('/getDebt').get((req, res) => {
                 }
             },
             {
-                $project: {
-                    _id: 0,
-                    task: 1
+                $group: {
+                    _id: '$owner',
+                    tasks: { $push: '$task' }
                 }
             },
             (error, data) => {
@@ -860,17 +860,18 @@ router.route('/getDebt').get((req, res) => {
                     if (validate.isNullorEmpty(data)) {
                         return msg.msgReturn(res, 4);
                     } else {
-                        Task.populate(data, { path: 'task', select: 'info stakeholders.received check process history' }, (error, result) => {
-                            if (error) {
-                                return msg.msgReturn(res, 3);
-                            } else {
-                                if (validate.isNullorEmpty(result)) {
-                                    return msg.msgReturn(res, 4);
-                                } else {
+                        Task.populate(data, { path: 'tasks', select: 'info stakeholders.received check process history' }, (error, result) => {
+                            if (error) return msg.msgReturn(res, 3);
+                            var result = result[0].tasks;
+                            if (validate.isNullorEmpty(result)) return msg.msgReturn(res, 4);
+                            Work.populate(result, { path: 'info.work', select: 'name' }, (error, result) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                Package.populate(result, { path: 'info.package', select: 'name' }, (error, result) => {
+                                    if (error) return msg.msgReturn(res, 3);
                                     return msg.msgReturn(res, 0, result);
-                                }
-                            }
-                        })
+                                });
+                            });
+                        });
                     }
                 }
             }
