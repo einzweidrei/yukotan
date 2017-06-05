@@ -835,4 +835,49 @@ router.route('/statistical').get((req, res) => {
     }
 });
 
+router.route('/getDebt').get((req, res) => {
+    try {
+        var id = req.cookies.userId;
+        // var id = '5911460ae740560cb422ac35';
+
+        Bill.aggregate(
+            {
+                $match: {
+                    owner: new ObjectId(id),
+                    isSolved: false
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    task: 1
+                }
+            },
+            (error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        Task.populate(data, { path: 'task', select: 'info stakeholders.received check process history' }, (error, result) => {
+                            if (error) {
+                                return msg.msgReturn(res, 3);
+                            } else {
+                                if (validate.isNullorEmpty(result)) {
+                                    return msg.msgReturn(res, 4);
+                                } else {
+                                    return msg.msgReturn(res, 0, result);
+                                }
+                            }
+                        })
+                    }
+                }
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 module.exports = router;

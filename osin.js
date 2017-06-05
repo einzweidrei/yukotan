@@ -105,11 +105,11 @@ app.use('/:language/comment', require('./_routes/comment.router'));
 app.use('/admin/:language/owner', require('./_admin-routes/owner.router'));
 app.use('/admin/:language/maid', require('./_admin-routes/maid.router'));
 
-app.use('/microsoft', require('./_routes/microsoftApi.router'));
-app.use('/al', require('./_routes/algorithm.router'));
+// app.use('/microsoft', require('./_routes/microsoftApi.router'));
+// app.use('/al', require('./_routes/algorithm.router'));
 // app.use('/image', require('./_routes/uploadImage.router'));
 
 // /:language(en|vi)
-app.listen(process.env.PORT || 8080, function () {
-    console.log('listening on 8080 <3')
+app.listen(process.env.PORT || 8000, function () {
+    console.log('listening on 8000 <3')
 });

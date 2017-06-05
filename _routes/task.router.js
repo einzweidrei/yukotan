@@ -50,28 +50,28 @@ router.use(function (req, res, next) {
         var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
 
         if (lnService.isValidLanguage(language)) {
-                req.cookies['language'] = language;
-                Package.setDefaultLanguage(language);
-                Work.setDefaultLanguage(language);
-                Process.setDefaultLanguage(language);
+            req.cookies['language'] = language;
+            Package.setDefaultLanguage(language);
+            Work.setDefaultLanguage(language);
+            Process.setDefaultLanguage(language);
 
-                if (req.headers.hbbgvauth) {
-                    let token = req.headers.hbbgvauth;
-                    Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
+            if (req.headers.hbbgvauth) {
+                let token = req.headers.hbbgvauth;
+                Session.findOne({ 'auth.token': token }).exec((error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            return msg.msgReturn(res, 14);
                         } else {
-                            if (validate.isNullorEmpty(data)) {
-                                return msg.msgReturn(res, 14);
-                            } else {
-                                req.cookies['userId'] = data.auth.userId;
-                                next();
-                            }
+                            req.cookies['userId'] = data.auth.userId;
+                            next();
                         }
-                    });
-                } else {
-                    return msg.msgReturn(res, 14);
-                }
+                    }
+                });
+            } else {
+                return msg.msgReturn(res, 14);
+            }
             // next();
         }
         else {
