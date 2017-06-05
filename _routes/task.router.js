@@ -55,24 +55,24 @@ router.use(function (req, res, next) {
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
-            if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
-                Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 14);
-                        } else {
-                            req.cookies['userId'] = data.auth.userId;
-                            next();
-                        }
-                    }
-                });
-            } else {
-                return msg.msgReturn(res, 14);
-            }
-            // next();
+            // if (req.headers.hbbgvauth) {
+            //     let token = req.headers.hbbgvauth;
+            //     Session.findOne({ 'auth.token': token }).exec((error, data) => {
+            //         if (error) {
+            //             return msg.msgReturn(res, 3);
+            //         } else {
+            //             if (validate.isNullorEmpty(data)) {
+            //                 return msg.msgReturn(res, 14);
+            //             } else {
+            //                 req.cookies['userId'] = data.auth.userId;
+            //                 next();
+            //             }
+            //         }
+            //     });
+            // } else {
+            //     return msg.msgReturn(res, 14);
+            // }
+            next();
         }
         else {
             return msg.msgReturn(res, 6);
@@ -965,15 +965,17 @@ router.route('/reserve').post((req, res) => {
 router.route('/submit').post((req, res) => {
     try {
         var id = req.body.id;
-        var ownerId = req.cookies.userId;
-        // var ownerId = '5911460ae740560cb422ac35';
+        // var ownerId = req.cookies.userId;
+        var ownerId = '5911460ae740560cb422ac35';
         var maidId = req.body.maidId;
 
+        console.log(req.body);
         async.parallel({
             //check maid exist
             maid: function (callback) {
                 Maid.findOne({ _id: maidId, status: true }).exec((error, data) => {
                     if (error) {
+                        console.log(error)
                         callback(null, 2);
                     }
                     else {
@@ -992,14 +994,11 @@ router.route('/submit').post((req, res) => {
                     {
                         _id: id,
                         'stakeholders.owner': ownerId,
-                        process: {
-                            $in: ['000000000000000000000001',
-                                //  '000000000000000000000002'
-                            ]
-                        },
+                        process: new ObjectId('000000000000000000000001'),
                         status: true
                     }).exec((error, data) => {
                         if (error) {
+                            console.log(error)
                             callback(null, 2);
                         }
                         else {
@@ -1056,6 +1055,7 @@ router.route('/submit').post((req, res) => {
                                     }
                                 ).exec((error, result) => {
                                     if (error) {
+                                        console.log(error)
                                         callback(null, 2);
                                     } else {
                                         if (validate.isNullorEmpty(result)) {
@@ -1070,19 +1070,17 @@ router.route('/submit').post((req, res) => {
                     });
             }
         }, (error, result) => {
+            console.log(result);
             if (error) {
+                console.log(error)
                 return msg.msgReturn(res, 3);
             } else {
-                if (result.maid == 2 && result.task == 2) {
+                if (result.maid == 0 && result.task == 0) {
                     Task.findOneAndUpdate(
                         {
                             _id: id,
                             'stakeholders.owner': ownerId,
-                            process: {
-                                $in: ['000000000000000000000001',
-                                    // '000000000000000000000002'
-                                ]
-                            },
+                            process: new ObjectId('000000000000000000000001'),
                             status: true
                         },
                         {
@@ -1095,6 +1093,7 @@ router.route('/submit').post((req, res) => {
                             upsert: true
                         },
                         (error) => {
+                            console.log(error)
                             if (error) return msg.msgReturn(res, 3);
                             return msg.msgReturn(res, 0);
                         }
@@ -1113,6 +1112,7 @@ router.route('/submit').post((req, res) => {
             }
         });
     } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
