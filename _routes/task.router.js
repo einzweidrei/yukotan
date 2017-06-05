@@ -1191,6 +1191,8 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                     }
                                                     console.log('FaceId1 successful!  Server responded with:', body);
                                                     var data = JSON.parse(body);
+
+                                                    if (validate.isNullorEmpty(data)) callback(null, [])
                                                     callback(null, data[0].faceId);
                                                 });
                                         },
@@ -1217,6 +1219,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                     }
                                                     console.log('FaceId2 successful!  Server responded with:', body);
                                                     var data = JSON.parse(body);
+                                                    if (validate.isNullorEmpty(data)) callback(null, [])
                                                     callback(null, data[0].faceId);
                                                 });
                                         }

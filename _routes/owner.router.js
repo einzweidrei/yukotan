@@ -860,7 +860,7 @@ router.route('/getDebt').get((req, res) => {
                     if (validate.isNullorEmpty(data)) {
                         return msg.msgReturn(res, 4);
                     } else {
-                        Task.populate(data, { path: 'tasks', select: 'info stakeholders.received check process history' }, (error, result) => {
+                        Task.populate(data, { path: 'tasks', select: 'info stakeholders check process history' }, (error, result) => {
                             if (error) return msg.msgReturn(res, 3);
                             var result = result[0].tasks;
                             if (validate.isNullorEmpty(result)) return msg.msgReturn(res, 4);
@@ -868,7 +868,10 @@ router.route('/getDebt').get((req, res) => {
                                 if (error) return msg.msgReturn(res, 3);
                                 Package.populate(result, { path: 'info.package', select: 'name' }, (error, result) => {
                                     if (error) return msg.msgReturn(res, 3);
-                                    return msg.msgReturn(res, 0, result);
+                                    Maid.populate(result, { path: 'stakeholders.received', select: 'info work_info' }, (error, result) => {
+                                        if (error) return msg.msgReturn(res, 3);
+                                        return msg.msgReturn(res, 0, result);
+                                    });
                                 });
                             });
                         });
