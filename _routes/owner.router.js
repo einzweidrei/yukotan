@@ -864,7 +864,7 @@ router.route('/getDebt').get((req, res) => {
                             if (error) return msg.msgReturn(res, 3);
                             var result = result[0].tasks;
                             if (validate.isNullorEmpty(result)) return msg.msgReturn(res, 4);
-                            Work.populate(result, { path: 'info.work', select: 'name' }, (error, result) => {
+                            Work.populate(result, { path: 'info.work', select: 'name image' }, (error, result) => {
                                 if (error) return msg.msgReturn(res, 3);
                                 Package.populate(result, { path: 'info.package', select: 'name' }, (error, result) => {
                                     if (error) return msg.msgReturn(res, 3);
