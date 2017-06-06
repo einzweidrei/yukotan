@@ -160,12 +160,7 @@ router.route('/getAll').post((req, res) => {
         var matchQuery = { status: true };
 
         if (!process) {
-            matchQuery['process'] = {
-                $in: [
-                    new ObjectId('000000000000000000000001'),
-                    new ObjectId('000000000000000000000002')
-                ]
-            };
+            matchQuery['process'] = new ObjectId('000000000000000000000001');
         } else {
             matchQuery['process'] = {
                 $in: [
@@ -203,6 +198,7 @@ router.route('/getAll').post((req, res) => {
             matchQuery['info.title'] = new RegExp(title, 'i');
         }
 
+        // console.log(matchQuery);
         Task.aggregate([
             {
                 $geoNear: {
@@ -230,9 +226,11 @@ router.route('/getAll').post((req, res) => {
                     stakeholders: 1,
                     info: 1,
                     dist: 1
+                    // status: 1
                 }
             }
         ], (error, places) => {
+            // console.log(places);
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -1252,8 +1250,8 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                             console.error('upload failed:', error);
                                                             return msg.msgReturn(res, 3);
                                                         }
-                                                        console.log('Verify successful!  Server responded with:', body);
-                                                        return msg.msgReturn(res, 0, JSON.stringify(body));
+                                                        var item = JSON.parse(body);
+                                                        return msg.msgReturn(res, 0, item);
                                                     });
                                             }
                                         }

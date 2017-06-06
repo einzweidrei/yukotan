@@ -318,4 +318,189 @@ router.route('/getAllMaids').get((req, res) => {
     }
 });
 
+/** POST - Get All Tasks
+ * info {
+ *      type: POST
+ *      url: /getAll
+ *      role: Owner
+ *      name: Get All Tasks
+ *      description: Get all tasks which is around [input location]
+ * }
+ * 
+ * params {
+ *      lat: Number
+ *      lng: Number
+ *      minDistance: Number
+ *      maxDistance: Number
+ *      limit: Number
+ *      page: Number
+ *      sortBy: "distance" | "price"
+ *      sortType: "asc" | "desc"
+ * }
+ * 
+ * body {
+ *      title: String
+ *      process: process_ID
+ *      package: [ package_ID ]
+ *      work: [ work_ID ]
+ * }
+ */
+router.route('/getAll').post((req, res) => {
+    try {
+        var minDistance = req.body.minDistance || 1;
+        var maxDistance = req.body.maxDistance || 2000;
+        var limit = req.body.limit || 20;
+        var page = req.body.page || 1;
+        var skip = (page - 1) * limit;
+
+        var title = req.body.title;
+        var process = req.body.process;
+        var package = req.body.package;
+        var work = req.body.work;
+
+        var sortBy = req.body.sortBy || "distance"; //distance & price
+        var sortType = req.body.sortType || "asc"; //asc & desc
+
+        var sortQuery = {};
+
+        if (sortType == "desc") {
+            if (sortBy == "price") {
+                sortQuery = {
+                    'info.price': -1
+                }
+            } else {
+                sortQuery = {
+                    'dist.calculated': -1
+                }
+            }
+        } else {
+            if (sortBy == "price") {
+                sortQuery = {
+                    'info.price': 1
+                }
+            } else {
+                sortQuery = {
+                    'dist.calculated': 1
+                }
+            }
+        };
+
+        var loc = {
+            type: 'Point',
+            coordinates: [
+                parseFloat(req.body.lng) || 0,
+                parseFloat(req.body.lat) || 0
+            ]
+        };
+
+        var matchQuery = { status: true };
+
+        if (!process) {
+            matchQuery['process'] = new ObjectId('000000000000000000000001');
+        } else {
+            matchQuery['process'] = {
+                $in: [
+                    new ObjectId(process)
+                ]
+            };
+        }
+
+        if (package) {
+            var arr = new Array();
+            if (package instanceof Array) {
+                for (var i = 0; i < package.length; i++) {
+                    arr.push(new ObjectId(package[i]));
+                }
+
+                matchQuery['info.package'] = {
+                    $in: arr
+                }
+            }
+        }
+
+        if (work) {
+            var arr = new Array();
+            if (work instanceof Array) {
+                for (var i = 0; i < work.length; i++) {
+                    arr.push(new ObjectId(work[i]));
+                }
+                matchQuery['info.work'] = {
+                    $in: arr
+                }
+            }
+        }
+
+        if (title) {
+            matchQuery['info.title'] = new RegExp(title, 'i');
+        }
+
+        // console.log(matchQuery);
+        Task.aggregate([
+            {
+                $geoNear: {
+                    near: loc,
+                    distanceField: 'dist.calculated',
+                    minDistance: minDistance,
+                    maxDistance: maxDistance,
+                    num: limit,
+                    spherical: true
+                }
+            },
+            {
+                $match: matchQuery
+            },
+            {
+                $sort: sortQuery
+            },
+            {
+                $skip: skip
+            },
+            {
+                $project: {
+                    process: 1,
+                    history: 1,
+                    stakeholders: 1,
+                    info: 1,
+                    dist: 1
+                    // status: 1
+                }
+            }
+        ], (error, places) => {
+            // console.log(places);
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(places)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    Owner.populate(places, { path: 'stakeholders.owner', select: 'info' }, (error, data) => {
+                        if (error) return msg.msgReturn(res, 3);
+                        Work.populate(data, { path: 'info.work', select: 'name image' }, (error, data) => {
+                            if (error) return msg.msgReturn(res, 3);
+                            Package.populate(data, { path: 'info.package', select: 'name' }, (error, data) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                Process.populate(data, { path: 'process', select: 'name' }, (error, data) => {
+                                    if (error) return msg.msgReturn(res, 3);
+                                    else {
+                                        let d = {
+                                            docs: data,
+                                            total: data.length,
+                                            limit: limit,
+                                            page: page,
+                                            pages: Math.ceil(data.length / limit)
+                                        }
+                                        return msg.msgReturn(res, 0, d);
+                                    }
+                                });
+                            });
+                        });
+                    });
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 module.exports = router;
