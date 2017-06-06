@@ -351,9 +351,6 @@ router.route('/getTaskAround').get((req, res) => {
     try {
         var minDistance = req.query.minDistance || 1;
         var maxDistance = req.query.maxDistance || 2000;
-        var limit = req.query.limit || 20;
-        var page = req.query.page || 1;
-        var skip = (page - 1) * limit;
 
         var sortBy = req.query.sortBy || "distance"; //distance & price
         var sortType = req.query.sortType || "asc"; //asc & desc
