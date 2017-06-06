@@ -400,7 +400,7 @@ router.route('/getTaskAround').get((req, res) => {
                     distanceField: 'dist.calculated',
                     minDistance: minDistance,
                     maxDistance: maxDistance,
-                    num: limit,
+                    // num: limit,
                     spherical: true
                 }
             },
@@ -432,6 +432,7 @@ router.route('/getTaskAround').get((req, res) => {
             }
         });
     } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
