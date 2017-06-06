@@ -799,8 +799,11 @@ router.route('/statistical').get((req, res) => {
                         {
                             $group: {
                                 _id: '$process',
-                                task: {
-                                    $push: '$_id'
+                                // task: {
+                                //     $push: '$_id'
+                                // },
+                                count: {
+                                    $sum: 1
                                 }
                             }
                         }

@@ -30,6 +30,8 @@ var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
 var randomstring = require("randomstring");
 
+var ObjectId = require('mongoose').Types.ObjectId;
+
 router.use(bodyparser.urlencoded({
     extended: true
 }));
@@ -446,59 +448,77 @@ router.route('/getAll').post((req, res) => {
                     spherical: true
                 }
             },
+            // {
+            //     $match: matchQuery
+            // },
+
+            // {
+            //     $skip: skip
+            // },
             {
-                $match: matchQuery
+                $group: {
+                    _id: '$info.work',
+                    // work: '$info.work',
+                    // array: {
+                    //     $push: '$$ROOT'
+                    // },
+                    count: {
+                        $sum: 1
+                    }
+                }
             },
             {
                 $sort: sortQuery
             },
-            {
-                $skip: skip
-            },
-            {
-                $project: {
-                    process: 1,
-                    history: 1,
-                    stakeholders: 1,
-                    info: 1,
-                    dist: 1
-                    // status: 1
-                }
-            }
+            // {
+            //     $project: {
+            //         process: 1,
+            //         history: 1,
+            //         stakeholders: 1,
+            //         info: 1,
+            //         dist: 1
+            //         // status: 1
+            //     }
+            // }
         ], (error, places) => {
-            // console.log(places);
+            console.log(places);
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
                 if (validate.isNullorEmpty(places)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    Owner.populate(places, { path: 'stakeholders.owner', select: 'info' }, (error, data) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        Work.populate(data, { path: 'info.work', select: 'name image' }, (error, data) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            Package.populate(data, { path: 'info.package', select: 'name' }, (error, data) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                Process.populate(data, { path: 'process', select: 'name' }, (error, data) => {
-                                    if (error) return msg.msgReturn(res, 3);
-                                    else {
-                                        let d = {
-                                            docs: data,
-                                            total: data.length,
-                                            limit: limit,
-                                            page: page,
-                                            pages: Math.ceil(data.length / limit)
-                                        }
-                                        return msg.msgReturn(res, 0, d);
-                                    }
-                                });
-                            });
-                        });
+                    Work.populate(places, { path: '_id', select: 'name image' }, (error, data) => {
+                        return msg.msgReturn(res, 0, data);
                     });
+                    // Owner.populate(places, { path: 'stakeholders.owner', select: 'info' }, (error, data) => {
+                    //     if (error) return msg.msgReturn(res, 3);
+                    //     Work.populate(data, { path: 'info.work', select: 'name image' }, (error, data) => {
+                    //         if (error) return msg.msgReturn(res, 3);
+                    //         Package.populate(data, { path: 'info.package', select: 'name' }, (error, data) => {
+                    //             if (error) return msg.msgReturn(res, 3);
+                    //             Process.populate(data, { path: 'process', select: 'name' }, (error, data) => {
+                    //                 if (error) return msg.msgReturn(res, 3);
+                    //                 else {
+                    //                     let d = {
+                    //                         docs: data,
+                    //                         total: data.length,
+                    //                         limit: limit,
+                    //                         page: page,
+                    //                         pages: Math.ceil(data.length / limit)
+                    //                     }
+                    //                     return msg.msgReturn(res, 0, d);
+                    //                 }
+                    //             });
+                    //         });
+                    //     });
+                    // });
+
                 }
             }
         });
     } catch (error) {
+        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
