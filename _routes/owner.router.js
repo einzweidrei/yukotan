@@ -63,7 +63,7 @@ router.use(function (req, res, next) {
 
             // next();
             if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;  
+                let token = req.headers.hbbgvauth;
                 Session.findOne({ 'auth.token': token }).exec((error, data) => {
                     if (error) {
                         return msg.msgReturn(res, 3);
