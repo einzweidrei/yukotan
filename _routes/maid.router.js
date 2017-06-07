@@ -486,13 +486,14 @@ router.route('/getAllTasks').get((req, res) => {
         let startAt = req.query.startAt;
         let endAt = req.query.endAt;
         let limit = req.query.limit || 0;
+        let sortByTaskTime = req.query.sortByTaskTime;
 
         var findQuery = {
             status: true
         }
 
         if (process) {
-            if (process == '000000000000000000000001' || process == '000000000000000000000002') {
+            if (process == '000000000000000000000001') {
                 findQuery['stakeholders.request.maid'] = id;
                 findQuery['process'] = process;
             } else {
@@ -513,6 +514,10 @@ router.route('/getAllTasks').get((req, res) => {
             {
                 path: 'process',
                 select: 'name'
+            },
+            {
+                path: 'stakeholders.owner',
+                select: 'info evaluation_point'
             }
         ]
 
@@ -535,10 +540,16 @@ router.route('/getAllTasks').get((req, res) => {
             findQuery['info.time.startAt'] = timeQuery;
         }
 
+        let sortQuery = { 'history.createAt': -1 };
+
+        if (sortByTaskTime) {
+            sortQuery = { 'info.time.endAt': 1 };
+        }
+
         Task
             .find(findQuery)
             .populate(populateQuery)
-            .sort({ 'info.time.startAt': -1 })
+            .sort(sortQuery)
             .limit(parseFloat(limit))
             .select('-location -status -__v').exec((error, data) => {
                 if (error) {

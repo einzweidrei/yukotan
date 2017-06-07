@@ -26,7 +26,8 @@ router.use(multipartMiddleware);
 router.use(function (req, res, next) {
 	try {
 		// console.log(mess.msg_success);
-		console.log(req.cookies);
+		// console.log(req.cookies);
+		// console.log(hash('123123'))
 
 		var baseUrl = req.baseUrl;
 		var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
