@@ -14,6 +14,7 @@ var BillSchema = new Schema(
         maid: { type: ObjectId, ref: 'Maid' },
         isSolved: { type: Boolean },
         date: { type: Date },
+        period: { type: Date },
         createAt: { type: Date },
         status: { type: Boolean }
     }

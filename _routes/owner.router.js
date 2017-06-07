@@ -63,7 +63,7 @@ router.use(function (req, res, next) {
 
             // next();
             if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
+                let token = req.headers.hbbgvauth;  
                 Session.findOne({ 'auth.token': token }).exec((error, data) => {
                     if (error) {
                         return msg.msgReturn(res, 3);
@@ -869,7 +869,8 @@ router.route('/getDebt').get((req, res) => {
                 $project: {
                     _id: 1,
                     task: 1,
-                    price: 1
+                    price: 1,
+                    period: 1
                 }
             },
             (error, data) => {

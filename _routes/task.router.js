@@ -1291,8 +1291,8 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
 router.route('/checkout').post((req, res) => {
     try {
         var id = req.body.id;
-        // var ownerId = req.cookies.userId;
-        var ownerId = '5911460ae740560cb422ac35';
+        var ownerId = req.cookies.userId;
+        // var ownerId = '5911460ae740560cb422ac35';
 
         async.parallel({
             task: function (callback) {
@@ -1324,10 +1324,13 @@ router.route('/checkout').post((req, res) => {
                     });
             }
         }, (error, result) => {
+            console.log(result);
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
                 if (result.task == 0) {
+                    // if (0 === 0) {
+                    console.log('doing')
                     let checkOut = new Date();
                     Task.findOneAndUpdate(
                         {
@@ -1346,6 +1349,7 @@ router.route('/checkout').post((req, res) => {
                             upsert: true
                         },
                         (error, task) => {
+                            console.log(error);
                             if (error) return msg.msgReturn(res, 3);
                             else {
                                 let bill = new Bill();
@@ -1381,13 +1385,13 @@ router.route('/checkout').post((req, res) => {
                                                 // console.log(timeOut);
 
                                                 let t = new Date(timeOut.getTime() - timeIn.getTime());
-                                                // console.log(t);
+                                                console.log(t);
 
                                                 var price = 0;
-                                                // console.log(price);
+                                                console.log(price);
 
                                                 let maidPrice = maid.work_info.price;
-                                                // console.log(maidPrice);
+                                                console.log(maidPrice);
 
                                                 let hours = t.getUTCHours();
                                                 let minutes = t.getUTCMinutes();
@@ -1407,9 +1411,16 @@ router.route('/checkout').post((req, res) => {
                                                 }
                                                 // console.log('price: ' + price);
 
+                                                // console.log(maid.work_info.price);
+
+                                                // console.log(t)
+                                                // console.log(period)
+
+                                                bill.period = t;
                                                 bill.price = price;
 
                                                 bill.save((error) => {
+                                                    console.log(error)
                                                     if (error) return msg.msgReturn(res, 3);
                                                     return msg.msgReturn(res, 0);
                                                 });
@@ -1437,6 +1448,7 @@ router.route('/checkout').post((req, res) => {
             }
         });
     } catch (error) {
+        console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
