@@ -762,6 +762,15 @@ router.route('/statistical').get((req, res) => {
 
         async.parallel(
             {
+                owner: function (callback) {
+                    Owner.findOne({ _id: id, status: true }).exec((error, data) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            callback(null, data);
+                        }
+                    });
+                },
                 bill: function (callback) {
                     Bill.aggregate([
                         {
@@ -821,12 +830,14 @@ router.route('/statistical').get((req, res) => {
                 } else {
                     let task = result.task;
                     let bill = result.bill;
+                    let owner = result.owner;
 
                     let g = {};
 
                     const d = {
                         totalPrice: bill.totalPrice,
-                        task: task
+                        task: task,
+                        wallet: owner.wallet
                     }
 
                     return msg.msgReturn(res, 0, d);
@@ -851,27 +862,57 @@ router.route('/getDebt').get((req, res) => {
                 }
             },
             {
-                $group: {
-                    _id: '$owner',
-                    tasks: { $push: '$task' }
+                // $group: {
+                //     _id: '$owner',
+                //     tasks: { $push: '$task' }
+                // }
+                $project: {
+                    _id: 1,
+                    task: 1,
+                    price: 1
                 }
             },
             (error, data) => {
+                console.log(data);
+                // return msg.msgReturn(res, 0, data);
+                // if (error) {
+                //     return msg.msgReturn(res, 3);
+                // } else {
+                //     if (validate.isNullorEmpty(data)) {
+                //         return msg.msgReturn(res, 4);
+                //     } else {
+                //         Task.populate(data, { path: 'tasks', select: 'info stakeholders check process history' }, (error, result) => {
+                //             if (error) return msg.msgReturn(res, 3);
+                //             var result = result[0].tasks;
+                //             if (validate.isNullorEmpty(result)) return msg.msgReturn(res, 4);
+                //             Work.populate(result, { path: 'info.work', select: 'name image' }, (error, result) => {
+                //                 if (error) return msg.msgReturn(res, 3);
+                //                 Package.populate(result, { path: 'info.package', select: 'name' }, (error, result) => {
+                //                     if (error) return msg.msgReturn(res, 3);
+                //                     Maid.populate(result, { path: 'stakeholders.received', select: 'info work_info' }, (error, result) => {
+                //                         if (error) return msg.msgReturn(res, 3);
+                //                         return msg.msgReturn(res, 0, result);
+                //                     });
+                //                 });
+                //             });
+                //         });
+                //     }
+                // }
+
                 if (error) {
                     return msg.msgReturn(res, 3);
                 } else {
                     if (validate.isNullorEmpty(data)) {
                         return msg.msgReturn(res, 4);
                     } else {
-                        Task.populate(data, { path: 'tasks', select: 'info stakeholders check process history' }, (error, result) => {
+                        Task.populate(data, { path: 'task', select: 'info stakeholders check process history' }, (error, result) => {
                             if (error) return msg.msgReturn(res, 3);
-                            var result = result[0].tasks;
                             if (validate.isNullorEmpty(result)) return msg.msgReturn(res, 4);
-                            Work.populate(result, { path: 'info.work', select: 'name image' }, (error, result) => {
+                            Work.populate(result, { path: 'task.info.work', select: 'name image' }, (error, result) => {
                                 if (error) return msg.msgReturn(res, 3);
-                                Package.populate(result, { path: 'info.package', select: 'name' }, (error, result) => {
+                                Package.populate(result, { path: 'task.info.package', select: 'name' }, (error, result) => {
                                     if (error) return msg.msgReturn(res, 3);
-                                    Maid.populate(result, { path: 'stakeholders.received', select: 'info work_info' }, (error, result) => {
+                                    Maid.populate(result, { path: 'task.stakeholders.received', select: 'info work_info' }, (error, result) => {
                                         if (error) return msg.msgReturn(res, 3);
                                         return msg.msgReturn(res, 0, result);
                                     });
