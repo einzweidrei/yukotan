@@ -727,6 +727,165 @@ router.route('/getComment').get((req, res) => {
     }
 });
 
+router.route('/getHistoryTasks').get((req, res) => {
+    try {
+        let id = req.cookies.userId;
+        // let id = '5911460ae740560cb422ac35';
+        let process = req.query.process || '000000000000000000000005';
 
+        let startAt = req.query.startAt;
+        let endAt = req.query.endAt;
+        let limit = req.query.limit || 10;
+        let page = req.query.page || 1;
+
+        let findQuery = {
+            'stakeholders.received': id,
+            status: true
+        }
+
+        if (process) {
+            findQuery['process'] = process;
+        }
+
+        if (startAt || endAt) {
+            let timeQuery = {};
+
+            if (startAt) {
+                let date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                let date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            findQuery['info.time.startAt'] = timeQuery;
+        }
+
+        var populateQuery = [
+            {
+                path: 'info.package',
+                select: 'name'
+            },
+            {
+                path: 'info.work',
+                select: 'name image'
+            },
+            {
+                path: 'stakeholders.owner',
+                select: 'info evaluation_point'
+            },
+            {
+                path: 'process',
+                select: 'name'
+            }
+        ];
+
+        let options = {
+            select: '-location -status -__v',
+            populate: populateQuery,
+            sort: {
+                'info.time.startAt': -1
+            },
+            page: parseFloat(page),
+            limit: parseFloat(limit)
+        };
+
+        Task.paginate(findQuery, options).then(data => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4);
+            } else {
+                return msg.msgReturn(res, 0, data);
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/getAllWorkedOwner').get((req, res) => {
+    try {
+        let id = req.cookies.userId;
+
+        let startAt = req.query.startAt;
+        let endAt = req.query.endAt;
+
+        var matchQuery = {
+            process: new ObjectId('000000000000000000000005'),
+            'stakeholders.received': new ObjectId(id)
+        };
+
+        if (startAt || endAt) {
+            let timeQuery = {};
+
+            if (startAt) {
+                let date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                let date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            matchQuery['info.time.startAt'] = timeQuery;
+        };
+
+        Task.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $sort: {
+                    'info.time.startAt': -1
+                },
+            },
+            {
+                $group: {
+                    _id: '$stakeholders.owner',
+                    times: {
+                        $push: '$info.time.startAt'
+                    }
+                    // time: '$info.time.startAt'
+                }
+            }
+        ],
+            // {
+            //     allowDiskUse: true
+            // },
+            (error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        Owner.populate(data, { path: '_id', select: 'info evaluation_point' }, (error, owner) => {
+                            if (error) {
+                                return msg.msgReturn(res, 3);
+                            } else {
+                                if (validate.isNullorEmpty(owner)) {
+                                    return msg.msgReturn(res, 4);
+                                } else {
+                                    return msg.msgReturn(res, 0, owner);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        );
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
 
 module.exports = router;

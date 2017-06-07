@@ -407,8 +407,8 @@ router.route('/getAllTasks').get((req, res) => {
  */
 router.route('/getHistoryTasks').get((req, res) => {
     try {
-        // let id = req.cookies.userId;
-        let id = '5911460ae740560cb422ac35';
+        let id = req.cookies.userId;
+        // let id = '5911460ae740560cb422ac35';
         let process = req.query.process || '000000000000000000000005';
 
         let startAt = req.query.startAt;
