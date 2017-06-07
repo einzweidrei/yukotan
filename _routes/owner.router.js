@@ -912,9 +912,12 @@ router.route('/getDebt').get((req, res) => {
                                 if (error) return msg.msgReturn(res, 3);
                                 Package.populate(result, { path: 'task.info.package', select: 'name' }, (error, result) => {
                                     if (error) return msg.msgReturn(res, 3);
-                                    Maid.populate(result, { path: 'task.stakeholders.received', select: 'info work_info' }, (error, result) => {
+                                    Process.populate(result, { path: 'task.process', select: 'name' }, (error, result) => {
                                         if (error) return msg.msgReturn(res, 3);
-                                        return msg.msgReturn(res, 0, result);
+                                        Maid.populate(result, { path: 'task.stakeholders.received', select: 'info work_info' }, (error, result) => {
+                                            if (error) return msg.msgReturn(res, 3);
+                                            return msg.msgReturn(res, 0, result);
+                                        });
                                     });
                                 });
                             });
