@@ -583,6 +583,88 @@ router.route('/getAllWorkedMaid').get((req, res) => {
     }
 });
 
+router.route('/getTaskOfMaid').get((req, res) => {
+    try {
+        let id = req.cookies.userId;
+        // let id = '5911460ae740560cb422ac35';
+        var maidId = req.query.maid;
+        let process = req.query.process || '000000000000000000000005';
+
+        let startAt = req.query.startAt;
+        let endAt = req.query.endAt;
+        let limit = req.query.limit || 10;
+        let page = req.query.page || 1;
+
+        let findQuery = {
+            'stakeholders.owner': id,
+            'stakeholders.received': maidId,
+            status: true
+        }
+
+        if (process) {
+            findQuery['process'] = process;
+        }
+
+        if (startAt || endAt) {
+            let timeQuery = {};
+
+            if (startAt) {
+                let date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                let date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            findQuery['info.time.startAt'] = timeQuery;
+        }
+
+        var populateQuery = [
+            {
+                path: 'info.package',
+                select: 'name'
+            },
+            {
+                path: 'info.work',
+                select: 'name image'
+            },
+            {
+                path: 'stakeholders.received',
+                select: 'info work_info'
+            },
+            {
+                path: 'process',
+                select: 'name'
+            }
+        ];
+
+        let options = {
+            select: '-location -status -__v',
+            populate: populateQuery,
+            sort: {
+                'info.time.startAt': -1
+            },
+            page: parseFloat(page),
+            limit: parseFloat(limit)
+        };
+
+        Task.paginate(findQuery, options).then(data => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4);
+            } else {
+                return msg.msgReturn(res, 0, data);
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 router.route('/comment').post((req, res) => {
     try {
         let comment = new Comment();
