@@ -549,7 +549,7 @@ router.route('/getTaskByWork').get((req, res) => {
                 $sort: sortQuery
             },
             {
-                $limit: limit
+                $limit: parseFloat(limit)
             },
             {
                 $skip: skip
