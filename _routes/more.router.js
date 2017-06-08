@@ -387,11 +387,14 @@ router.route('/getTaskAround').get((req, res) => {
             ]
         };
 
-        var matchQuery = { status: true };
+        var matchQuery = {
+            process: new ObjectId('000000000000000000000001'),
+            status: true
+        };
 
-        if (!process) {
-            matchQuery['process'] = new ObjectId('000000000000000000000001');
-        }
+        // if (!process) {
+        //     matchQuery['process'] = new ObjectId('000000000000000000000001');
+        // }
 
         Task.aggregate([
             {
@@ -511,30 +514,12 @@ router.route('/getTaskByWork').get((req, res) => {
             ]
         };
 
-        var matchQuery = { status: true };
-
-        if (!process) {
-            matchQuery['process'] = new ObjectId('000000000000000000000001');
-        } else {
-            matchQuery['process'] = {
-                $in: [
-                    new ObjectId(process)
-                ]
-            };
-        }
+        var matchQuery = {
+            process: new ObjectId('000000000000000000000001'),
+            status: true
+        };
 
         if (package) {
-            // var arr = new Array();
-            // if (package instanceof Array) {
-            //     for (var i = 0; i < package.length; i++) {
-            //         arr.push(new ObjectId(package[i]));
-            //     }
-
-            //     matchQuery['info.package'] = {
-            //         $in: arr
-            //     }
-            // }
-
             matchQuery['info.package'] = new ObjectId(package);
         }
 
@@ -553,7 +538,7 @@ router.route('/getTaskByWork').get((req, res) => {
                     distanceField: 'dist.calculated',
                     minDistance: minDistance,
                     maxDistance: maxDistance,
-                    num: limit,
+                    // num: limit,
                     spherical: true
                 }
             },
@@ -562,6 +547,9 @@ router.route('/getTaskByWork').get((req, res) => {
             },
             {
                 $sort: sortQuery
+            },
+            {
+                $limit: limit
             },
             {
                 $skip: skip
@@ -576,6 +564,7 @@ router.route('/getTaskByWork').get((req, res) => {
                 }
             }
         ], (error, places) => {
+            console.log(places)
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -608,6 +597,7 @@ router.route('/getTaskByWork').get((req, res) => {
             }
         });
     } catch (error) {
+        console.log(error)
         return msg.msgReturn(res, 3);
     }
 });

@@ -183,7 +183,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                             },
                             (error, result) => {
                                 if (error) return msg.msgReturn(res, 3);
-                                return msg.msgReturn(res, 0);
+                                return msg.msgReturn(res, 0, result);
                             }
                         );
                     } else {
@@ -212,7 +212,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                                     },
                                     (error, result) => {
                                         if (error) return msg.msgReturn(res, 3);
-                                        return msg.msgReturn(res, 0);
+                                        return msg.msgReturn(res, 0, result);
                                     }
                                 );
                             });
