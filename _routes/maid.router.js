@@ -497,7 +497,7 @@ router.route('/getAllTasks').get((req, res) => {
         }
 
         if (process) {
-            if (process != '000000000000000000000004') {
+            if (process == '000000000000000000000001') {
                 findQuery['stakeholders.request.maid'] = id;
                 findQuery['process'] = process;
             } else {

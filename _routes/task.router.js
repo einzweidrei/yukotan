@@ -801,7 +801,7 @@ router.route('/cancel').delete((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    if (data.process == '000000000000000000000003') {
+                    if (data.process == '000000000000000000000001') {
                         Task.findOneAndUpdate(
                             {
                                 _id: id,
@@ -822,8 +822,7 @@ router.route('/cancel').delete((req, res) => {
                             }
                         )
                     }
-
-                    if (data.process == '000000000000000000000004') {
+                    else if (data.process == '000000000000000000000003') {
                         Task.findOneAndUpdate(
                             {
                                 _id: id,
@@ -847,8 +846,9 @@ router.route('/cancel').delete((req, res) => {
                                 return msg.msgReturn(res, 0);
                             }
                         )
+                    } else {
+                        return msg.msgReturn(res, 15);
                     }
-
                 }
             }
         });

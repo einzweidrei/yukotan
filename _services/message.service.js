@@ -16,6 +16,7 @@ var Message = (function () {
     Message.CHECK_OUT_EXIST = "Sorry! You had checked in this task, your request was denied.";
     Message.NOT_CHECK_IN = "Sorry! You need to check in this task first, your request was denied.";
     Message.UNAUTHORIZED = "Unauthorized";
+    Message.DELETE_DENY = "Sorry! You can't delete this task";
 
     function Message() { }
 
@@ -60,6 +61,8 @@ var Message = (function () {
                 return res.status(200).send(Message.prototype.msgData(false, Message.NOT_CHECK_IN, data));
             case 14:
                 return res.status(401).send(Message.prototype.msgData(false, Message.UNAUTHORIZED, data));
+            case 15:
+                return res.status(200).send(Message.prototype.msgData(false, Message.DELETE_DENY, data));
             default:
                 break;
         }
