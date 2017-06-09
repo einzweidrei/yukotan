@@ -801,29 +801,54 @@ router.route('/cancel').delete((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    Task.findOneAndUpdate(
-                        {
-                            _id: id,
-                            'stakeholders.received': maidId,
-                            status: true
-                        },
-                        {
-                            $set: {
-                                process: new ObjectId('000000000000000000000001')
-                            },
-                            $pull: {
+                    if (data.process == '000000000000000000000003') {
+                        Task.findOneAndUpdate(
+                            {
+                                _id: id,
                                 'stakeholders.received': maidId,
-                                'stakeholders.request.maid': maidId
+                                status: true
+                            },
+                            {
+                                $pull: {
+                                    'stakeholders.request.maid': maidId
+                                }
+                            },
+                            {
+                                upsert: true
+                            },
+                            (error, result) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                return msg.msgReturn(res, 0);
                             }
-                        },
-                        {
-                            upsert: true
-                        },
-                        (error, result) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0);
-                        }
-                    )
+                        )
+                    }
+
+                    if (data.process == '000000000000000000000004') {
+                        Task.findOneAndUpdate(
+                            {
+                                _id: id,
+                                'stakeholders.received': maidId,
+                                status: true
+                            },
+                            {
+                                $set: {
+                                    process: new ObjectId('000000000000000000000001')
+                                },
+                                $pull: {
+                                    'stakeholders.received': maidId,
+                                    'stakeholders.request.maid': maidId
+                                }
+                            },
+                            {
+                                upsert: true
+                            },
+                            (error, result) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                return msg.msgReturn(res, 0);
+                            }
+                        )
+                    }
+
                 }
             }
         });
