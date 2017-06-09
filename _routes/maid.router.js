@@ -888,4 +888,25 @@ router.route('/getAllWorkedOwner').get((req, res) => {
     }
 });
 
+router.route('/getComment').get((req, res) => {
+    try {
+        let id = req.cookies.userId;
+        let task = req.query.task;
+
+        Comment.findOne({ toId: id, task: task, status: true }).select('createAt evaluation_point content').exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3, {});
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4, {});
+                } else {
+                    return msg.msgReturn(res, 0, data);
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3, {});
+    }
+});
+
 module.exports = router;

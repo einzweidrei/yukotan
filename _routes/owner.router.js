@@ -183,11 +183,11 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                             },
                             (error, result) => {
                                 if (error) return msg.msgReturn(res, 3);
-                                result.phone = phone;
-                                result.name = name;
-                                result.age = age;
-                                result.address = address;
-                                result.gender = gender;
+                                result.info.phone = phone;
+                                result.info.name = name;
+                                result.info.age = age;
+                                result.info.address = address;
+                                result.info.gender = gender;
                                 return msg.msgReturn(res, 0, result);
                             }
                         );
@@ -217,12 +217,12 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                                     },
                                     (error, result) => {
                                         if (error) return msg.msgReturn(res, 3);
-                                        result.phone = phone;
-                                        result.name = name;
-                                        result.age = age;
-                                        result.address = address;
-                                        result.gender = gender;
-                                        result.image = result.url;
+                                        result.info.phone = phone;
+                                        result.info.name = name;
+                                        result.info.age = age;
+                                        result.info.address = address;
+                                        result.info.gender = gender;
+                                        result.info.image = result.url;
                                         return msg.msgReturn(res, 0, result);
                                     }
                                 );
