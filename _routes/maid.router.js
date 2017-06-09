@@ -888,7 +888,7 @@ router.route('/getAllWorkedOwner').get((req, res) => {
     }
 });
 
-router.route('/getComment').get((req, res) => {
+router.route('/getTaskComment').get((req, res) => {
     try {
         let id = req.cookies.userId;
         let task = req.query.task;
