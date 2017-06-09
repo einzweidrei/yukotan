@@ -215,15 +215,15 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                                     {
                                         upsert: true
                                     },
-                                    (error, result) => {
+                                    (error, m) => {
                                         if (error) return msg.msgReturn(res, 3);
-                                        result.info.phone = phone;
-                                        result.info.name = name;
-                                        result.info.age = age;
-                                        result.info.address = address;
-                                        result.info.gender = gender;
-                                        result.info.image = result.url;
-                                        return msg.msgReturn(res, 0, result);
+                                        m.info.phone = phone;
+                                        m.info.name = name;
+                                        m.info.age = age;
+                                        m.info.address = address;
+                                        m.info.gender = gender;
+                                        m.info.image = result.url;
+                                        return msg.msgReturn(res, 0, m);
                                     }
                                 );
                             });
