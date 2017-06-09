@@ -183,6 +183,11 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                             },
                             (error, result) => {
                                 if (error) return msg.msgReturn(res, 3);
+                                result.phone = phone;
+                                result.name = name;
+                                result.age = age;
+                                result.address = address;
+                                result.gender = gender;
                                 return msg.msgReturn(res, 0, result);
                             }
                         );
@@ -212,6 +217,12 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                                     },
                                     (error, result) => {
                                         if (error) return msg.msgReturn(res, 3);
+                                        result.phone = phone;
+                                        result.name = name;
+                                        result.age = age;
+                                        result.address = address;
+                                        result.gender = gender;
+                                        result.image = result.url;
                                         return msg.msgReturn(res, 0, result);
                                     }
                                 );
@@ -408,6 +419,7 @@ router.route('/getAllTasks').get((req, res) => {
 router.route('/getHistoryTasks').get((req, res) => {
     try {
         let id = req.cookies.userId;
+        var maidId = req.query.maid;
         // let id = '5911460ae740560cb422ac35';
         let process = req.query.process || '000000000000000000000005';
 

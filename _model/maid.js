@@ -24,11 +24,12 @@ var MaidSchema = new Schema(
             gender: { type: Number }
         },
         work_info: {
-            ability: [
-                {
-                    work: { type: ObjectId, ref: 'Work' }
-                }
-            ],
+            // ability: [
+            //     {
+            //         work: { type: ObjectId, ref: 'Work' }
+            //     }
+            // ],
+            ability: [ { type: ObjectId, ref: 'Work' } ],
             evaluation_point: { type: Number },
             price: { type: Number }
         },
