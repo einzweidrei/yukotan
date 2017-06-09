@@ -794,7 +794,7 @@ router.route('/cancel').delete((req, res) => {
         var id = req.body.id;
         var maidId = req.cookies.userId;
 
-        Task.findOne({ _id: id, 'stakeholders.received': maidId, status: true }).exec((error, data) => {
+        Task.findOne({ _id: id, 'stakeholders.request.maid': maidId, status: true }).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
