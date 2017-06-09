@@ -805,28 +805,29 @@ router.route('/cancel').delete((req, res) => {
                         Task.findOneAndUpdate(
                             {
                                 _id: id,
-                                'stakeholders.received': maidId,
+                                'stakeholders.request.maid': maidId,
+                                process: '000000000000000000000001',
                                 status: true
                             },
                             {
                                 $pull: {
-                                    'stakeholders.request.maid': maidId
+                                    'stakeholders.request': { maid: maidId }
                                 }
                             },
                             {
-                                upsert: true
+                                safe: true
                             },
                             (error, result) => {
                                 if (error) return msg.msgReturn(res, 3);
                                 return msg.msgReturn(res, 0);
                             }
                         )
-                    }
-                    else if (data.process == '000000000000000000000003') {
+                    } else if (data.process == '000000000000000000000003') {
                         Task.findOneAndUpdate(
                             {
                                 _id: id,
                                 'stakeholders.received': maidId,
+                                process: '000000000000000000000003',
                                 status: true
                             },
                             {
@@ -834,8 +835,10 @@ router.route('/cancel').delete((req, res) => {
                                     process: new ObjectId('000000000000000000000001')
                                 },
                                 $pull: {
+                                    'stakeholders.request': { maid: maidId }
+                                },
+                                $unset: {
                                     'stakeholders.received': maidId,
-                                    'stakeholders.request.maid': maidId
                                 }
                             },
                             {
