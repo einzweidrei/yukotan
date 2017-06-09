@@ -900,23 +900,19 @@ router.route('/reserve').post((req, res) => {
             } else {
                 if (result.maid == 0 && result.task == 0) {
                     maid = {
-                        maid: maidId
+                        maid: maidId,
+                        time: new Date()
                     };
 
                     Task.findOneAndUpdate(
                         {
                             _id: id,
-                            process: {
-                                $in: ['000000000000000000000001'
-                                    // , '000000000000000000000002'
-                                ]
-                            },
+                            process: '000000000000000000000001',
                             status: true
                         },
                         {
                             $push: {
-                                'stakeholders.request': maid,
-                                // process: new ObjectId('000000000000000000000002')
+                                'stakeholders.request': maid
                             }
                         },
                         {

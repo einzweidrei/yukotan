@@ -481,12 +481,16 @@ router.route('/getAllRequest').post((req, res) => {
  */
 router.route('/getAllTasks').get((req, res) => {
     try {
+        console.log(req.body)
         let id = req.cookies.userId;
+        // let id = '5923c12f7d7da13b240e7a77';
         let process = req.query.process;
         let startAt = req.query.startAt;
         let endAt = req.query.endAt;
         let limit = req.query.limit || 0;
         let sortByTaskTime = req.query.sortByTaskTime;
+
+        console.log(req.body)
 
         var findQuery = {
             status: true
@@ -497,7 +501,7 @@ router.route('/getAllTasks').get((req, res) => {
                 findQuery['stakeholders.request.maid'] = id;
                 findQuery['process'] = process;
             } else {
-                findQuery['stakeholders.received.maid'] = id;
+                findQuery['stakeholders.received'] = id;
                 findQuery['process'] = process;
             }
         }
@@ -546,6 +550,8 @@ router.route('/getAllTasks').get((req, res) => {
             sortQuery = { 'info.time.endAt': 1 };
         }
 
+        console.log(findQuery)
+
         Task
             .find(findQuery)
             .populate(populateQuery)
@@ -563,6 +569,7 @@ router.route('/getAllTasks').get((req, res) => {
                 }
             });
     } catch (error) {
+        console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
