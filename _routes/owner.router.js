@@ -181,14 +181,20 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                             {
                                 upsert: true
                             },
-                            (error, result) => {
+                            (error, m) => {
                                 if (error) return msg.msgReturn(res, 3);
-                                result.info.phone = phone;
-                                result.info.name = name;
-                                result.info.age = age;
-                                result.info.address = address;
-                                result.info.gender = gender;
-                                return msg.msgReturn(res, 0, result);
+                                m.info.phone = phone;
+                                m.info.name = name;
+                                m.info.age = age;
+                                m.info.address = address;
+                                m.info.gender = gender;
+                                let d = {
+                                    _id: m._id,
+                                    info: m.info,
+                                    evaluation_point: m.evaluation_point,
+                                    wallet: m.wallet
+                                }
+                                return msg.msgReturn(res, 0, d);
                             }
                         );
                     } else {
@@ -223,7 +229,14 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                                         m.info.address = address;
                                         m.info.gender = gender;
                                         m.info.image = result.url;
-                                        return msg.msgReturn(res, 0, m);
+
+                                        let d = {
+                                            _id: m._id,
+                                            info: m.info,
+                                            evaluation_point: m.evaluation_point,
+                                            wallet: m.wallet
+                                        }
+                                        return msg.msgReturn(res, 0, d);
                                     }
                                 );
                             });
