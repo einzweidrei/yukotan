@@ -590,6 +590,9 @@ router.route('/getAllWorkedOwner').get((req, res) => {
             {
                 $group: {
                     _id: '$stakeholders.owner',
+                    times: {
+                        $push: '$info.time.startAt'
+                    }
                 }
             }
         ],
