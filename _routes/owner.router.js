@@ -977,7 +977,8 @@ router.route('/getDebt').get((req, res) => {
                     _id: 1,
                     task: 1,
                     price: 1,
-                    period: 1
+                    period: 1,
+                    wallet: 1
                 }
             },
             (error, data) => {
@@ -1007,6 +1008,7 @@ router.route('/getDebt').get((req, res) => {
                 //     }
                 // }
 
+                // console.log('here')
                 if (error) {
                     return msg.msgReturn(res, 3);
                 } else {
@@ -1023,12 +1025,7 @@ router.route('/getDebt').get((req, res) => {
                                     Process.populate(result, { path: 'task.process', select: 'name' }, (error, result) => {
                                         if (error) return msg.msgReturn(res, 3);
                                         Maid.populate(result, { path: 'task.stakeholders.received', select: 'info work_info' }, (error, result) => {
-                                            if (error) return msg.msgReturn(res, 3);
-                                            Owner.findOne({ _id: id, status: true }).select('wallet').exec((error, data) => {
-                                                if (error) return msg.msgReturn(res, 3);
-                                                result['wallet'] = data.wallet
-                                                return msg.msgReturn(res, 0, result);
-                                            })
+                                            return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0, result)
                                         });
                                     });
                                 });
@@ -1040,6 +1037,18 @@ router.route('/getDebt').get((req, res) => {
         )
     } catch (error) {
         return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/getWallet').get((req, res) => {
+    try {
+        var id = req.cookies.userId
+
+        Owner.findOne({ _id: id, status: true }).select('wallet').exec((error, data) => {
+            return error ? msg.msgReturn(res, 3) : validate.isNullorEmpty(data) ? msg.msgReturn(res, 4) : msg.msgReturn(res, 0, data)
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3)
     }
 })
 
