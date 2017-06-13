@@ -1026,7 +1026,7 @@ router.route('/getDebt').get((req, res) => {
                                             if (error) return msg.msgReturn(res, 3);
                                             Owner.findOne({ _id: id, status: true }).select('wallet').exec((error, data) => {
                                                 if (error) return msg.msgReturn(res, 3);
-                                                result.wallet = data.wallet
+                                                result['wallet'] = data.wallet
                                                 return msg.msgReturn(res, 0, result);
                                             })
                                         });

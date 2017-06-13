@@ -897,61 +897,70 @@ router.route('/reserve').post((req, res) => {
                         }
                     }
                 });
-            },
-            task: function (callback) {
-                Task.findOne(
-                    {
-                        _id: id,
-                        process: {
-                            $in: ['000000000000000000000001'
-                                // , '000000000000000000000002'
-                            ]
-                        },
-                        status: true
-                    }).exec((error, data) => {
-                        if (error) {
-                            callback(null, 2);
-                        }
-                        else {
-                            if (validate.isNullorEmpty(data)) {
-                                callback(null, 1);
-                            } else {
-                                callback(null, 0);
-                            }
-                        }
-                    });
             }
         }, (error, result) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
-                if (result.maid == 0 && result.task == 0) {
+                if (result.maid == 0) {
                     maid = {
                         maid: maidId,
                         time: new Date()
                     };
 
-                    Task.findOneAndUpdate(
+                    Task.findOne(
                         {
                             _id: id,
                             process: '000000000000000000000001',
                             status: true
-                        },
-                        {
-                            $push: {
-                                'stakeholders.request': maid
+                        }).exec((error, data) => {
+                            if (error) {
+                                return msg.msgReturn(res, 3);
                             }
-                        },
-                        {
-                            upsert: true
-                        },
-                        (error) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            else return msg.msgReturn(res, 0);
-                        }
-                    );
+                            else {
+                                if (validate.isNullorEmpty(data)) {
+                                    return msg.msgReturn(res, 4);
+                                } else {
+                                    var check = false
+                                    var lstMaid = data.stakeholders.request;
+
+                                    if (!validate.isNullorEmpty(lstMaid)) {
+                                        for (i = 0; i < lstMaid.length; i++) {
+                                            if (lstMaid.maid == maidId) {
+                                                check = true
+                                                break
+                                            }
+                                        }
+                                    }
+
+                                    if (check) {
+                                        return msg.msgReturn(res, 16);
+                                    } else {
+                                        Task.findOneAndUpdate(
+                                            {
+                                                _id: id,
+                                                process: '000000000000000000000001',
+                                                status: true
+                                            },
+                                            {
+                                                $push: {
+                                                    'stakeholders.request': maid
+                                                }
+                                            },
+                                            {
+                                                upsert: true
+                                            },
+                                            (error) => {
+                                                if (error) return msg.msgReturn(res, 3);
+                                                else return msg.msgReturn(res, 0);
+                                            }
+                                        );
+                                    }
+                                }
+                            }
+                        });
                 } else {
-                    if (result.maid == 1 || result.task == 1) {
+                    if (result.maid == 1) {
                         return msg.msgReturn(res, 4);
                     } else {
                         return msg.msgReturn(res, 3);
