@@ -349,11 +349,9 @@ router.route('/getAllMaids').get((req, res) => {
  */
 router.route('/getTaskAround').get((req, res) => {
     try {
-        console.log(new Date(req.query.startAt));
-
-
-        var minDistance = req.query.minDistance || 1;
+        var minDistance = req.query.minDistance || 0;
         var maxDistance = req.query.maxDistance || 5;
+        if (maxDistance == 0) { maxDistance = 0.001 }
 
         var sortBy = req.query.sortBy || "distance"; //distance & price
         var sortType = req.query.sortType || "asc"; //asc & desc
@@ -496,6 +494,8 @@ router.route('/getTaskByWork').get((req, res) => {
         var sortType = req.query.sortType || "asc"; //asc & desc
 
         var sortQuery = {};
+
+        if (maxDistance == 0) { maxDistance = 0.001 }
 
         if (sortType == "desc") {
             if (sortBy == "price") {

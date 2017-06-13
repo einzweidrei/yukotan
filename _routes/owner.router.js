@@ -981,7 +981,7 @@ router.route('/getDebt').get((req, res) => {
                 }
             },
             (error, data) => {
-                console.log(data);
+                // console.log(data);
                 // return msg.msgReturn(res, 0, data);
                 // if (error) {
                 //     return msg.msgReturn(res, 3);
@@ -1024,7 +1024,11 @@ router.route('/getDebt').get((req, res) => {
                                         if (error) return msg.msgReturn(res, 3);
                                         Maid.populate(result, { path: 'task.stakeholders.received', select: 'info work_info' }, (error, result) => {
                                             if (error) return msg.msgReturn(res, 3);
-                                            return msg.msgReturn(res, 0, result);
+                                            Owner.findOne({ _id: id, status: true }).select('wallet').exec((error, data) => {
+                                                if (error) return msg.msgReturn(res, 3);
+                                                result.wallet = data.wallet
+                                                return msg.msgReturn(res, 0, result);
+                                            })
                                         });
                                     });
                                 });
