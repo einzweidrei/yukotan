@@ -349,8 +349,11 @@ router.route('/getAllMaids').get((req, res) => {
  */
 router.route('/getTaskAround').get((req, res) => {
     try {
+        console.log(new Date(req.query.startAt));
+
+
         var minDistance = req.query.minDistance || 1;
-        var maxDistance = req.query.maxDistance || 2000;
+        var maxDistance = req.query.maxDistance || 5;
 
         var sortBy = req.query.sortBy || "distance"; //distance & price
         var sortType = req.query.sortType || "asc"; //asc & desc
@@ -396,20 +399,29 @@ router.route('/getTaskAround').get((req, res) => {
         //     matchQuery['process'] = new ObjectId('000000000000000000000001');
         // }
 
+        // console.log(maxDistance)
+
         Task.aggregate([
             {
                 $geoNear: {
                     near: loc,
                     distanceField: 'dist.calculated',
-                    minDistance: minDistance,
-                    maxDistance: maxDistance,
+                    minDistance: parseFloat(minDistance),
+                    maxDistance: parseFloat(maxDistance) * 1000,
+                    // maxDistance: (maxDistance / 111.12),
                     // num: limit,
+                    // distanceMultiplier: 0.001,
                     spherical: true
                 }
             },
             {
                 $match: matchQuery
             },
+            // {
+            //     $project: {
+            //         dist: 1
+            //     }
+            // },
             {
                 $group: {
                     _id: '$info.work',
@@ -422,6 +434,7 @@ router.route('/getTaskAround').get((req, res) => {
                 $sort: sortQuery
             }
         ], (error, places) => {
+            // return msg.msgReturn(res, 0, places);
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -435,7 +448,7 @@ router.route('/getTaskAround').get((req, res) => {
             }
         });
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
@@ -470,7 +483,7 @@ router.route('/getTaskAround').get((req, res) => {
 router.route('/getTaskByWork').get((req, res) => {
     try {
         var minDistance = req.query.minDistance || 1;
-        var maxDistance = req.query.maxDistance || 2000;
+        var maxDistance = req.query.maxDistance || 5;
         var limit = req.query.limit || 20;
         var page = req.query.page || 1;
         var skip = (page - 1) * limit;
@@ -531,13 +544,15 @@ router.route('/getTaskByWork').get((req, res) => {
             matchQuery['info.title'] = new RegExp(title, 'i');
         }
 
+        // console.log(maxDistance)
+
         Task.aggregate([
             {
                 $geoNear: {
                     near: loc,
                     distanceField: 'dist.calculated',
-                    minDistance: minDistance,
-                    maxDistance: maxDistance,
+                    minDistance: parseFloat(minDistance),
+                    maxDistance: parseFloat(maxDistance) * 1000,
                     // num: limit,
                     spherical: true
                 }
@@ -564,7 +579,8 @@ router.route('/getTaskByWork').get((req, res) => {
                 }
             }
         ], (error, places) => {
-            console.log(places)
+            // console.log(places)
+            // return msg.msgReturn(res, 0, places);
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -597,7 +613,7 @@ router.route('/getTaskByWork').get((req, res) => {
             }
         });
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
