@@ -544,8 +544,6 @@ router.route('/getTaskByWork').get((req, res) => {
             matchQuery['info.title'] = new RegExp(title, 'i');
         }
 
-        // console.log(maxDistance)
-
         Task.aggregate([
             {
                 $geoNear: {
@@ -553,7 +551,6 @@ router.route('/getTaskByWork').get((req, res) => {
                     distanceField: 'dist.calculated',
                     minDistance: parseFloat(minDistance),
                     maxDistance: parseFloat(maxDistance) * 1000,
-                    // num: limit,
                     spherical: true
                 }
             },
@@ -595,16 +592,10 @@ router.route('/getTaskByWork').get((req, res) => {
                                     if (error) return msg.msgReturn(res, 3);
                                     else {
                                         result = []
-                                        // console.log(skip)
-                                        // console.log(limit)
                                         for (i = skip; i < skip + parseFloat(limit); i++) {
-                                            // console.log(i)
-                                            // console.log(data[6])
                                             if (!data[i] || data[i] == null) break
-                                            // console.log(data[i])
                                             result.push(data[i])
                                         }
-                                        // console.log(result.length)
 
                                         let d = {
                                             docs: result,
@@ -623,7 +614,6 @@ router.route('/getTaskByWork').get((req, res) => {
             }
         });
     } catch (error) {
-        // console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
