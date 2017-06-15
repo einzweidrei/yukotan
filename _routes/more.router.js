@@ -618,4 +618,12 @@ router.route('/getTaskByWork').get((req, res) => {
     }
 });
 
+router.route('/getTerm').get((req, res) => {
+    try {
+        
+    } catch (error) {
+
+    }
+});
+
 module.exports = router;
