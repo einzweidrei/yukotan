@@ -1423,7 +1423,7 @@ router.route('/checkout').post((req, res) => {
 
                                     bill.save((error) => {
                                         if (error) return msg.msgReturn(res, 3);
-                                        return msg.msgReturn(res, 0);
+                                        return msg.msgReturn(res, 0, bill);
                                     });
                                 }
 
@@ -1479,7 +1479,7 @@ router.route('/checkout').post((req, res) => {
                                                 bill.save((error) => {
                                                     console.log(error)
                                                     if (error) return msg.msgReturn(res, 3);
-                                                    return msg.msgReturn(res, 0);
+                                                    return msg.msgReturn(res, 0, bill);
                                                 });
                                             }
                                         }

@@ -623,4 +623,55 @@ router.route('/getTerm').get((req, res) => {
     }
 });
 
+router.route('/updateAbility').post((req, res) => {
+    try {
+        let ab = req.body.ab;
+        let maid = new Maid();
+
+        let id = '5923c12f7d7da13b240e7322'
+
+        if (ab) {
+            ab.forEach(item => {
+                maid.work_info.ability.push(item)
+            })
+        }
+
+        Maid.findOneAndUpdate(
+            {
+                _id: id,
+                status: true
+            },
+            {
+                $set: {
+                    'work_info.ability': maid.work_info.ability
+                }
+            },
+            {
+                upsert: true
+            },
+            (error) => {
+                return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0)
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3)
+    }
+})
+
+router.route('/getMaidInfo').get((req, res) => {
+    try {
+        let id = '5923c12f7d7da13b240e7322'
+
+        Maid.findOne({ _id: id, status: true })
+            .populate({ path: 'work_info.ability', select: 'name image' }).select('info work_info').exec((error, data) => {
+                if (error) return msg.msgReturn(res, 3)
+                else {
+                    return validate.isNullorEmpty(data) ? msg.msgReturn(res, 4) : msg.msgReturn(res, 0, data)
+                }
+            })
+    } catch (error) {
+        return msg.msgReturn(res, 3)
+    }
+})
+
 module.exports = router;

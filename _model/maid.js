@@ -29,7 +29,7 @@ var MaidSchema = new Schema(
             //         work: { type: ObjectId, ref: 'Work' }
             //     }
             // ],
-            ability: [ { type: ObjectId, ref: 'Work' } ],
+            ability: [{ type: ObjectId, ref: 'Work' }],
             evaluation_point: { type: Number },
             price: { type: Number }
         },
