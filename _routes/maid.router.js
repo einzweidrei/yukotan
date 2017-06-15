@@ -995,6 +995,8 @@ router.route('/getTaskOfOwner').get((req, res) => {
             limit: parseFloat(limit)
         };
 
+        console.log(findQuery)
+
         Task.paginate(findQuery, options).then(data => {
             if (validate.isNullorEmpty(data)) {
                 return msg.msgReturn(res, 4);
