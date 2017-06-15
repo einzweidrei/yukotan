@@ -926,7 +926,7 @@ router.route('/reserve').post((req, res) => {
 
                                     if (!validate.isNullorEmpty(lstMaid)) {
                                         for (i = 0; i < lstMaid.length; i++) {
-                                            if (lstMaid.maid == maidId) {
+                                            if (lstMaid[i].maid == maidId) {
                                                 check = true
                                                 break
                                             }
