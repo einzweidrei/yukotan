@@ -1514,7 +1514,13 @@ router.route('/sendRequest').post((req, res) => {
         };
 
         task.stakeholders = {
-            owner: ownerId
+            owner: ownerId,
+            request: [
+                {
+                    maid: maidId,
+                    time: new Date()
+                }
+            ]
         };
 
         task.process = '000000000000000000000006';

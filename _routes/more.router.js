@@ -563,12 +563,12 @@ router.route('/getTaskByWork').get((req, res) => {
             {
                 $sort: sortQuery
             },
-            {
-                $limit: parseFloat(limit)
-            },
-            {
-                $skip: skip
-            },
+            // {
+            //     $limit: parseFloat(limit)
+            // },
+            // {
+            //     $skip: skip
+            // },
             {
                 $project: {
                     process: 1,
@@ -579,13 +579,11 @@ router.route('/getTaskByWork').get((req, res) => {
                 }
             }
         ], (error, places) => {
-            // console.log(places)
-            // return msg.msgReturn(res, 0, places);
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
                 if (validate.isNullorEmpty(places)) {
-                    return msg.msgReturn(res, 4);
+                    return msg.msgReturn(res, 4, {});
                 } else {
                     Owner.populate(places, { path: 'stakeholders.owner', select: 'info' }, (error, data) => {
                         if (error) return msg.msgReturn(res, 3);
@@ -596,8 +594,20 @@ router.route('/getTaskByWork').get((req, res) => {
                                 Process.populate(data, { path: 'process', select: 'name' }, (error, data) => {
                                     if (error) return msg.msgReturn(res, 3);
                                     else {
+                                        result = []
+                                        // console.log(skip)
+                                        // console.log(limit)
+                                        for (i = skip; i < skip + parseFloat(limit); i++) {
+                                            // console.log(i)
+                                            // console.log(data[6])
+                                            if (!data[i] || data[i] == null) break
+                                            // console.log(data[i])
+                                            result.push(data[i])
+                                        }
+                                        // console.log(result.length)
+
                                         let d = {
-                                            docs: data,
+                                            docs: result,
                                             total: data.length,
                                             limit: limit,
                                             page: page,
@@ -618,12 +628,12 @@ router.route('/getTaskByWork').get((req, res) => {
     }
 });
 
-router.route('/getTerm').get((req, res) => {
-    try {
-        
-    } catch (error) {
+// router.route('/getTerm').get((req, res) => {
+//     try {
 
-    }
-});
+//     } catch (error) {
+
+//     }
+// });
 
 module.exports = router;

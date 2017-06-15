@@ -498,10 +498,14 @@ router.route('/getAllTasks').get((req, res) => {
 
         if (process) {
             if (process == '000000000000000000000001') {
+                // findQuery['$or'] = [
+                //     { 'stakeholders.request.maid': new ObjectId(id) },
+                //     { 'requestTo': new ObjectId(id) }
+                // ]
                 findQuery['stakeholders.request.maid'] = id;
                 findQuery['process'] = {
                     $in: ['000000000000000000000001', '000000000000000000000006']
-                };
+                }
             } else {
                 findQuery['stakeholders.received'] = id;
                 findQuery['process'] = process;
