@@ -574,57 +574,57 @@ router.route('/getAllTasks').get((req, res) => {
     }
 });
 
-router.route('/getAllWorkedOwner').get((req, res) => {
-    try {
-        let id = req.cookies.userId;
+// router.route('/getAllWorkedOwner').get((req, res) => {
+//     try {
+//         let id = req.cookies.userId;
 
-        var matchQuery = {
-            process: new ObjectId('000000000000000000000005'),
-            'stakeholders.received': new ObjectId(id)
-        };
+//         var matchQuery = {
+//             process: new ObjectId('000000000000000000000005'),
+//             'stakeholders.received': new ObjectId(id)
+//         };
 
-        Task.aggregate([
-            {
-                $match: matchQuery
-            },
-            {
-                $group: {
-                    _id: '$stakeholders.owner',
-                    times: {
-                        $push: '$info.time.startAt'
-                    }
-                }
-            }
-        ],
-            // {
-            //     allowDiskUse: true
-            // },
-            (error, data) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        Owner.populate(data, { path: '_id', select: 'info' }, (error, owner) => {
-                            if (error) {
-                                return msg.msgReturn(res, 3);
-                            } else {
-                                if (validate.isNullorEmpty(owner)) {
-                                    return msg.msgReturn(res, 4);
-                                } else {
-                                    return msg.msgReturn(res, 0, owner);
-                                }
-                            }
-                        });
-                    }
-                }
-            }
-        );
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
+//         Task.aggregate([
+//             {
+//                 $match: matchQuery
+//             },
+//             {
+//                 $group: {
+//                     _id: '$stakeholders.owner',
+//                     times: {
+//                         $push: '$info.time.startAt'
+//                     }
+//                 }
+//             }
+//         ],
+//             // {
+//             //     allowDiskUse: true
+//             // },
+//             (error, data) => {
+//                 if (error) {
+//                     return msg.msgReturn(res, 3);
+//                 } else {
+//                     if (validate.isNullorEmpty(data)) {
+//                         return msg.msgReturn(res, 4);
+//                     } else {
+//                         Owner.populate(data, { path: '_id', select: 'info' }, (error, owner) => {
+//                             if (error) {
+//                                 return msg.msgReturn(res, 3);
+//                             } else {
+//                                 if (validate.isNullorEmpty(owner)) {
+//                                     return msg.msgReturn(res, 4);
+//                                 } else {
+//                                     return msg.msgReturn(res, 0, owner);
+//                                 }
+//                             }
+//                         });
+//                     }
+//                 }
+//             }
+//         );
+//     } catch (error) {
+//         return msg.msgReturn(res, 3);
+//     }
+// });
 
 router.route('/comment').post((req, res) => {
     try {
@@ -918,5 +918,87 @@ router.route('/getTaskComment').get((req, res) => {
         return msg.msgReturn(res, 3, {});
     }
 });
+
+router.route('/getTaskOfOwner').get((req, res) => {
+    try {
+        let id = req.cookies.userId;
+        // let id = '5911460ae740560cb422ac35';
+        var ownerId = req.query.owner;
+        let process = req.query.process || '000000000000000000000005';
+
+        let startAt = req.query.startAt;
+        let endAt = req.query.endAt;
+        let limit = req.query.limit || 10;
+        let page = req.query.page || 1;
+
+        let findQuery = {
+            'stakeholders.owner': ownerId,
+            'stakeholders.received': id,
+            status: true
+        }
+
+        if (process) {
+            findQuery['process'] = process;
+        }
+
+        if (startAt || endAt) {
+            let timeQuery = {};
+
+            if (startAt) {
+                let date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                let date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            findQuery['info.time.startAt'] = timeQuery;
+        }
+
+        var populateQuery = [
+            {
+                path: 'info.package',
+                select: 'name'
+            },
+            {
+                path: 'info.work',
+                select: 'name image'
+            },
+            {
+                path: 'stakeholders.received',
+                select: 'info work_info'
+            },
+            {
+                path: 'process',
+                select: 'name'
+            }
+        ];
+
+        let options = {
+            select: '-location -status -__v',
+            populate: populateQuery,
+            sort: {
+                'info.time.startAt': -1
+            },
+            page: parseFloat(page),
+            limit: parseFloat(limit)
+        };
+
+        Task.paginate(findQuery, options).then(data => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4);
+            } else {
+                return msg.msgReturn(res, 0, data);
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
 
 module.exports = router;
