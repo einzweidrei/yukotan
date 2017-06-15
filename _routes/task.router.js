@@ -1168,9 +1168,9 @@ router.route('/submit').post((req, res) => {
 router.route('/checkin').post(multipartMiddleware, (req, res) => {
     try {
         let id = req.body.id;
-        // let ownerId = req.cookies.userId;
-        let ownerId = req.body.ownerId;
-        let subs_key = '8f22becb14664c0c87864d840dfcf114';
+        let ownerId = req.cookies.userId;
+        // let ownerId = req.body.ownerId;
+        // let subs_key = '8f22becb14664c0c87864d840dfcf114';
 
         Task.findOne(
             {
@@ -1189,109 +1189,134 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                     if (validate.isNullorEmpty(data)) {
                         return msg.msgReturn(res, 4);
                     } else {
+                        // if (validate.isNullorEmpty(data.check.check_in)) {
+                        //     cloudinary.uploader.upload(
+                        //         req.files.image.path,
+                        //         function (result) {
+
+                        //             let imgUrl = data.stakeholders.owner.info.image;
+                        //             console.log(imgUrl);
+
+                        //             async.parallel({
+                        //                 faceId1: function (callback) {
+                        //                     request({
+                        //                         method: 'POST',
+                        //                         preambleCRLF: true,
+                        //                         postambleCRLF: true,
+                        //                         uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
+                        //                         headers: {
+                        //                             'Content-Type': 'application/json',
+                        //                             'Ocp-Apim-Subscription-Key': subs_key
+                        //                         },
+                        //                         body: JSON.stringify(
+                        //                             {
+                        //                                 url: imgUrl
+                        //                             }
+                        //                         )
+                        //                     },
+                        //                         function (error, response, body) {
+                        //                             if (error) {
+                        //                                 console.error('upload failed:', error);
+                        //                                 callback(null, null);
+                        //                             }
+                        //                             console.log('FaceId1 successful!  Server responded with:', body);
+                        //                             var data = JSON.parse(body);
+
+                        //                             if (validate.isNullorEmpty(data)) callback(null, [])
+                        //                             callback(null, data[0].faceId);
+                        //                         });
+                        //                 },
+                        //                 faceId2: function (callback) {
+                        //                     request({
+                        //                         method: 'POST',
+                        //                         preambleCRLF: true,
+                        //                         postambleCRLF: true,
+                        //                         uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
+                        //                         headers: {
+                        //                             'Content-Type': 'application/json',
+                        //                             'Ocp-Apim-Subscription-Key': subs_key
+                        //                         },
+                        //                         body: JSON.stringify(
+                        //                             {
+                        //                                 url: result.url
+                        //                             }
+                        //                         )
+                        //                     },
+                        //                         function (error, response, body) {
+                        //                             if (error) {
+                        //                                 // console.error('upload failed:', error);
+                        //                                 callback(null, null);
+                        //                             }
+                        //                             console.log('FaceId2 successful!  Server responded with:', body);
+                        //                             var data = JSON.parse(body);
+                        //                             if (validate.isNullorEmpty(data)) callback(null, [])
+                        //                             callback(null, data[0].faceId);
+                        //                         });
+                        //                 }
+                        //             }, (error, data) => {
+                        //                 if (error) {
+                        //                     return msg.msgReturn(res, 3);
+                        //                 } else {
+                        //                     if (validate.isNullorEmpty(data.faceId1) || validate.isNullorEmpty(data.faceId2)) {
+                        //                         return msg.msgReturn(res, 3);
+                        //                     }
+                        //                     else {
+                        //                         request({
+                        //                             method: 'POST',
+                        //                             preambleCRLF: true,
+                        //                             postambleCRLF: true,
+                        //                             uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/verify',
+                        //                             headers: {
+                        //                                 'Content-Type': 'application/json',
+                        //                                 'Ocp-Apim-Subscription-Key': subs_key
+                        //                             },
+                        //                             body: JSON.stringify(
+                        //                                 {
+                        //                                     "faceId1": data.faceId1,
+                        //                                     "faceId2": data.faceId2
+                        //                                 }
+                        //                             )
+                        //                         },
+                        //                             function (error, response, body) {
+                        //                                 if (error) {
+                        //                                     console.error('upload failed:', error);
+                        //                                     return msg.msgReturn(res, 3);
+                        //                                 }
+                        //                                 var item = JSON.parse(body);
+                        //                                 return msg.msgReturn(res, 0, item);
+                        //                             });
+                        //                     }
+                        //                 }
+                        //             });
+                        //         }
+                        //     );
+                        // }
+                        // else {
+                        //     return msg.msgReturn(res, 11);
+                        // }
+
                         if (validate.isNullorEmpty(data.check.check_in)) {
-                            cloudinary.uploader.upload(
-                                req.files.image.path,
-                                function (result) {
-
-                                    let imgUrl = data.stakeholders.owner.info.image;
-                                    console.log(imgUrl);
-
-                                    async.parallel({
-                                        faceId1: function (callback) {
-                                            request({
-                                                method: 'POST',
-                                                preambleCRLF: true,
-                                                postambleCRLF: true,
-                                                uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
-                                                headers: {
-                                                    'Content-Type': 'application/json',
-                                                    'Ocp-Apim-Subscription-Key': subs_key
-                                                },
-                                                body: JSON.stringify(
-                                                    {
-                                                        url: imgUrl
-                                                    }
-                                                )
-                                            },
-                                                function (error, response, body) {
-                                                    if (error) {
-                                                        console.error('upload failed:', error);
-                                                        callback(null, null);
-                                                    }
-                                                    console.log('FaceId1 successful!  Server responded with:', body);
-                                                    var data = JSON.parse(body);
-
-                                                    if (validate.isNullorEmpty(data)) callback(null, [])
-                                                    callback(null, data[0].faceId);
-                                                });
-                                        },
-                                        faceId2: function (callback) {
-                                            request({
-                                                method: 'POST',
-                                                preambleCRLF: true,
-                                                postambleCRLF: true,
-                                                uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
-                                                headers: {
-                                                    'Content-Type': 'application/json',
-                                                    'Ocp-Apim-Subscription-Key': subs_key
-                                                },
-                                                body: JSON.stringify(
-                                                    {
-                                                        url: result.url
-                                                    }
-                                                )
-                                            },
-                                                function (error, response, body) {
-                                                    if (error) {
-                                                        // console.error('upload failed:', error);
-                                                        callback(null, null);
-                                                    }
-                                                    console.log('FaceId2 successful!  Server responded with:', body);
-                                                    var data = JSON.parse(body);
-                                                    if (validate.isNullorEmpty(data)) callback(null, [])
-                                                    callback(null, data[0].faceId);
-                                                });
-                                        }
-                                    }, (error, data) => {
-                                        if (error) {
-                                            return msg.msgReturn(res, 3);
-                                        } else {
-                                            if (validate.isNullorEmpty(data.faceId1) || validate.isNullorEmpty(data.faceId2)) {
-                                                return msg.msgReturn(res, 3);
-                                            }
-                                            else {
-                                                request({
-                                                    method: 'POST',
-                                                    preambleCRLF: true,
-                                                    postambleCRLF: true,
-                                                    uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/verify',
-                                                    headers: {
-                                                        'Content-Type': 'application/json',
-                                                        'Ocp-Apim-Subscription-Key': subs_key
-                                                    },
-                                                    body: JSON.stringify(
-                                                        {
-                                                            "faceId1": data.faceId1,
-                                                            "faceId2": data.faceId2
-                                                        }
-                                                    )
-                                                },
-                                                    function (error, response, body) {
-                                                        if (error) {
-                                                            console.error('upload failed:', error);
-                                                            return msg.msgReturn(res, 3);
-                                                        }
-                                                        var item = JSON.parse(body);
-                                                        return msg.msgReturn(res, 0, item);
-                                                    });
-                                            }
-                                        }
-                                    });
+                            Task.findOneAndUpdate(
+                                {
+                                    _id: id,
+                                    'stakeholders.owner': ownerId,
+                                    process: '000000000000000000000003',
+                                    status: true
+                                },
+                                {
+                                    $set: {
+                                        process: new ObjectId('000000000000000000000004'),
+                                        'check.check_in': new Date()
+                                    }
+                                },
+                                {
+                                    upsert: true
+                                }, (error, data) => {
+                                    if (error) return msg.msgReturn(res, 3);
+                                    return msg.msgReturn(res, 0);
                                 }
-                            );
-                        }
-                        else {
+                            )
+                        } else {
                             return msg.msgReturn(res, 11);
                         }
                     }

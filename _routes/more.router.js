@@ -75,41 +75,21 @@ router.route('/create').post((req, res) => {
 
         let content = req.body.content;
 
-        content.status = true;
-        content.history.createAt = new Date();
-        content.history.updateAt = new Date();
+        term.status = true;
+        term.history.createAt = new Date();
+        term.history.updateAt = new Date();
 
-        content.set('content.all', {
+        term.set('content.all', {
             en: content,
             vi: content
-        });
+        })
 
-        content.save((error) => {
+        term.save((error) => {
             if (error) return msg.msgReturn(res, 3);
             return msg.msgReturn(res, 0);
         })
     } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
-
-router.route('/getTerm').get((req, res) => {
-    try {
-        var language = req.cookies.language;
-        Term.setDefaultLanguage(language);
-
-        Term.find({}).select('content').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    return msg.msgReturn(res, 0, data);
-                }
-            }
-        });
-    } catch (error) {
+        console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
@@ -618,12 +598,27 @@ router.route('/getTaskByWork').get((req, res) => {
     }
 });
 
-// router.route('/getTerm').get((req, res) => {
-//     try {
+router.route('/getTerm').get((req, res) => {
+    try {
+        var language = req.cookies.language;
+        Term.setDefaultLanguage(language);
 
-//     } catch (error) {
+        var id = req.query.id;
 
-//     }
-// });
+        Term.find({ _id: id }).select('content').exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    return msg.msgReturn(res, 0, data);
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
 
 module.exports = router;

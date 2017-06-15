@@ -11,7 +11,7 @@ var TermSchema = new Schema(
         history: {
             createAt: { type: Date },
             updateAt: { type: Date }
-        },
+        }
     },
     {
         toJSON: {
