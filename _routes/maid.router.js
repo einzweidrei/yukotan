@@ -976,8 +976,8 @@ router.route('/getTaskOfOwner').get((req, res) => {
                 select: 'name image'
             },
             {
-                path: 'stakeholders.received',
-                select: 'info work_info'
+                path: 'stakeholders.owner',
+                select: 'info evaluation_point'
             },
             {
                 path: 'process',
