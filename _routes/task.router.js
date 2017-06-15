@@ -1861,10 +1861,11 @@ router.route('/getRequest').get((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     Maid.populate(data, { path: 'request.maid', select: 'info work_info' }, (error, result) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        Work.populate(result, { path: 'work_info.ability', select: 'name image' }), (error, result) => {
-                            return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0, result)
-                        }
+                        if (error) return msg.msgReturn(res, 3)
+                        return msg.msgReturn(res, 0, result)
+                        // Work.populate(result, { path: 'work_info.ability', select: 'name image' }), (error, result) => {
+                        //     return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0, result)
+                        // }
                     });
                 }
             }
