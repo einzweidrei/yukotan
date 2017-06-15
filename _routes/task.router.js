@@ -1840,8 +1840,8 @@ router.route('/getRequest').get((req, res) => {
 
         let matchQuery = { _id: new ObjectId(id), status: true };
 
-        console.log(id);
-        console.log(matchQuery);
+        // console.log(id);
+        // console.log(matchQuery);
 
         Task.aggregate([
             {
@@ -1861,10 +1861,9 @@ router.route('/getRequest').get((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     Maid.populate(data, { path: 'request.maid', select: 'info work_info' }, (error, result) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            return msg.msgReturn(res, 0, result);
+                        if (error) return msg.msgReturn(res, 3);
+                        Work.populate(result, { path: 'work_info.ability', select: 'name image' }), (error, result) => {
+                            return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0, result)
                         }
                     });
                 }
