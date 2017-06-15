@@ -612,7 +612,7 @@ router.route('/getTerm').get((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    return msg.msgReturn(res, 0, data);
+                    return msg.msgReturn(res, 0, data[0]);
                 }
             }
         });
