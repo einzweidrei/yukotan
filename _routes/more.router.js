@@ -73,8 +73,10 @@ router.route('/create').post((req, res) => {
         let language = req.cookies.language;
         Term.setDefaultLanguage(language);
 
+        let name = req.body.name;
         let content = req.body.content;
 
+        term.name = name
         term.status = true;
         term.history.createAt = new Date();
         term.history.updateAt = new Date();
@@ -605,7 +607,7 @@ router.route('/getTerm').get((req, res) => {
 
         var id = req.query.id;
 
-        Term.find({ _id: id }).select('content').exec((error, data) => {
+        Term.find({ _id: id }).select('name content').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
