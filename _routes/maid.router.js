@@ -1009,4 +1009,115 @@ router.route('/getTaskOfOwner').get((req, res) => {
     }
 })
 
+router.route('/statistical').get((req, res) => {
+    try {
+        const id = req.cookies.userId;
+        const startAt = req.query.startAt;
+        const endAt = req.query.endAt;
+
+        const billQuery = {
+            maid: new ObjectId(id)
+            // isSolved: true
+        };
+
+        const taskQuery = {
+            'stakeholders.received': new ObjectId(id),
+            status: true
+        };
+
+        if (startAt || endAt) {
+            const timeQuery = {};
+
+            if (startAt) {
+                let date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                let date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            billQuery['createAt'] = timeQuery;
+            taskQuery['info.time.startAt'] = timeQuery;
+        };
+
+
+        async.parallel(
+            {
+                bill: function (callback) {
+                    Bill.aggregate([
+                        {
+                            $match: billQuery
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                totalPrice: {
+                                    $sum: '$price'
+                                }
+                            }
+                        },
+                    ], (error, data) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            if (validate.isNullorEmpty(data)) {
+                                const d = {
+                                    _id: null,
+                                    totalPrice: 0
+                                }
+                                callback(null, d);
+                            } else {
+                                callback(null, data);
+                            }
+                        }
+                    });
+                },
+                task: function (callback) {
+                    Task.aggregate([
+                        {
+                            $match: taskQuery
+                        },
+                        {
+                            $group: {
+                                _id: '$process',
+                                // task: {
+                                //     $push: '$_id'
+                                // },
+                                count: {
+                                    $sum: 1
+                                }
+                            }
+                        }
+                    ], (error, data) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            callback(null, data);
+                        }
+                    });
+                }
+            }, (error, result) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    let task = result.task;
+                    let bill = result.bill;
+                    const d = {
+                        totalPrice: bill.totalPrice,
+                        task: task
+                    }
+                    return msg.msgReturn(res, 0, d);
+                }
+            }
+        );
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 module.exports = router;
