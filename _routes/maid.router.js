@@ -1,6 +1,7 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var router = express.Router();
+var async = require('promise-async');
 
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
@@ -19,6 +20,7 @@ var Task = require('../_model/task');
 var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
+var Bill = require('../_model/bill');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 var bodyparser = require('body-parser');
@@ -1116,6 +1118,7 @@ router.route('/statistical').get((req, res) => {
             }
         );
     } catch (error) {
+        // console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
