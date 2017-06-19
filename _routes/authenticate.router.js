@@ -380,11 +380,169 @@ router.route('/maid/login').post((req, res) => {
 	}
 });
 
+function remakeId(n) {
+	while (n.length < 24) {
+		n += '0'
+	}
+	return n
+}
+
 router.route('/thirdLogin').post((req, res) => {
 	try {
+		var id = req.body.id;
+		var token = req.body.token;
+		var device_token = req.body.device_token;
+		var realId = remakeId(id);
 
+		Owner.findOne({ _id: realId, status: true }).exec((error, data) => {
+			if (error) return msg.msgReturn(res, 3)
+			else {
+				if (validate.isNullorEmpty(data)) {
+					return msg.msgReturn(res, 4)
+				} else {
+					Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
+						if (error) {
+							return msg.msgReturn(res, 3, {});
+						} else {
+							if (validate.isNullorEmpty(result)) {
+								var session = new Session();
+								session.auth.userId = data._id;
+								session.auth.token = token;
+								session.loginAt = new Date();
+								session.auth.device_token = device_token;
+								session.status = true;
+
+								session.save((error) => {
+									if (error) {
+										return msg.msgReturn(res, 3, {});
+									} else {
+										let dt = {
+											_id: data._id,
+											info: data.info,
+											evaluation_point: data.evaluation_point,
+											wallet: data.wallet
+										}
+										return msg.msgReturn(res, 0, dt);
+									}
+								});
+							} else {
+								Session.findOneAndUpdate(
+									{
+										'auth.userId': data._id,
+										status: true
+									},
+									{
+										$set:
+										{
+											'auth.token': newToken,
+											'auth.device_token': device_token,
+											loginAt: new Date()
+										}
+									},
+									{
+										upsert: true
+									},
+									(error, result) => {
+										let dt = {
+											_id: data._id,
+											info: data.info,
+											evaluation_point: data.evaluation_point,
+											wallet: data.wallet
+										}
+										return msg.msgReturn(res, 0, dt);
+									}
+								)
+							}
+						}
+					});
+				}
+			}
+		})
 	} catch (error) {
+		return msg.msgReturn(res, 3);
+	}
+})
 
+router.route('/thirdRegister').post((req, res) => {
+	try {
+		var id = req.body.id;
+		var token = req.body.token;
+
+		var owner = new Owner();
+		owner._id = remakeId(id)
+
+		owner.info = {
+			username: req.body.username || "",
+			email: req.body.email || "",
+			phone: req.body.phone || "",
+			name: req.body.name || "",
+			age: req.body.age || 18,
+			address: {
+				name: req.body.addressName || "",
+				coordinates: {
+					lat: req.body.lat || 0,
+					lng: req.body.lng || 0
+				}
+			},
+			gender: req.body.gender || 0,
+			image: req.body.image || ""
+		};
+
+		owner.evaluation_point = 2.5;
+
+		owner.wallet = 0;
+
+		owner.history = {
+			createAt: new Date(),
+			updateAt: new Date()
+		};
+
+		owner.status = true;
+
+		owner.location = {
+			type: 'Point',
+			coordinates: [req.body.lng, req.body.lat]
+		};
+
+		Owner.findOne({ _id: realId, status: true }).exec((error, data) => {
+			if (error) return msg.msgReturn(res, 3)
+			else {
+				if (validate.isNullorEmpty(data)) {
+					owner.save((error, data) => {
+						if (error) {
+							return msg.msgReturn(res, 3);
+						} else {
+							var session = new Session();
+							session.auth.userId = data._id;
+							session.auth.token = token;
+							session.loginAt = new Date();
+							session.status = true;
+
+							session.save((error) => {
+								if (error) {
+									return msg.msgReturn(res, 3);
+								} else {
+									let dt = {
+										token: session.auth.token,
+										user: {
+											_id: data._id,
+											info: data.info,
+											evaluation_point: data.evaluation_point,
+											wallet: data.wallet
+										}
+									};
+									return msg.msgReturn(res, 0, dt);
+								}
+							});
+						}
+					});
+				} else {
+					return msg.msgReturn(res, 2);
+				}
+			}
+		})
+	} catch (error) {
+		return msg.msgReturn(res, 3)
 	}
 })
 
