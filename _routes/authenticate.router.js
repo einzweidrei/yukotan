@@ -293,6 +293,7 @@ router.route('/maid/login').post((req, res) => {
 	try {
 		var username = req.body.username || "";
 		var password = hash(req.body.password) || "";
+		var device_token = req.body.device_token || "";
 
 		Maid.findOne({ 'info.username': username }).select('_id info auth').exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
@@ -315,6 +316,7 @@ router.route('/maid/login').post((req, res) => {
 									session.auth.userId = data._id;
 									session.auth.token = newToken;
 									session.loginAt = new Date();
+									session.auth.device_token = device_token;
 									session.status = true;
 
 									session.save((error) => {
@@ -344,6 +346,7 @@ router.route('/maid/login').post((req, res) => {
 											$set:
 											{
 												'auth.token': newToken,
+												'auth.device_token': device_token,
 												loginAt: new Date()
 											}
 										},

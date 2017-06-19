@@ -10,15 +10,15 @@ var msg = new messageService.Message();
 var FCMService = (function () {
     function FCMService() { }
 
-    FCMService.prototype.pushNotification = (res) => {
+    FCMService.prototype.pushNotification = (res, device_token) => {
         try {
             // This registration token comes from the client FCM SDKs.
             // var registrationToken = 'AAAAKVkZzT8:APA91bFcQ5L2IEDBFqUeyc78WeLD7Ep5EI-VCTDKaaVxRBQ02a01HZCC9Ac2paIse_BZR7ec6v3xsW1Y7Xc6ufwKoNyCn7YUUmG9uG3jgekvFYaMt0GzUlTi_X3KobAC85uIcdDxC-7n';
-            var registrationToken = 'eRaQa7gqvOY:APA91bHWB-luB8GqyvKC7zNS066AOU536F--2YNBtV7kC2Sm1jqrYCOsdffKH7-2zgHtO95fixTR7cVtaYwAbhdOJ5AEHwds1q7MyZeOihTsqutwv9o3hZa0_jrIWIXVFDEOitU_H7kn';
+            var registrationToken = 'AAAA-HJJPgc:APA91bH3Kn-a4KrbfeXpGhtqn-CQAvi6U7E2Wt8w3tgyczvuWaWp1uTcyopWgpeZaqmSujdAiS-smRVRwKWQiXnuov0KLUCRL5CtAelR1Q5u402gKJfVr7t6qKzZxMC90woZi8c66Nti';
             // See the "Defining the message payload" section below for details
             // on how to define a message payload.
             var payload = {
-                // to: 'env4CfmHrCI:APA91bEvgdvxQXsxCn7qq6s9nYfpe6pRg5glY33Ppogt8tNSj49cGpyiJp1miQBEQY5JkvhY5-oGpIyC3ku7-__DNAn9JCMvFvnlnal7Kyv1EoRllnXYvzxQe2VYPkrwqpWcfZaIUcZ5',
+                to: device_token,
                 // collapse_key: "Pushing By Yuko",
                 notification: {
                     title: 'This is title',

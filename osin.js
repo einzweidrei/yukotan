@@ -41,7 +41,7 @@ mongoose.connect(mongodburi);
 // firebase admin setting
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://awesomeproj-84c8b.firebaseio.com"
+    databaseURL: "https://gv24h-4792c.firebaseio.com"
 });
 
 // config cdn
