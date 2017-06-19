@@ -78,76 +78,92 @@ router.route('/login').post((req, res) => {
 					if (data.auth.password != password) {
 						return msg.msgReturn(res, 5, {});
 					} else {
-						Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
-							if (error) {
-								return msg.msgReturn(res, 3, {});
-							} else {
-								var newToken = getToken();
-
-								if (validate.isNullorEmpty(result)) {
-									var session = new Session();
-									session.auth.userId = data._id;
-									session.auth.token = newToken;
-									session.loginAt = new Date();
-									session.auth.device_token = device_token;
-									session.status = true;
-
-									session.save((error) => {
+						Owner.findOneAndUpdate(
+							{
+								_id: data._id,
+								status: true
+							},
+							{
+								$set: {
+									'auth.device_token': device_token
+								}
+							},
+							{
+								upsert: true
+							}, (error) => {
+								if (error) return msg.msgReturn(res, 3, {});
+								else {
+									Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
 										if (error) {
 											return msg.msgReturn(res, 3, {});
 										} else {
-											let dt = {
-												token: newToken,
-												user: {
-													_id: data._id,
-													info: data.info,
-													evaluation_point: data.evaluation_point,
-													wallet: data.wallet
-												}
+											var newToken = getToken();
+
+											if (validate.isNullorEmpty(result)) {
+												var session = new Session();
+												session.auth.userId = data._id;
+												session.auth.token = newToken;
+												session.loginAt = new Date();
+												session.auth.device_token = device_token;
+												session.status = true;
+
+												session.save((error) => {
+													if (error) {
+														return msg.msgReturn(res, 3, {});
+													} else {
+														let dt = {
+															token: newToken,
+															user: {
+																_id: data._id,
+																info: data.info,
+																evaluation_point: data.evaluation_point,
+																wallet: data.wallet
+															}
+														}
+														return msg.msgReturn(res, 0, dt);
+													}
+												});
+											} else {
+												Session.findOneAndUpdate(
+													{
+														'auth.userId': data._id,
+														status: true
+													},
+													{
+														$set:
+														{
+															'auth.token': newToken,
+															'auth.device_token': device_token,
+															loginAt: new Date()
+														}
+													},
+													{
+														upsert: true
+													},
+													(error, result) => {
+														let dt = {
+															token: newToken,
+															user: {
+																_id: data._id,
+																info: data.info,
+																evaluation_point: data.evaluation_point,
+																wallet: data.wallet
+															}
+														}
+														return msg.msgReturn(res, 0, dt);
+													}
+												)
 											}
-											return msg.msgReturn(res, 0, dt);
 										}
 									});
-								} else {
-									Session.findOneAndUpdate(
-										{
-											'auth.userId': data._id,
-											status: true
-										},
-										{
-											$set:
-											{
-												'auth.token': newToken,
-												'auth.device_token': device_token,
-												loginAt: new Date()
-											}
-										},
-										{
-											upsert: true
-										},
-										(error, result) => {
-											let dt = {
-												token: newToken,
-												user: {
-													_id: data._id,
-													info: data.info,
-													evaluation_point: data.evaluation_point,
-													wallet: data.wallet
-												}
-											}
-											return msg.msgReturn(res, 0, dt);
-										}
-									)
 								}
 							}
-						});
+						)
 					}
 				}
 			}
 		});
 	} catch (error) {
-		console.log(error);
-		console.log(error.message);
 		return msg.msgReturn(res, 3, {});
 	}
 });
@@ -305,71 +321,89 @@ router.route('/maid/login').post((req, res) => {
 					if (data.auth.password != password) {
 						return msg.msgReturn(res, 5);
 					} else {
-						Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
-							if (error) {
-								return msg.msgReturn(res, 3);
-							} else {
-								var newToken = getToken();
-
-								if (validate.isNullorEmpty(result)) {
-									var session = new Session();
-									session.auth.userId = data._id;
-									session.auth.token = newToken;
-									session.loginAt = new Date();
-									session.auth.device_token = device_token;
-									session.status = true;
-
-									session.save((error) => {
+						Maid.findOneAndUpdate(
+							{
+								_id: data._id,
+								status: true
+							},
+							{
+								$set: {
+									'auth.device_token': device_token
+								}
+							},
+							{
+								upsert: true
+							}, (error) => {
+								if (error) return msg.msgReturn(res, 3, {});
+								else {
+									Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
 										if (error) {
 											return msg.msgReturn(res, 3);
 										} else {
-											return res.status(200).json({
-												status: true,
-												message: msg.msg_success,
-												data: {
-													token: newToken,
-													user: {
-														_id: data._id,
-														info: data.info
+											var newToken = getToken();
+
+											if (validate.isNullorEmpty(result)) {
+												var session = new Session();
+												session.auth.userId = data._id;
+												session.auth.token = newToken;
+												session.loginAt = new Date();
+												session.auth.device_token = device_token;
+												session.status = true;
+
+												session.save((error) => {
+													if (error) {
+														return msg.msgReturn(res, 3);
+													} else {
+														return res.status(200).json({
+															status: true,
+															message: msg.msg_success,
+															data: {
+																token: newToken,
+																user: {
+																	_id: data._id,
+																	info: data.info
+																}
+															}
+														});
 													}
-												}
-											});
+												});
+											} else {
+												Session.findOneAndUpdate(
+													{
+														'auth.userId': data._id,
+														status: true
+													},
+													{
+														$set:
+														{
+															'auth.token': newToken,
+															'auth.device_token': device_token,
+															loginAt: new Date()
+														}
+													},
+													{
+														upsert: true
+													},
+													(error, result) => {
+														return res.status(200).json({
+															status: true,
+															message: msg.msg_success,
+															data: {
+																token: newToken,
+																user: {
+																	_id: data._id,
+																	info: data.info
+																}
+															}
+														});
+													}
+												)
+											}
 										}
 									});
-								} else {
-									Session.findOneAndUpdate(
-										{
-											'auth.userId': data._id,
-											status: true
-										},
-										{
-											$set:
-											{
-												'auth.token': newToken,
-												'auth.device_token': device_token,
-												loginAt: new Date()
-											}
-										},
-										{
-											upsert: true
-										},
-										(error, result) => {
-											return res.status(200).json({
-												status: true,
-												message: msg.msg_success,
-												data: {
-													token: newToken,
-													user: {
-														_id: data._id,
-														info: data.info
-													}
-												}
-											});
-										}
-									)
 								}
 							}
-						});
+						)
 					}
 				}
 			}
@@ -400,61 +434,75 @@ router.route('/thirdLogin').post((req, res) => {
 				if (validate.isNullorEmpty(data)) {
 					return msg.msgReturn(res, 4)
 				} else {
-					Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
-						if (error) {
-							return msg.msgReturn(res, 3, {});
-						} else {
-							if (validate.isNullorEmpty(result)) {
-								var session = new Session();
-								session.auth.userId = data._id;
-								session.auth.token = token;
-								session.loginAt = new Date();
-								session.auth.device_token = device_token;
-								session.status = true;
-
-								session.save((error) => {
-									if (error) {
-										return msg.msgReturn(res, 3, {});
-									} else {
-										let dt = {
-											_id: data._id,
-											info: data.info,
-											evaluation_point: data.evaluation_point,
-											wallet: data.wallet
-										}
-										return msg.msgReturn(res, 0, dt);
-									}
-								});
-							} else {
-								Session.findOneAndUpdate(
-									{
-										'auth.userId': data._id,
-										status: true
-									},
-									{
-										$set:
-										{
-											'auth.token': newToken,
-											'auth.device_token': device_token,
-											loginAt: new Date()
-										}
-									},
-									{
-										upsert: true
-									},
-									(error, result) => {
-										let dt = {
-											_id: data._id,
-											info: data.info,
-											evaluation_point: data.evaluation_point,
-											wallet: data.wallet
-										}
-										return msg.msgReturn(res, 0, dt);
-									}
-								)
+					Owner.findOneAndUpdate(
+						{
+							_id: data._id,
+							status: true
+						},
+						{
+							$set: {
+								'auth.device_token': device_token
 							}
+						},
+						{
+							upsert: true
+						}, (error) => {
+							Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
+								if (error) {
+									return msg.msgReturn(res, 3, {});
+								} else {
+									if (validate.isNullorEmpty(result)) {
+										var session = new Session();
+										session.auth.userId = data._id;
+										session.auth.token = token;
+										session.loginAt = new Date();
+										session.status = true;
+
+										session.save((error) => {
+											if (error) {
+												return msg.msgReturn(res, 3, {});
+											} else {
+												let dt = {
+													_id: data._id,
+													info: data.info,
+													evaluation_point: data.evaluation_point,
+													wallet: data.wallet
+												}
+												return msg.msgReturn(res, 0, dt);
+											}
+										});
+									} else {
+										Session.findOneAndUpdate(
+											{
+												'auth.userId': data._id,
+												status: true
+											},
+											{
+												$set:
+												{
+													'auth.token': newToken,
+													'auth.device_token': device_token,
+													loginAt: new Date()
+												}
+											},
+											{
+												upsert: true
+											},
+											(error, result) => {
+												let dt = {
+													_id: data._id,
+													info: data.info,
+													evaluation_point: data.evaluation_point,
+													wallet: data.wallet
+												}
+												return msg.msgReturn(res, 0, dt);
+											}
+										)
+									}
+								}
+							});
 						}
-					});
+					)
 				}
 			}
 		})
@@ -467,6 +515,7 @@ router.route('/thirdRegister').post((req, res) => {
 	try {
 		var id = req.body.id;
 		var token = req.body.token;
+		var device_token = req.body.device_token;
 
 		var owner = new Owner();
 		owner._id = remakeId(id)
@@ -491,6 +540,10 @@ router.route('/thirdRegister').post((req, res) => {
 		owner.evaluation_point = 2.5;
 
 		owner.wallet = 0;
+
+		owner.auth = {
+			device_token: device_token
+		}
 
 		owner.history = {
 			createAt: new Date(),

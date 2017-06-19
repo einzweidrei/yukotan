@@ -13,13 +13,11 @@ var FCMService = (function () {
     FCMService.prototype.pushNotification = (res, device_token) => {
         try {
             // This registration token comes from the client FCM SDKs.
-            // var registrationToken = 'AAAAKVkZzT8:APA91bFcQ5L2IEDBFqUeyc78WeLD7Ep5EI-VCTDKaaVxRBQ02a01HZCC9Ac2paIse_BZR7ec6v3xsW1Y7Xc6ufwKoNyCn7YUUmG9uG3jgekvFYaMt0GzUlTi_X3KobAC85uIcdDxC-7n';
-            var registrationToken = 'AAAA-HJJPgc:APA91bH3Kn-a4KrbfeXpGhtqn-CQAvi6U7E2Wt8w3tgyczvuWaWp1uTcyopWgpeZaqmSujdAiS-smRVRwKWQiXnuov0KLUCRL5CtAelR1Q5u402gKJfVr7t6qKzZxMC90woZi8c66Nti';
+            registrationToken = device_token
+
             // See the "Defining the message payload" section below for details
             // on how to define a message payload.
             var payload = {
-                to: device_token,
-                // collapse_key: "Pushing By Yuko",
                 notification: {
                     title: 'This is title',
                     body: 'This is body'
@@ -33,20 +31,25 @@ var FCMService = (function () {
                 // }
             };
 
+            // console.log(payload)
+
             // console.log(admin);
 
             admin.messaging().sendToDevice(registrationToken, payload)
                 .then(function (response) {
                     // See the MessagingDevicesResponse reference documentation for
                     // the contents of response.
+                    console.log(response)
                     if (!response || response.results.error) {
                         return msg.msgReturn(res, 17);
                     } else {
+
                         return msg.msgReturn(res, 0);
                     }
                 })
                 .catch(function (error) {
-                    return msg.msgReturn(res, 3);
+                    console.log(error)
+                    return msg.msgReturn(res, 17);
                 });
 
             // let message = {

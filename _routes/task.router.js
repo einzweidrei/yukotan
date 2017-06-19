@@ -67,8 +67,9 @@ router.use(function (req, res, next) {
                         if (validate.isNullorEmpty(data)) {
                             return msg.msgReturn(res, 14);
                         } else {
+                            console.log(data)
                             req.cookies['userId'] = data.auth.userId;
-                            req.cookies['deviceToken'] = data.auth.device_token || '';
+                            // req.cookies['deviceToken'] = "d97ocXsgXC4:APA91bGQcYODiUMjGG9ysByxG_v8J_B9Ce4rVznRXGb3ArAMv-7Q-CCyEYvoIQ-i4hVl9Yl7tdNzRF9zfxh75iS4El6w7GDuzAKYELw9XG9L5RgAJUmVysxs7s7o_20QQXNhyCJnShj0";
                             next();
                         }
                     }
@@ -1517,7 +1518,6 @@ router.route('/checkout').post((req, res) => {
 router.route('/sendRequest').post((req, res) => {
     try {
         var task = new Task();
-
         var maidId = req.body.maidId;
         let ownerId = req.cookies.userId;
 
@@ -1599,13 +1599,13 @@ router.route('/sendRequest').post((req, res) => {
                         maid: function (callback) {
                             Maid.findOne({ _id: req.body.maidId }).exec((error, data) => {
                                 if (error) {
-                                    callback(null, 2);
+                                    callback(null, { value: 2 });
                                 }
                                 else {
                                     if (validate.isNullorEmpty(data)) {
-                                        callback(null, 1);
+                                        callback(null, { value: 1 });
                                     } else {
-                                        callback(null, 0);
+                                        callback(null, { value: 0, device_token: data.auth.device_token || '' });
                                     }
                                 }
                             });
@@ -1625,17 +1625,18 @@ router.route('/sendRequest').post((req, res) => {
                             });
                         }
                     }, (error, result) => {
+                        console.log(result)
                         if (error) {
                             return msg.msgReturn(res, 3);
                         } else {
-                            if (result.work == 0) {
+                            if (result.work == 0 && result.maid.value == 0) {
                                 task.save((error) => {
                                     if (error) {
                                         return msg.msgReturn(res, 3);
                                     }
                                     else {
-                                        var device_token = req.cookies.deviceToken;
-                                        return device_token == '' ? FCMService.pushNotification(res, device_token) : msg.msgReturn(res, 0)
+                                        var device_token = result.maid.device_token;
+                                        return device_token == '' ? msg.msgReturn(res, 0) : FCMService.pushNotification(res, device_token)
                                     }
                                 });
                             } else {
@@ -1651,6 +1652,7 @@ router.route('/sendRequest').post((req, res) => {
             }
         });
     } catch (error) {
+        console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
