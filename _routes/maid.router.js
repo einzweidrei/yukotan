@@ -1013,22 +1013,21 @@ router.route('/getTaskOfOwner').get((req, res) => {
 
 router.route('/statistical').get((req, res) => {
     try {
-        const id = req.cookies.userId;
-        const startAt = req.query.startAt;
-        const endAt = req.query.endAt;
+        var id = req.cookies.userId;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
 
-        const billQuery = {
+        var billQuery = {
             maid: new ObjectId(id)
-            // isSolved: true
         };
 
-        const taskQuery = {
+        var taskQuery = {
             'stakeholders.received': new ObjectId(id),
             status: true
         };
 
         if (startAt || endAt) {
-            const timeQuery = {};
+            var timeQuery = {};
 
             if (startAt) {
                 let date = new Date(startAt);
@@ -1046,7 +1045,6 @@ router.route('/statistical').get((req, res) => {
             billQuery['createAt'] = timeQuery;
             taskQuery['info.time.startAt'] = timeQuery;
         };
-
 
         async.parallel(
             {
@@ -1087,9 +1085,6 @@ router.route('/statistical').get((req, res) => {
                         {
                             $group: {
                                 _id: '$process',
-                                // task: {
-                                //     $push: '$_id'
-                                // },
                                 count: {
                                     $sum: 1
                                 }
@@ -1107,9 +1102,9 @@ router.route('/statistical').get((req, res) => {
                 if (error) {
                     return msg.msgReturn(res, 3);
                 } else {
-                    let task = result.task;
-                    let bill = result.bill;
-                    const d = {
+                    var task = result.task;
+                    var bill = result.bill;
+                    var d = {
                         totalPrice: bill.totalPrice,
                         task: task
                     }
@@ -1118,7 +1113,6 @@ router.route('/statistical').get((req, res) => {
             }
         );
     } catch (error) {
-        // console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
