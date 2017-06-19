@@ -66,6 +66,7 @@ router.route('/login').post((req, res) => {
 	try {
 		var username = req.body.username || "";
 		var password = hash(req.body.password) || "";
+		var device_token = req.body.device_token || "";
 
 		Owner.findOne({ 'info.username': username }).select('_id info evaluation_point wallet auth').exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
@@ -88,6 +89,7 @@ router.route('/login').post((req, res) => {
 									session.auth.userId = data._id;
 									session.auth.token = newToken;
 									session.loginAt = new Date();
+									session.auth.device_token = device_token;
 									session.status = true;
 
 									session.save((error) => {
@@ -116,6 +118,7 @@ router.route('/login').post((req, res) => {
 											$set:
 											{
 												'auth.token': newToken,
+												'auth.device_token': device_token,
 												loginAt: new Date()
 											}
 										},
@@ -286,136 +289,6 @@ router.route('/check').get((req, res) => {
 	}
 });
 
-/** PUT - Update Owner's Information
- * info {
- *      type: PUT
- *      url: /update
- *      name: Update Owner's Information
- *      description: Update one owner's information
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      id: owner_ID
- *      username: String
- *      email: String
- *      phone: String
- *      image: String
- *      addressName: String
- *      lat: Number
- *      lng: Number
- *      gender: Number
- * }
- */
-// router.route('/update').put((req, res) => {
-// 	try {
-// 		if (req.headers.hbbgvauth) {
-// 			let token = req.headers.hbbgvauth;
-// 			Session.findOne({ 'auth.token': token }).exec((error, data) => {
-// 				if (error) {
-// 					return msg.msgReturn(res, 3);
-// 				} else {
-// 					if (validate.isNullorEmpty(data)) {
-// 						return msg.msgReturn(res, 14);
-// 					} else {
-// 						// req.cookies['userId'] = data.auth.userId;
-// 						var owner = new Owner();
-// 						var id = data.auth.userId;
-
-// 						owner.info = {
-// 							// username: req.body.username || "",
-// 							// email: req.body.email || "",
-// 							phone: req.body.phone || "",
-// 							name: req.body.name || "",
-// 							age: req.body.age || 18,
-// 							address: {
-// 								name: req.body.addressName || "",
-// 								coordinates: {
-// 									lat: req.body.lat || 0,
-// 									lng: req.body.lng || 0
-// 								}
-// 							},
-// 							gender: req.body.gender || 0
-// 						}
-
-// 						owner.location = {
-// 							type: 'Point',
-// 							coordinates: [req.body.lng || 0, req.body.lat || 0]
-// 						}
-
-// 						Owner.findOne({ _id: id }).exec((error, data) => {
-// 							if (error) {
-// 								return msg.msgReturn(res, 3);
-// 							} else {
-// 								if (validate.isNullorEmpty(data)) {
-// 									return msg.msgReturn(res, 4);
-// 								} else {
-// 									if (!req.files.image) {
-// 										owner.info['image'] = req.body.image || "";
-// 										Owner.findOneAndUpdate(
-// 											{
-// 												_id: id,
-// 												status: true
-// 											},
-// 											{
-// 												$set: {
-// 													info: owner.info,
-// 													location: owner.location,
-// 													'history.updateAt': new Date()
-// 												}
-// 											},
-// 											{
-// 												upsert: true
-// 											},
-// 											(error, result) => {
-// 												if (error) return msg.msgReturn(res, 3);
-// 												return msg.msgReturn(res, 0);
-// 											}
-// 										);
-// 									} else {
-// 										cloudinary.uploader.upload(
-// 											req.files.image.path,
-// 											function (result) {
-// 												owner.info['image'] = result.url;
-// 												Owner.findOneAndUpdate(
-// 													{
-// 														_id: id,
-// 														status: true
-// 													},
-// 													{
-// 														$set: {
-// 															info: owner.info,
-// 															location: owner.location,
-// 															'history.updateAt': new Date()
-// 														}
-// 													},
-// 													{
-// 														upsert: true
-// 													},
-// 													(error, result) => {
-// 														if (error) return msg.msgReturn(res, 3);
-// 														return msg.msgReturn(res, 0);
-// 													}
-// 												);
-// 											});
-// 									}
-// 								}
-// 							}
-// 						});
-// 					}
-// 				}
-// 			});
-// 		} else {
-// 			return msg.msgReturn(res, 14);
-// 		}
-// 	} catch (error) {
-// 		return msg.msgReturn(res, 3);
-// 	}
-// });
-
 router.route('/maid/login').post((req, res) => {
 	try {
 		var username = req.body.username || "";
@@ -503,6 +376,14 @@ router.route('/maid/login').post((req, res) => {
 		return msg.msgReturn(res, 3);
 	}
 });
+
+router.route('/thirdLogin').post((req, res) => {
+	try {
+
+	} catch (error) {
+
+	}
+})
 
 /** POST - Create Maid's Information
  * info {
