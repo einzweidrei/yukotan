@@ -18,6 +18,7 @@ var Message = (function () {
     Message.UNAUTHORIZED = "Unauthorized";
     Message.DELETE_DENY = "Sorry! You can't delete this task";
     Message.RESERVE_EXIST = "Sorry! You had reserved in this task, your request was denied.";
+    Message.PUSH_NOTIFY_FAILED = "Sorry! Failed to push notification."
 
     function Message() { }
 
@@ -66,6 +67,8 @@ var Message = (function () {
                 return res.status(200).send(Message.prototype.msgData(false, Message.DELETE_DENY, data));
             case 16:
                 return res.status(200).send(Message.prototype.msgData(false, Message.RESERVE_EXIST, data));
+            case 17:
+                return res.status(200).send(Message.prototype.msgData(true, Message.PUSH_NOTIFY_FAILED, data));
             default:
                 break;
         }

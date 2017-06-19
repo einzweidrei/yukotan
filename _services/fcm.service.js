@@ -40,7 +40,7 @@ var FCMService = (function () {
                     // See the MessagingDevicesResponse reference documentation for
                     // the contents of response.
                     if (!response || response.results.error) {
-                        return msg.msgReturn(res, 3);
+                        return msg.msgReturn(res, 17);
                     } else {
                         return msg.msgReturn(res, 0);
                     }

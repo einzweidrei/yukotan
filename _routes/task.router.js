@@ -15,6 +15,9 @@ var validate = new validationService.Validation();
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
 
+var FCM = require('../_services/fcm.service');
+var FCMService = new FCM.FCMService();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
@@ -65,6 +68,7 @@ router.use(function (req, res, next) {
                             return msg.msgReturn(res, 14);
                         } else {
                             req.cookies['userId'] = data.auth.userId;
+                            req.cookies['deviceToken'] = data.auth.device_token || '';
                             next();
                         }
                     }
@@ -1630,7 +1634,8 @@ router.route('/sendRequest').post((req, res) => {
                                         return msg.msgReturn(res, 3);
                                     }
                                     else {
-                                        return msg.msgReturn(res, 0);
+                                        var device_token = req.cookies.deviceToken;
+                                        return device_token == '' ? FCMService.pushNotification(res, device_token) : msg.msgReturn(res, 0)
                                     }
                                 });
                             } else {
