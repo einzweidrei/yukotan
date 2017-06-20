@@ -623,6 +623,29 @@ router.route('/getTerm').get((req, res) => {
     }
 });
 
+router.route('/getGV24HInfo').get((req, res) => {
+    try {
+        var language = req.cookies.language;
+        Term.setDefaultLanguage(language);
+
+        var id = req.query.id;
+
+        Term.find({ _id: id }).select('name content').exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    return msg.msgReturn(res, 0, data[0]);
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 router.route('/updateAbility').post((req, res) => {
     try {
         let ab = req.body.ab;

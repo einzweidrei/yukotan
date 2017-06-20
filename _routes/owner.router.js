@@ -499,6 +499,10 @@ router.route('/getHistoryTasks').get((req, res) => {
                 path: 'stakeholders.received',
                 select: 'info work_info'
             },
+            // {
+            //     path: 'stakeholders.received.work_info.ability',
+            //     select: 'name image'
+            // },
             {
                 path: 'process',
                 select: 'name'
@@ -536,7 +540,10 @@ router.route('/getHistoryTasks').get((req, res) => {
             if (validate.isNullorEmpty(data)) {
                 return msg.msgReturn(res, 4);
             } else {
-                return msg.msgReturn(res, 0, data);
+                Work.populate(data, { path: 'docs.stakeholders.received.work_info.ability', select: 'name image' }, (error, data) => {
+                    if (error) return msg.msgReturn(res, 3);
+                    return msg.msgReturn(res, 0, data);
+                })
             }
         });
     } catch (error) {
@@ -591,7 +598,6 @@ router.route('/getAllWorkedMaid').get((req, res) => {
                     times: {
                         $push: '$info.time.startAt'
                     }
-                    // time: '$info.time.startAt'
                 }
             }
         ],
@@ -599,6 +605,7 @@ router.route('/getAllWorkedMaid').get((req, res) => {
             //     allowDiskUse: true
             // },
             (error, data) => {
+                console.log(data)
                 if (error) {
                     return msg.msgReturn(res, 3);
                 } else {
@@ -606,15 +613,11 @@ router.route('/getAllWorkedMaid').get((req, res) => {
                         return msg.msgReturn(res, 4);
                     } else {
                         Maid.populate(data, { path: '_id', select: 'info work_info' }, (error, owner) => {
-                            if (error) {
-                                return msg.msgReturn(res, 3);
-                            } else {
-                                if (validate.isNullorEmpty(owner)) {
-                                    return msg.msgReturn(res, 4);
-                                } else {
-                                    return msg.msgReturn(res, 0, owner);
-                                }
-                            }
+                            if (error) return msg.msgReturn(res, 3);
+                            Work.populate(owner, { path: '_id.work_info.ability', select: 'name image' }, (error, owner) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                return msg.msgReturn(res, 0, owner);
+                            })
                         });
                     }
                 }
@@ -699,7 +702,11 @@ router.route('/getTaskOfMaid').get((req, res) => {
             if (validate.isNullorEmpty(data)) {
                 return msg.msgReturn(res, 4);
             } else {
-                return msg.msgReturn(res, 0, data);
+                Work.populate(data, { path: 'docs.stakeholders.received.work_info.ability', select: 'name image' }, (error, data) => {
+                    if (error) return msg.msgReturn(res, 3);
+                    return msg.msgReturn(res, 0, data);
+                })
+                // return msg.msgReturn(res, 0, data);
             }
         });
     } catch (error) {
@@ -1031,17 +1038,22 @@ router.route('/getDebt').get((req, res) => {
                         Task.populate(data, { path: 'task', select: 'info stakeholders check process history' }, (error, result) => {
                             if (error) return msg.msgReturn(res, 3);
                             if (validate.isNullorEmpty(result)) return msg.msgReturn(res, 4);
-                            Work.populate(result, { path: 'task.info.work', select: 'name image' }, (error, result) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                Package.populate(result, { path: 'task.info.package', select: 'name' }, (error, result) => {
-                                    if (error) return msg.msgReturn(res, 3);
-                                    Process.populate(result, { path: 'task.process', select: 'name' }, (error, result) => {
+                            Maid.populate(result, { path: 'task.stakeholders.received', select: 'info work_info' }, (error, result) => {
+                                Work.populate(result,
+                                    [
+                                        { path: 'task.info.work', select: 'name image' },
+                                        { path: 'task.stakeholders.received.work_info.ability', select: 'name image' }
+                                    ],
+                                    (error, result) => {
                                         if (error) return msg.msgReturn(res, 3);
-                                        Maid.populate(result, { path: 'task.stakeholders.received', select: 'info work_info' }, (error, result) => {
-                                            return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0, result)
+                                        Package.populate(result, { path: 'task.info.package', select: 'name' }, (error, result) => {
+                                            if (error) return msg.msgReturn(res, 3);
+                                            Process.populate(result, { path: 'task.process', select: 'name' }, (error, result) => {
+                                                if (error) return msg.msgReturn(res, 3);
+                                                return msg.msgReturn(res, 0, result)
+                                            });
                                         });
                                     });
-                                });
                             });
                         });
                     }

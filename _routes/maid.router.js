@@ -582,58 +582,6 @@ router.route('/getAllTasks').get((req, res) => {
     }
 });
 
-// router.route('/getAllWorkedOwner').get((req, res) => {
-//     try {
-//         let id = req.cookies.userId;
-
-//         var matchQuery = {
-//             process: new ObjectId('000000000000000000000005'),
-//             'stakeholders.received': new ObjectId(id)
-//         };
-
-//         Task.aggregate([
-//             {
-//                 $match: matchQuery
-//             },
-//             {
-//                 $group: {
-//                     _id: '$stakeholders.owner',
-//                     times: {
-//                         $push: '$info.time.startAt'
-//                     }
-//                 }
-//             }
-//         ],
-//             // {
-//             //     allowDiskUse: true
-//             // },
-//             (error, data) => {
-//                 if (error) {
-//                     return msg.msgReturn(res, 3);
-//                 } else {
-//                     if (validate.isNullorEmpty(data)) {
-//                         return msg.msgReturn(res, 4);
-//                     } else {
-//                         Owner.populate(data, { path: '_id', select: 'info' }, (error, owner) => {
-//                             if (error) {
-//                                 return msg.msgReturn(res, 3);
-//                             } else {
-//                                 if (validate.isNullorEmpty(owner)) {
-//                                     return msg.msgReturn(res, 4);
-//                                 } else {
-//                                     return msg.msgReturn(res, 0, owner);
-//                                 }
-//                             }
-//                         });
-//                     }
-//                 }
-//             }
-//         );
-//     } catch (error) {
-//         return msg.msgReturn(res, 3);
-//     }
-// });
-
 router.route('/comment').post((req, res) => {
     try {
         let comment = new Comment();

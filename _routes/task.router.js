@@ -1638,7 +1638,7 @@ router.route('/sendRequest').post((req, res) => {
                                     else {
                                         // result.maid.data.auth.device_token = 'd97ocXsgXC4:APA91bGQcYODiUMjGG9ysByxG_v8J_B9Ce4rVznRXGb3ArAMv-7Q-CCyEYvoIQ-i4hVl9Yl7tdNzRF9zfxh75iS4El6w7GDuzAKYELw9XG9L5RgAJUmVysxs7s7o_20QQXNhyCJnShj0'
                                         return result.maid.data.auth.device_token == '' ?
-                                            msg.msgReturn(res, 0) :
+                                            msg.msgReturn(res, 17) :
                                             FCMService.pushNotification(res, result.maid.data, req.cookies.language, 6)
                                     }
                                 });
