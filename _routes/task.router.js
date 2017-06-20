@@ -1789,7 +1789,7 @@ router.route('/acceptRequest').post((req, res) => {
                         },
                         {
                             $set: {
-                                // 'stakeholders.received': maidId,
+                                'stakeholders.received': maidId,
                                 process: new ObjectId('000000000000000000000003')
                             }
                         },
@@ -1801,7 +1801,7 @@ router.route('/acceptRequest').post((req, res) => {
                             else {
                                 return result.maid.data.auth.device_token == '' ?
                                     msg.msgReturn(res, 17) :
-                                    FCMService.pushNotification(res, result.maid.data, req.cookies.language, 2)
+                                    FCMService.pushNotification(res, result.maid.data, req.cookies.language, 2, [])
                             }
                             // return msg.msgReturn(res, 0);
                         }
