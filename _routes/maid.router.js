@@ -483,7 +483,7 @@ router.route('/getAllRequest').post((req, res) => {
  */
 router.route('/getAllTasks').get((req, res) => {
     try {
-        console.log(req.body)
+        // console.log(req.body)
         let id = req.cookies.userId;
         // let id = '5923c12f7d7da13b240e7a77';
         let process = req.query.process;
@@ -504,12 +504,12 @@ router.route('/getAllTasks').get((req, res) => {
                 //     { 'stakeholders.request.maid': new ObjectId(id) },
                 //     { 'requestTo': new ObjectId(id) }
                 // ]
-                findQuery['stakeholders.request.maid'] = id;
+                findQuery['stakeholders.request.maid'] = new ObjectId(id);
                 findQuery['process'] = {
                     $in: ['000000000000000000000001', '000000000000000000000006']
                 }
             } else {
-                findQuery['stakeholders.received'] = id;
+                findQuery['stakeholders.received'] = new ObjectId(id);
                 findQuery['process'] = process;
             }
         }

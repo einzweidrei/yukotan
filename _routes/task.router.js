@@ -1716,6 +1716,8 @@ router.route('/acceptRequest').post((req, res) => {
                                 Task.findOne(
                                     {
                                         'stakeholders.received': maidId,
+                                        process: '000000000000000000000003',
+                                        status: true,
                                         $or: [
                                             //x >= s & y <= e
                                             {
@@ -1761,6 +1763,7 @@ router.route('/acceptRequest').post((req, res) => {
                                         ]
                                     }
                                 ).exec((error, result) => {
+                                    console.log(result)
                                     if (error) {
                                         callback(null, 2);
                                     } else {
@@ -1776,6 +1779,7 @@ router.route('/acceptRequest').post((req, res) => {
                     });
             }
         }, (error, result) => {
+            console.log(result)
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
