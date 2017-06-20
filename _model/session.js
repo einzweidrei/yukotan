@@ -12,8 +12,8 @@ var SessionSchema = new Schema(
             // ownerId: { type: ObjectId, path: 'Owner' },
             // maidId: { type: ObjectId, path: 'Maid' },
             userId: { type: ObjectId },
-            token: { type: String },
-            device_token: { type: String }
+            token: { type: String }
+            // device_token: { type: String }
         },
         loginAt: { type: Date },
         status: { type: Boolean }

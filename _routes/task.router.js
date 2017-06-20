@@ -1550,7 +1550,8 @@ router.route('/sendRequest').post((req, res) => {
                     maid: maidId,
                     time: new Date()
                 }
-            ]
+            ],
+            received: maidId
         };
 
         task.process = '000000000000000000000006';
@@ -1563,7 +1564,7 @@ router.route('/sendRequest').post((req, res) => {
             ]
         };
 
-        task.requestTo = maidId;
+        // task.requestTo = maidId;
 
         task.history = {
             createAt: new Date(),
@@ -1776,7 +1777,7 @@ router.route('/acceptRequest').post((req, res) => {
                         },
                         {
                             $set: {
-                                'stakeholders.received': maidId,
+                                // 'stakeholders.received': maidId,
                                 process: new ObjectId('000000000000000000000003')
                             }
                         },

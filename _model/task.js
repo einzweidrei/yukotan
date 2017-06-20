@@ -42,7 +42,7 @@ var TaskSchema = new Schema(
             check_in: { type: Date },
             check_out: { type: Date }
         },
-        requestTo: { type: ObjectId, ref: 'Maid' },
+        // requestTo: { type: ObjectId, ref: 'Maid' },
         process: { type: ObjectId, ref: 'Process' },
         location: {
             type: {
