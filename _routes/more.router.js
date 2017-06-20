@@ -290,7 +290,7 @@ router.route('/getAllMaids').get((req, res) => {
                 if (validate.isNullorEmpty(places)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    Work.populate(places, { path: 'work_info.ability.work', select: 'name' }, (error, data) => {
+                    Work.populate(places, { path: 'work_info.ability', select: 'name image' }, (error, data) => {
                         if (error) return msg.msgReturn(res, 3);
                         return msg.msgReturn(res, 0, data);
                     });

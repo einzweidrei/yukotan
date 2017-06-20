@@ -10,11 +10,13 @@ var msg = new messageService.Message();
 var FCMService = (function () {
     function FCMService() { }
 
-    FCMService.prototype.pushNotification = (res, user, language, status) => {
+    FCMService.prototype.pushNotification = (res, user, language, status, data) => {
         try {
             // This registration token comes from the client FCM SDKs.
             registrationToken = user.auth.device_token || ''
 
+            data = []
+            if (data) data = data
             // console.log(device_token)
 
             body = user.info.name
@@ -42,17 +44,17 @@ var FCMService = (function () {
                     // See the MessagingDevicesResponse reference documentation for
                     // the contents of response.
                     if (!response || response.results.error) {
-                        return msg.msgReturn(res, 17);
+                        return msg.msgReturn(res, 17, data);
                     } else {
-                        return msg.msgReturn(res, 0);
+                        return msg.msgReturn(res, 0, data);
                     }
                 })
                 .catch(function (error) {
                     console.log(error)
-                    return msg.msgReturn(res, 17);
+                    return msg.msgReturn(res, 17, data);
                 });
         } catch (error) {
-            return msg.msgReturn(res, 17);
+            return msg.msgReturn(res, 17, data);
         }
     }
 

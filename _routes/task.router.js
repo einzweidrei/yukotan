@@ -828,32 +828,39 @@ router.route('/cancel').delete((req, res) => {
                             }
                         )
                     } else if (data.process == '000000000000000000000003') {
-                        Task.findOneAndUpdate(
-                            {
-                                _id: id,
-                                'stakeholders.received': maidId,
-                                process: '000000000000000000000003',
-                                status: true
-                            },
-                            {
-                                $set: {
-                                    process: new ObjectId('000000000000000000000001')
-                                },
-                                $pull: {
-                                    'stakeholders.request': { maid: maidId }
-                                },
-                                $unset: {
+                        Maid.findOne({ _id: maidId, status: true }).select('auth').exec((error, maid) => {
+                            Task.findOneAndUpdate(
+                                {
+                                    _id: id,
                                     'stakeholders.received': maidId,
+                                    process: '000000000000000000000003',
+                                    status: true
+                                },
+                                {
+                                    $set: {
+                                        process: new ObjectId('000000000000000000000001')
+                                    },
+                                    $pull: {
+                                        'stakeholders.request': { maid: maidId }
+                                    },
+                                    $unset: {
+                                        'stakeholders.received': maidId,
+                                    }
+                                },
+                                {
+                                    upsert: true
+                                },
+                                (error, result) => {
+                                    if (error) return msg.msgReturn(res, 3);
+                                    else {
+                                        return maid.auth.device_token == '' ?
+                                            msg.msgReturn(res, 17) :
+                                            FCMService.pushNotification(res, maid, req.cookies.language, 0)
+                                    }
+                                    // return msg.msgReturn(res, 0);
                                 }
-                            },
-                            {
-                                upsert: true
-                            },
-                            (error, result) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                return msg.msgReturn(res, 0);
-                            }
-                        )
+                            )
+                        })
                     } else {
                         return msg.msgReturn(res, 15);
                     }
@@ -1105,9 +1112,9 @@ router.route('/submit').post((req, res) => {
                     });
             }
         }, (error, result) => {
-            console.log(result);
+            // console.log(result);
             if (error) {
-                console.log(error)
+                // console.log(error)
                 return msg.msgReturn(res, 3);
             } else {
                 if (result.maid == 0 && result.task == 0) {
@@ -1485,7 +1492,12 @@ router.route('/checkout').post((req, res) => {
                                                 bill.save((error) => {
                                                     console.log(error)
                                                     if (error) return msg.msgReturn(res, 3);
-                                                    return msg.msgReturn(res, 0, bill);
+                                                    else {
+                                                        return maid.auth.device_token == '' ?
+                                                            msg.msgReturn(res, 17) :
+                                                            FCMService.pushNotification(res, maid, req.cookies.language, 5, bill)
+                                                    }
+                                                    // return msg.msgReturn(res, 0, bill);
                                                 });
                                             }
                                         }
@@ -1672,13 +1684,13 @@ router.route('/acceptRequest').post((req, res) => {
             maid: function (callback) {
                 Maid.findOne({ _id: maidId, status: true }).exec((error, data) => {
                     if (error) {
-                        callback(null, 2);
+                        callback(null, { value: 2 });
                     }
                     else {
                         if (validate.isNullorEmpty(data)) {
-                            callback(null, 1);
+                            callback(null, { value: 1 });
                         } else {
-                            callback(null, 0);
+                            callback(null, { value: 0, data: data });
                         }
                     }
                 });
@@ -1767,7 +1779,7 @@ router.route('/acceptRequest').post((req, res) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
-                if (result.maid == 0 && result.task == 0) {
+                if (result.maid.value == 0 && result.task == 0) {
                     Task.findOneAndUpdate(
                         {
                             _id: id,
@@ -1786,11 +1798,16 @@ router.route('/acceptRequest').post((req, res) => {
                         },
                         (error) => {
                             if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0);
+                            else {
+                                return result.maid.data.auth.device_token == '' ?
+                                    msg.msgReturn(res, 17) :
+                                    FCMService.pushNotification(res, result.maid.data, req.cookies.language, 2)
+                            }
+                            // return msg.msgReturn(res, 0);
                         }
                     );
                 } else {
-                    if (result.maid == 1 || result.task == 1) {
+                    if (result.maid.value == 1 || result.task == 1) {
                         return msg.msgReturn(res, 4);
                     }
                     else if (result.task == 3) {
