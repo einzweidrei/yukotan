@@ -428,7 +428,7 @@ router.route('/thirdLogin').post((req, res) => {
 		var device_token = req.body.device_token;
 		var realId = remakeId(id);
 
-		// console.log('here')
+		console.log('here')
 
 		Owner.findOne({ _id: realId, status: true }).exec((error, data) => {
 			if (error) return msg.msgReturn(res, 3)
@@ -436,6 +436,7 @@ router.route('/thirdLogin').post((req, res) => {
 				if (validate.isNullorEmpty(data)) {
 					return msg.msgReturn(res, 4)
 				} else {
+					console.log('here')
 					Owner.findOneAndUpdate(
 						{
 							_id: data._id,
@@ -453,12 +454,15 @@ router.route('/thirdLogin').post((req, res) => {
 								if (error) {
 									return msg.msgReturn(res, 3, {});
 								} else {
+									console.log('here')
 									if (validate.isNullorEmpty(result)) {
 										var session = new Session();
 										session.auth.userId = data._id;
 										session.auth.token = token;
 										session.loginAt = new Date();
 										session.status = true;
+
+										console.log(session)
 
 										session.save((error) => {
 											if (error) {
@@ -474,6 +478,8 @@ router.route('/thirdLogin').post((req, res) => {
 											}
 										});
 									} else {
+										console.log('session find one and update')
+
 										Session.findOneAndUpdate(
 											{
 												'auth.userId': data._id,
@@ -482,8 +488,8 @@ router.route('/thirdLogin').post((req, res) => {
 											{
 												$set:
 												{
-													'auth.token': newToken,
-													'auth.device_token': device_token,
+													'auth.token': token,
+													// 'auth.device_token': device_token,
 													loginAt: new Date()
 												}
 											},
@@ -491,6 +497,7 @@ router.route('/thirdLogin').post((req, res) => {
 												upsert: true
 											},
 											(error, result) => {
+												if (error) return msg.msgReturn(res, 3, {});
 												let dt = {
 													_id: data._id,
 													info: data.info,
