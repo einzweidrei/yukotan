@@ -17,7 +17,7 @@ var Session = require('../_model/session');
 var Maid = require('../_model/maid');
 
 var cloudinary = require('cloudinary');
-
+var ObjectId = require('mongoose').Types.ObjectId;
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 
@@ -428,6 +428,8 @@ router.route('/thirdLogin').post((req, res) => {
 		var device_token = req.body.device_token;
 		var realId = remakeId(id);
 
+		// console.log('here')
+
 		Owner.findOne({ _id: realId, status: true }).exec((error, data) => {
 			if (error) return msg.msgReturn(res, 3)
 			else {
@@ -507,6 +509,7 @@ router.route('/thirdLogin').post((req, res) => {
 			}
 		})
 	} catch (error) {
+		console.log(error)
 		return msg.msgReturn(res, 3);
 	}
 })
@@ -517,8 +520,10 @@ router.route('/thirdRegister').post((req, res) => {
 		var token = req.body.token;
 		var device_token = req.body.device_token;
 
+		realId = remakeId(id)
+
 		var owner = new Owner();
-		owner._id = remakeId(id)
+		owner._id = new ObjectId(realId)
 
 		owner.info = {
 			username: req.body.username || "",
@@ -595,6 +600,7 @@ router.route('/thirdRegister').post((req, res) => {
 			}
 		})
 	} catch (error) {
+		console.log(error)
 		return msg.msgReturn(res, 3)
 	}
 })
