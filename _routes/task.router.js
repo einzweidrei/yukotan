@@ -1847,11 +1847,7 @@ router.route('/denyRequest').post((req, res) => {
 router.route('/getRequest').get((req, res) => {
     try {
         let id = req.query.id;
-
         let matchQuery = { _id: new ObjectId(id), status: true };
-
-        // console.log(id);
-        // console.log(matchQuery);
 
         Task.aggregate([
             {
@@ -1863,7 +1859,6 @@ router.route('/getRequest').get((req, res) => {
                 }
             }
         ], (error, data) => {
-            console.log(data);
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -1872,16 +1867,15 @@ router.route('/getRequest').get((req, res) => {
                 } else {
                     Maid.populate(data, { path: 'request.maid', select: 'info work_info' }, (error, result) => {
                         if (error) return msg.msgReturn(res, 3)
-                        return msg.msgReturn(res, 0, result)
-                        // Work.populate(result, { path: 'work_info.ability', select: 'name image' }), (error, result) => {
-                        //     return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0, result)
-                        // }
+                        Work.populate(result, { path: 'request.maid.work_info.ability', select: 'name image' }, (error, result) => {
+                            if (error) return msg.msgReturn(res, 3)
+                            return msg.msgReturn(res, 0, result)
+                        })
                     });
                 }
             }
         });
     } catch (error) {
-        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
@@ -1891,7 +1885,6 @@ router.route('/getComment').get((req, res) => {
         let id = req.cookies.userId;
         let task = req.query.task;
 
-        console.log(id);
         Comment.findOne({ fromId: id, task: task, status: true }).select('createAt evaluation_point content').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3, {});
