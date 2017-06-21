@@ -1496,13 +1496,20 @@ router.route('/checkout').post((req, res) => {
                                                 bill.price = price;
                                                 bill.method = 1;
 
+                                                let dt = {
+                                                    _id: bill._id,
+                                                    period: t,
+                                                    price: price,
+                                                    date: new Date()
+                                                }
+
                                                 bill.save((error) => {
                                                     console.log(error)
                                                     if (error) return msg.msgReturn(res, 3);
                                                     else {
                                                         return maid.auth.device_token == '' ?
                                                             msg.msgReturn(res, 17) :
-                                                            FCMService.pushNotification(res, maid, req.cookies.language, 5, bill)
+                                                            FCMService.pushNotification(res, maid, req.cookies.language, 5, dt)
                                                     }
                                                     // return msg.msgReturn(res, 0, bill);
                                                 });
