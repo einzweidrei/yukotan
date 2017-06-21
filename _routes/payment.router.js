@@ -82,4 +82,85 @@ router.use(function (req, res, next) {
     }
 });
 
+router.route('/payBill').post((req, res) => {
+    try {
+        var userId1 = req.body.userId;
+        var userId2 = req.cookies.userId;
+        var billId = req.body.billId;
+
+        if (userId1 != userId2) return msg.msgReturn(res, 3);
+
+        async.parallel({
+            bill: function (callback) {
+                Bill.findOne({ _id: billId, isSolved: false, status: true }).exec((error, data) => {
+                    if (error) {
+                        callback(null, { value: 2 });
+                    }
+                    else {
+                        if (validate.isNullorEmpty(data)) {
+                            callback(null, { value: 1 });
+                        } else {
+                            callback(null, { value: 0, data: data });
+                        }
+                    }
+                });
+            },
+            owner: function (callback) {
+                Owner.findOne({ _id: userId1, status: true }).exec((error, data) => {
+                    if (error) {
+                        callback(null, { value: 2 });
+                    }
+                    else {
+                        if (validate.isNullorEmpty(data)) {
+                            callback(null, { value: 1 });
+                        } else {
+                            callback(null, { value: 0, data: data });
+                        }
+                    }
+                });
+            },
+        }, (error, result) => {
+            if (error) return msg.msgReturn(res, 3);
+            else {
+                if (result.bill.value == 0 && result.owner.value == 0) {
+                    var bill = result.bill.data;
+                    var owner = result.owner.data;
+
+                    var ownerWallet = owner.wallet;
+                    var billWallet = bill.price;
+
+                    if (ownerWallet < billWallet) return msg.msgReturn(res, 18);
+                    else {
+                        Bill.findOneAndUpdate(
+                            { _id: billId, isSolved: false, status: true },
+                            {
+                                $set: {
+                                    isSolved: true,
+                                    date: new Date()
+                                }
+                            },
+                            (error) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                else {
+                                    var newWallet = ownerWallet - billWallet;
+                                    Owner.findOneAndUpdate(
+                                        { _id: userId1, status: true },
+                                        { $set: { wallet: newWallet } },
+                                        (error, m) => {
+                                            if (error) return msg.msgReturn(res, 3);
+                                            return msg.msgReturn(res, 0);
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 module.exports = router;
