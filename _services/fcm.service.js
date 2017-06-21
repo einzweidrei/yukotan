@@ -15,8 +15,9 @@ var FCMService = (function () {
             // This registration token comes from the client FCM SDKs.
             registrationToken = user.auth.device_token || ''
 
-            data = []
-            if (data) data = data
+            var data = data || []
+            // data = []
+            // if (data) data = data
             // console.log(device_token)
 
             body = user.info.name
