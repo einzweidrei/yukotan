@@ -101,20 +101,20 @@ router.route('/getAll').get((req, res) => {
     }
 });
 
-router.route('/pushNotify').post((req, res) => {
-    try {
-        FCMService.pushNotification(res);
-    } catch (error) {
-        console.error(error);
-    }
-});
+// router.route('/pushNotify').post((req, res) => {
+//     try {
+//         FCMService.pushNotification(res);
+//     } catch (error) {
+//         console.error(error);
+//     }
+// });
 
-router.route('/sendMail').post((req, res) => {
-    try {
-        MailService.sendMail(res);
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
+// router.route('/sendMail').post((req, res) => {
+//     try {
+//         MailService.sendMail(res);
+//     } catch (error) {
+//         return msg.msgReturn(res, 3);
+//     }
+// });
 
 module.exports = router;

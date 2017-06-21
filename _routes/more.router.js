@@ -25,6 +25,7 @@ var Task = require('../_model/task');
 var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
+var AppInfo = require('../_model/app-info');
 
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
@@ -702,5 +703,58 @@ router.route('/getMaidInfo').get((req, res) => {
         return msg.msgReturn(res, 3)
     }
 })
+
+router.route('/createAppInfo').post((req, res) => {
+    try {
+        var app = new AppInfo();
+
+        var language = req.cookies.language;
+        AppInfo.setDefaultLanguage(language);
+
+        var name = req.body.name;
+        var address = req.body.address;
+        var phone = req.body.phone;
+        var note = req.body.note;
+        var email = req.body.email;
+
+        app.phone = phone;
+        app.email = email;
+        app.status = true;
+        app.history.createAt = new Date();
+        app.history.updateAt = new Date();
+
+        app.set('name.all', {
+            en: name,
+            vi: name
+        });
+
+        app.set('address.all', {
+            en: address,
+            vi: address
+        });
+
+        app.set('note.all', {
+            en: note,
+            vi: note
+        });
+
+        app.save((error) => {
+            return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0)
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/getContact').get((req, res) => {
+    try {
+        AppInfo.findOne({ _id: '000000000000000000000001', status: true })
+            .select('-status -history -__v').exec((error, data) => {
+                return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0, data)
+            })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
 
 module.exports = router;

@@ -799,7 +799,13 @@ router.route('/cancel').delete((req, res) => {
         var id = req.body.id;
         var maidId = req.cookies.userId;
 
-        Task.findOne({ _id: id, 'stakeholders.request.maid': maidId, status: true }).exec((error, data) => {
+        Task.findOne(
+            {
+                _id: id,
+                'stakeholders.request.maid': maidId,
+                status: true
+            }
+        ).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -848,7 +854,7 @@ router.route('/cancel').delete((req, res) => {
                                     }
                                 },
                                 {
-                                    upsert: true
+                                    safe: true
                                 },
                                 (error, result) => {
                                     if (error) return msg.msgReturn(res, 3);
@@ -1681,8 +1687,8 @@ router.route('/acceptRequest').post((req, res) => {
 
         async.parallel({
             //check maid exist
-            maid: function (callback) {
-                Maid.findOne({ _id: maidId, status: true }).exec((error, data) => {
+            owner: function (callback) {
+                Owner.findOne({ _id: ownerId, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, { value: 2 });
                     }
@@ -1783,7 +1789,7 @@ router.route('/acceptRequest').post((req, res) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
-                if (result.maid.value == 0 && result.task == 0) {
+                if (result.owner.value == 0 && result.task == 0) {
                     Task.findOneAndUpdate(
                         {
                             _id: id,
@@ -1803,15 +1809,15 @@ router.route('/acceptRequest').post((req, res) => {
                         (error) => {
                             if (error) return msg.msgReturn(res, 3);
                             else {
-                                return result.maid.data.auth.device_token == '' ?
+                                return result.owner.data.auth.device_token == '' ?
                                     msg.msgReturn(res, 17) :
-                                    FCMService.pushNotification(res, result.maid.data, req.cookies.language, 2, [])
+                                    FCMService.pushNotification(res, result.owner.data, req.cookies.language, 2, [])
                             }
                             // return msg.msgReturn(res, 0);
                         }
                     );
                 } else {
-                    if (result.maid.value == 1 || result.task == 1) {
+                    if (result.owner.value == 1 || result.task == 1) {
                         return msg.msgReturn(res, 4);
                     }
                     else if (result.task == 3) {
