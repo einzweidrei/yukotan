@@ -15,6 +15,7 @@ var BillSchema = new Schema(
         isSolved: { type: Boolean },
         date: { type: Date },
         period: { type: Date },
+        method: { type: Number },
         createAt: { type: Date },
         status: { type: Boolean }
     }

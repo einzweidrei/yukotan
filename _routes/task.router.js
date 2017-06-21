@@ -1494,6 +1494,7 @@ router.route('/checkout').post((req, res) => {
 
                                                 bill.period = t;
                                                 bill.price = price;
+                                                bill.method = 1;
 
                                                 bill.save((error) => {
                                                     console.log(error)

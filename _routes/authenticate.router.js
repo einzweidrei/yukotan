@@ -431,10 +431,10 @@ router.route('/thirdLogin').post((req, res) => {
 		console.log('here')
 
 		Owner.findOne({ _id: realId, status: true }).exec((error, data) => {
-			if (error) return msg.msgReturn(res, 3)
+			if (error) return msg.msgReturn(res, 3, {})
 			else {
 				if (validate.isNullorEmpty(data)) {
-					return msg.msgReturn(res, 4)
+					return msg.msgReturn(res, 4, {})
 				} else {
 					console.log('here')
 					Owner.findOneAndUpdate(
