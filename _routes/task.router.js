@@ -1054,71 +1054,72 @@ router.route('/submit').post((req, res) => {
                                 callback(null, 1);
                             } else {
                                 //check no-duplicated time of task
-                                Task.findOne(
-                                    {
-                                        'stakeholders.received': maidId,
-                                        $or: [
-                                            //x >= s & y <= e
-                                            {
-                                                'info.time.startAt': {
-                                                    $gte: data.info.time.startAt
-                                                },
-                                                'info.time.endAt': {
-                                                    $lte: data.info.time.endAt
-                                                }
-                                            },
+                                // Task.findOne(
+                                //     {
+                                //         'stakeholders.received': maidId,
+                                //         $or: [
+                                //             //x >= s & y <= e
+                                //             {
+                                //                 'info.time.startAt': {
+                                //                     $gte: data.info.time.startAt
+                                //                 },
+                                //                 'info.time.endAt': {
+                                //                     $lte: data.info.time.endAt
+                                //                 }
+                                //             },
 
-                                            //x <= s & y >= e
-                                            {
-                                                'info.time.startAt': {
-                                                    $lte: data.info.time.startAt
-                                                },
-                                                'info.time.endAt': {
-                                                    $gte: data.info.time.endAt
-                                                }
-                                            },
+                                //             //x <= s & y >= e
+                                //             {
+                                //                 'info.time.startAt': {
+                                //                     $lte: data.info.time.startAt
+                                //                 },
+                                //                 'info.time.endAt': {
+                                //                     $gte: data.info.time.endAt
+                                //                 }
+                                //             },
 
-                                            //x [>= s & <= e] & y >= e
-                                            {
-                                                'info.time.startAt': {
-                                                    $gte: data.info.time.startAt,
-                                                    $lte: data.info.time.endAt
-                                                },
-                                                'info.time.endAt': {
-                                                    $gte: data.info.time.endAt
-                                                }
-                                            },
+                                //             //x [>= s & <= e] & y >= e
+                                //             {
+                                //                 'info.time.startAt': {
+                                //                     $gte: data.info.time.startAt,
+                                //                     $lte: data.info.time.endAt
+                                //                 },
+                                //                 'info.time.endAt': {
+                                //                     $gte: data.info.time.endAt
+                                //                 }
+                                //             },
 
-                                            //x <= s & y [>= s & <= e]
-                                            {
-                                                'info.time.startAt': {
-                                                    $lte: data.info.time.startAt
-                                                },
-                                                'info.time.endAt': {
-                                                    $gte: data.info.time.startAt,
-                                                    $lte: data.info.time.endAt
-                                                }
-                                            },
-                                        ]
-                                    }
-                                ).exec((error, result) => {
-                                    if (error) {
-                                        console.log(error)
-                                        callback(null, 2);
-                                    } else {
-                                        if (validate.isNullorEmpty(result)) {
-                                            callback(null, 0);
-                                        } else {
-                                            callback(null, 3);
-                                        }
-                                    }
-                                });
+                                //             //x <= s & y [>= s & <= e]
+                                //             {
+                                //                 'info.time.startAt': {
+                                //                     $lte: data.info.time.startAt
+                                //                 },
+                                //                 'info.time.endAt': {
+                                //                     $gte: data.info.time.startAt,
+                                //                     $lte: data.info.time.endAt
+                                //                 }
+                                //             },
+                                //         ]
+                                //     }
+                                // ).exec((error, result) => {
+                                //     if (error) {
+                                //         console.log(error)
+                                //         callback(null, 2);
+                                //     } else {
+                                //         if (validate.isNullorEmpty(result)) {
+                                //             callback(null, 0);
+                                //         } else {
+                                //             callback(null, 3);
+                                //         }
+                                //     }
+                                // });
+                                callback(null, 0);
                             }
                         }
                     });
             }
         }, (error, result) => {
-            // console.log(result);
+            console.log(result);
             if (error) {
                 // console.log(error)
                 return msg.msgReturn(res, 3);
@@ -1150,9 +1151,9 @@ router.route('/submit').post((req, res) => {
                     if (result.maid == 1 || result.task == 1) {
                         return msg.msgReturn(res, 4);
                     }
-                    else if (result.task == 3) {
-                        return msg.msgReturn(res, 10);
-                    }
+                    // else if (result.task == 3) {
+                    //     return msg.msgReturn(res, 10);
+                    // }
                     else {
                         return msg.msgReturn(res, 3);
                     }
