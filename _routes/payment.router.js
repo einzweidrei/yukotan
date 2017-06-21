@@ -82,7 +82,7 @@ router.use(function (req, res, next) {
     }
 });
 
-router.route('/payBill').post((req, res) => {
+router.route('/payBillGV').post((req, res) => {
     try {
         // var userId1 = req.body.userId;
         var userId2 = req.cookies.userId;
@@ -92,7 +92,7 @@ router.route('/payBill').post((req, res) => {
 
         async.parallel({
             bill: function (callback) {
-                Bill.findOne({ _id: billId, isSolved: false, status: true }).exec((error, data) => {
+                Bill.findOne({ _id: billId, owner: userId2, isSolved: false, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, { value: 2 });
                     }
@@ -136,7 +136,7 @@ router.route('/payBill').post((req, res) => {
                             { _id: billId, owner: userId2, isSolved: false, status: true },
                             {
                                 $set: {
-                                    
+                                    method: 1,
                                     isSolved: true,
                                     date: new Date()
                                 }
