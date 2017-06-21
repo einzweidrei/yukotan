@@ -517,7 +517,7 @@ router.route('/thirdLogin').post((req, res) => {
 		})
 	} catch (error) {
 		console.log(error)
-		return msg.msgReturn(res, 3);
+		return msg.msgReturn(res, 3, {});
 	}
 })
 
@@ -571,12 +571,12 @@ router.route('/thirdRegister').post((req, res) => {
 		};
 
 		Owner.findOne({ $or: [{ _id: realId }, { 'info.email': req.body.email }], status: true }).exec((error, data) => {
-			if (error) return msg.msgReturn(res, 3)
+			if (error) return msg.msgReturn(res, 3, {})
 			else {
 				if (validate.isNullorEmpty(data)) {
 					owner.save((error, data) => {
 						if (error) {
-							return msg.msgReturn(res, 3);
+							return msg.msgReturn(res, 3, {});
 						} else {
 							var session = new Session();
 							session.auth.userId = data._id;
@@ -586,7 +586,7 @@ router.route('/thirdRegister').post((req, res) => {
 
 							session.save((error) => {
 								if (error) {
-									return msg.msgReturn(res, 3);
+									return msg.msgReturn(res, 3, {});
 								} else {
 									let dt = {
 										token: session.auth.token,
@@ -603,7 +603,7 @@ router.route('/thirdRegister').post((req, res) => {
 						}
 					});
 				} else {
-					return msg.msgReturn(res, 2);
+					return msg.msgReturn(res, 2, {});
 				}
 			}
 		})
