@@ -209,7 +209,7 @@ router.route('/register').post((req, res) => {
 			coordinates: [req.body.lng, req.body.lat]
 		};
 
-		Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
+		Owner.findOne({ 'info.username': req.body.username, 'info.email': req.body.email }).exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
 				if (!req.files.image) {
 					owner.info.image = "";
@@ -526,6 +526,7 @@ router.route('/thirdRegister').post((req, res) => {
 		var id = req.body.id;
 		var token = req.body.token;
 		var device_token = req.body.device_token;
+		// var email = req.body.email;
 
 		realId = remakeId(id)
 
@@ -569,7 +570,7 @@ router.route('/thirdRegister').post((req, res) => {
 			coordinates: [req.body.lng, req.body.lat]
 		};
 
-		Owner.findOne({ _id: realId, status: true }).exec((error, data) => {
+		Owner.findOne({ _id: realId, 'info.email': req.body.email, status: true }).exec((error, data) => {
 			if (error) return msg.msgReturn(res, 3)
 			else {
 				if (validate.isNullorEmpty(data)) {
@@ -607,7 +608,7 @@ router.route('/thirdRegister').post((req, res) => {
 			}
 		})
 	} catch (error) {
-		console.log(error)
+		// console.log(error)
 		return msg.msgReturn(res, 3)
 	}
 })
