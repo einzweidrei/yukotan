@@ -209,15 +209,7 @@ router.route('/getAll').get((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    d = []
-                    data.map(item => {
-                        var g = {
-                            _id: item._id,
-                            name: item.get('name.all')
-                        }
-                        d.push(g)
-                    })
-                    return msg.msgReturn(res, 0, d);
+                    return msg.msgReturn(res, 0, data);
                 }
             }
         });
