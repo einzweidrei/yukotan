@@ -209,7 +209,7 @@ router.route('/register').post((req, res) => {
 			coordinates: [req.body.lng, req.body.lat]
 		};
 
-		Owner.findOne({ 'info.username': req.body.username, 'info.email': req.body.email }).exec((error, data) => {
+		Owner.findOne({ $or: [{ 'info.username': req.body.username }, { 'info.email': req.body.email }] }).exec((error, data) => {
 			if (validate.isNullorEmpty(data)) {
 				if (!req.files.image) {
 					owner.info.image = "";
@@ -570,7 +570,7 @@ router.route('/thirdRegister').post((req, res) => {
 			coordinates: [req.body.lng, req.body.lat]
 		};
 
-		Owner.findOne({ _id: realId, 'info.email': req.body.email, status: true }).exec((error, data) => {
+		Owner.findOne({ $or: [{ _id: realId }, { 'info.email': req.body.email }], status: true }).exec((error, data) => {
 			if (error) return msg.msgReturn(res, 3)
 			else {
 				if (validate.isNullorEmpty(data)) {
