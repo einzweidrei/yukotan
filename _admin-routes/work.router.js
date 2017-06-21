@@ -21,17 +21,10 @@ var MailService = new Mail.MailService();
 
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
-var Package = require('../_model/package');
 var Work = require('../_model/work');
-var Task = require('../_model/task');
-var Process = require('../_model/process');
-var Maid = require('../_model/maid');
-var Bill = require('../_model/bill');
-var Comment = require('../_model/comment');
 
-var Owner = require('../_model/owner');
-var Session = require('../_model/session');
-var Package = require('../_model/package');
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
 
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
@@ -53,7 +46,7 @@ router.use(function (req, res, next) {
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            Package.setDefaultLanguage(language);
+            Work.setDefaultLanguage(language);
             next();
         }
         else return msg.msgReturn(res, 6);
@@ -62,55 +55,100 @@ router.use(function (req, res, next) {
     }
 });
 
-router.route('/create').post((req, res) => {
+router.route('/create').post(multipartMiddleware, (req, res) => {
     try {
-        var package = new Package();
+        var work = new Work();
 
         var nameVi = req.body.nameVi;
         var nameEn = req.body.nameEn;
 
-        package.status = true;
-        package.history.createAt = new Date();
-        package.history.updateAt = new Date();
+        work.status = true;
+        work.history.createAt = new Date();
+        work.history.updateAt = new Date();
 
-        package.set('name.all', {
+        work.set('name.all', {
             en: nameVi,
             vi: nameEn
         });
 
-        package.save((error) => {
-            if (error) return msg.msgReturn(res, 3);
-            return msg.msgReturn(res, 0);
-        })
+        if (req.files.image) {
+            cloudinary.uploader.upload(
+                req.files.image.path,
+                function (result) {
+                    work.image = result.url;
+                    work.save((error) => {
+                        if (error) return msg.msgReturn(res, 3);
+                        return msg.msgReturn(res, 0);
+                    })
+                })
+        } else {
+            work.image = ''
+            work.save((error) => {
+                if (error) return msg.msgReturn(res, 3);
+                return msg.msgReturn(res, 0);
+            })
+        }
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
 });
 
-router.route('/update').put((req, res) => {
+router.route('/update').put(multipartMiddleware, (req, res) => {
     try {
         var id = req.body.id;
         var nameVi = req.body.nameVi;
         var nameEn = req.body.nameEn;
 
-        Package.findOneAndUpdate(
-            {
-                _id: id,
-                status: true
-            },
-            {
-                $set: {
-                    name: {
-                        vi: nameVi,
-                        en: nameEn
+        if (req.files.image) {
+            cloudinary.uploader.upload(
+                req.files.image.path,
+                function (result) {
+                    var image = result.url;
+                    work.save((error) => {
+                        if (error) return msg.msgReturn(res, 3);
+                        Work.findOneAndUpdate(
+                            {
+                                _id: id,
+                                status: true
+                            },
+                            {
+                                $set: {
+                                    name: {
+                                        vi: nameVi,
+                                        en: nameEn
+                                    },
+                                    image: image,
+                                    'history.updateAt': new Date()
+                                }
+                            },
+                            (error) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                return msg.msgReturn(res, 0);
+                            }
+                        )
+                    })
+                })
+        } else {
+            Work.findOneAndUpdate(
+                {
+                    _id: id,
+                    status: true
+                },
+                {
+                    $set: {
+                        name: {
+                            vi: nameVi,
+                            en: nameEn
+                        },
+                        'history.updateAt': new Date()
                     }
+                },
+                (error) => {
+                    if (error) return msg.msgReturn(res, 3);
+                    return msg.msgReturn(res, 0);
                 }
-            },
-            (error) => {
-                if (error) return msg.msgReturn(res, 3);
-                return msg.msgReturn(res, 0);
-            }
-        )
+            )
+        }
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
@@ -119,7 +157,7 @@ router.route('/update').put((req, res) => {
 router.route('/delete').put((req, res) => {
     try {
         var id = req.query.id;
-        Package.findByIdAndUpdate(
+        Work.findByIdAndUpdate(
             {
                 _id: id,
                 status: true
@@ -142,7 +180,7 @@ router.route('/delete').put((req, res) => {
 router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
-        Package.findOne({ _id: id, status: true }).select('name').exec((error, data) => {
+        Work.findOne({ _id: id, status: true }).select('name').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -164,7 +202,7 @@ router.route('/getById').get((req, res) => {
 
 router.route('/getAll').get((req, res) => {
     try {
-        Package.find({ status: true }).select('name').exec((error, data) => {
+        Work.find({ status: true }).select('name').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {

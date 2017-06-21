@@ -107,7 +107,7 @@ app.use('/:language/payment', require('./_routes/payment.router'));
 app.use('/admin/:language/owner', require('./_admin-routes/owner.router'));
 app.use('/admin/:language/maid', require('./_admin-routes/maid.router'));
 app.use('/admin/:language/more', require('./_admin-routes/more.router'));
-app.use('/admin/:language/package', require('./_admin-routes/package.router'));
+app.use('/admin/:language/work', require('./_admin-routes/work.router'));
 
 // app.use('/microsoft', require('./_routes/microsoftApi.router'));
 // app.use('/al', require('./_routes/algorithm.router'));
