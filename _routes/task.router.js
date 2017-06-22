@@ -1458,20 +1458,35 @@ router.route('/checkout').post((req, res) => {
                                 bill.isSolved = false;
                                 bill.date = new Date();
                                 bill.createAt = new Date();
+                                bill.method = 1;
                                 bill.status = true;
 
-                                if (task.info.package == '000000000000000000000001') {
-                                    bill.price = task.info.price;
+                                Maid.findOne({ _id: task.stakeholders.received, status: true }).exec((error, maid) => {
+                                    if (task.info.package == '000000000000000000000001') {
+                                        bill.price = task.info.price;
 
-                                    bill.save((error) => {
-                                        if (error) return msg.msgReturn(res, 3);
-                                        return msg.msgReturn(res, 0, bill);
-                                    });
-                                }
+                                        var date = new Date();
+                                        date.setHours(task.info.hour);
+                                        bill.period = date;
 
-                                if (task.info.package == '000000000000000000000002') {
-                                    Maid.findOne({ _id: task.stakeholders.received, status: true }).exec((error, maid) => {
-                                        console.log(maid);
+                                        let dt = {
+                                            _id: bill._id,
+                                            period: date,
+                                            price: task.info.price,
+                                            date: new Date()
+                                        }
+
+                                        bill.save((error) => {
+                                            if (error) return msg.msgReturn(res, 3);
+                                            return maid.auth.device_token == '' ?
+                                                msg.msgReturn(res, 17) :
+                                                FCMService.pushNotification(res, maid, req.cookies.language, 5, dt)
+                                        });
+                                    }
+
+                                    if (task.info.package == '000000000000000000000002') {
+
+                                        // console.log(maid);
                                         if (error) {
                                             return msg.msgReturn(res, 0);
                                         } else {
@@ -1517,7 +1532,6 @@ router.route('/checkout').post((req, res) => {
 
                                                 bill.period = t;
                                                 bill.price = price;
-                                                bill.method = 1;
 
                                                 let dt = {
                                                     _id: bill._id,
@@ -1538,8 +1552,10 @@ router.route('/checkout').post((req, res) => {
                                                 });
                                             }
                                         }
-                                    });
-                                }
+                                    }
+                                })
+
+
                             }
                         }
                     );
