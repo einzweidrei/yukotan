@@ -15,6 +15,9 @@ var validate = new validationService.Validation();
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
 
+var FCM = require('../_services/fcm.service');
+var FCMService = new FCM.FCMService();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
@@ -182,31 +185,33 @@ router.route('/payDirectly').post((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     Maid.findOne({ _id: data.maidId, status: true }).select('auth').exec((error, maid) => {
-                        
-                    });
-
-
-
-
-
-                    Bill.findOneAndUpdate(
-                        { _id: billId, owner: userId2, isSolved: false, status: true },
-                        {
-                            $set: {
-                                method: 3
-                            }
-                        },
-                        {
-                            upsert: true
-                        },
-                        (error) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            else {
-                                // return msg.msgReturn(res, 3);
-
+                        if (error) return msg.msgReturn(res, 3);
+                        else {
+                            if (validate.isNullorEmpty(maid)) {
+                                return msg.msgReturn(res, 4);
+                            } else {
+                                Bill.findOneAndUpdate(
+                                    { _id: billId, owner: userId2, isSolved: false, status: true },
+                                    {
+                                        $set: {
+                                            method: 3
+                                        }
+                                    },
+                                    {
+                                        upsert: true
+                                    },
+                                    (error) => {
+                                        if (error) return msg.msgReturn(res, 3);
+                                        else {
+                                            return maid.auth.device_token == '' ?
+                                                msg.msgReturn(res, 17) :
+                                                FCMService.pushNotification(res, maid, req.cookies.language, 9, [])
+                                        }
+                                    }
+                                )
                             }
                         }
-                    )
+                    });
                 }
             }
         });
