@@ -467,24 +467,26 @@ router.route('/thirdLogin').post((req, res) => {
 										session.loginAt = new Date();
 										session.status = true;
 
-										console.log(session)
+										// console.log(session)
 
 										session.save((error) => {
 											if (error) {
 												return msg.msgReturn(res, 3, {});
 											} else {
 												let dt = {
-													_id: data._id,
-													info: data.info,
-													evaluation_point: data.evaluation_point,
-													wallet: data.wallet
-												}
+													token: token,
+													user: {
+														_id: data._id,
+														info: data.info,
+														evaluation_point: data.evaluation_point,
+														wallet: data.wallet
+													}
+												};
+
 												return msg.msgReturn(res, 0, dt);
 											}
 										});
 									} else {
-										console.log('session find one and update')
-
 										Session.findOneAndUpdate(
 											{
 												'auth.userId': data._id,
@@ -504,11 +506,15 @@ router.route('/thirdLogin').post((req, res) => {
 											(error, result) => {
 												if (error) return msg.msgReturn(res, 3, {});
 												let dt = {
-													_id: data._id,
-													info: data.info,
-													evaluation_point: data.evaluation_point,
-													wallet: data.wallet
-												}
+													token: token,
+													user: {
+														_id: data._id,
+														info: data.info,
+														evaluation_point: data.evaluation_point,
+														wallet: data.wallet
+													}
+												};
+
 												return msg.msgReturn(res, 0, dt);
 											}
 										)

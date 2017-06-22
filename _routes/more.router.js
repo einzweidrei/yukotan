@@ -760,11 +760,7 @@ router.route('/getContact').get((req, res) => {
 
 router.route('/test1').get((req, res) => {
     try {
-        var date = new Date();
-        date.setUTCHours(10);
-
-        // return res.json(date)
-        console.log(date)
+        
     } catch (error) {
         console.log(error)
     }
