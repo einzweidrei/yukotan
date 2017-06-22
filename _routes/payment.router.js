@@ -141,6 +141,9 @@ router.route('/payBillGV').post((req, res) => {
                                     date: new Date()
                                 }
                             },
+                            {
+                                upsert: true
+                            },
                             (error) => {
                                 if (error) return msg.msgReturn(res, 3);
                                 else {

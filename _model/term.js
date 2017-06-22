@@ -6,7 +6,7 @@ var ObjectId = Schema.ObjectId;
 
 var TermSchema = new Schema(
     {
-        name: { type: String },
+        name: { type: String, intl: true },
         content: { type: String, intl: true },
         status: { type: Boolean },
         history: {
