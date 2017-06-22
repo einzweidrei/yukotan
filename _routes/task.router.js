@@ -834,7 +834,7 @@ router.route('/cancel').delete((req, res) => {
                             }
                         )
                     } else if (data.process == '000000000000000000000003') {
-                        Maid.findOne({ _id: maidId, status: true }).select('auth').exec((error, maid) => {
+                        Owner.findOne({ _id: data.stakeholders.owner, status: true }).select('auth').exec((error, owner) => {
                             Task.findOneAndUpdate(
                                 {
                                     _id: id,
@@ -859,9 +859,9 @@ router.route('/cancel').delete((req, res) => {
                                 (error, result) => {
                                     if (error) return msg.msgReturn(res, 3);
                                     else {
-                                        return maid.auth.device_token == '' ?
+                                        return owner.auth.device_token == '' ?
                                             msg.msgReturn(res, 17) :
-                                            FCMService.pushNotification(res, maid, req.cookies.language, 0)
+                                            FCMService.pushNotification(res, owner, req.cookies.language, 0, [])
                                     }
                                     // return msg.msgReturn(res, 0);
                                 }
