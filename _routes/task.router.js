@@ -1448,7 +1448,6 @@ router.route('/checkout').post((req, res) => {
                             upsert: true
                         },
                         (error, task) => {
-                            console.log(error);
                             if (error) return msg.msgReturn(res, 3);
                             else {
                                 let bill = new Bill();
@@ -1462,16 +1461,21 @@ router.route('/checkout').post((req, res) => {
                                 bill.status = true;
 
                                 Maid.findOne({ _id: task.stakeholders.received, status: true }).exec((error, maid) => {
+                                    if (error) return msg.msgReturn(res, 3);
+                                    if (validate.isNullorEmpty(maid)) return msg.msgReturn(res, 4);
+
                                     if (task.info.package == '000000000000000000000001') {
                                         bill.price = task.info.price;
 
-                                        var date = new Date();
-                                        date.setHours(task.info.hour);
-                                        bill.period = date;
+                                        let timeIn = new Date(task.info.time.startAt);
+                                        let timeOut = new Date(task.info.time.endAt);
+
+                                        let t = new Date(timeOut.getTime() - timeIn.getTime());
+                                        bill.period = t;
 
                                         let dt = {
                                             _id: bill._id,
-                                            period: date,
+                                            period: t,
                                             price: task.info.price,
                                             date: new Date()
                                         }
