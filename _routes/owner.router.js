@@ -830,8 +830,9 @@ router.route('/getComment').get((req, res) => {
 router.route('/report').post((req, res) => {
     try {
         let report = new Report();
-        report.fromId = req.cookies.userId;
-        report.toId = req.body.toId;
+        report.ownerId = req.cookies.userId;
+        report.maidId = req.body.toId;
+        report.from = 1
         report.content = req.body.content;
         report.createAt = new Date();
         report.status = true;

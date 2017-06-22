@@ -1068,8 +1068,9 @@ router.route('/statistical').get((req, res) => {
 router.route('/report').post((req, res) => {
     try {
         let report = new Report();
-        report.fromId = req.cookies.userId;
-        report.toId = req.body.toId;
+        report.maidId = req.cookies.userId;
+        report.ownerId = req.body.toId;
+        report.from = 2;
         report.content = req.body.content;
         report.createAt = new Date();
         report.status = true;

@@ -7,8 +7,9 @@ var ObjectId = Schema.ObjectId;
 
 var ReportSchema = new Schema(
     {
-        fromId: { type: ObjectId },
-        toId: { type: ObjectId },
+        ownerId: { type: ObjectId, ref: 'Owner' },
+        maidId: { type: ObjectId, ref: 'Maid' },
+        from: { type: Number },
         content: { type: String },
         createAt: { type: Date },
         status: { type: Boolean }

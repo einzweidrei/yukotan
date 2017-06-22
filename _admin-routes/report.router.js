@@ -21,7 +21,7 @@ var MailService = new Mail.MailService();
 
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
-var Term = require('../_model/term');
+var Report = require('../_model/report');
 
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
@@ -35,7 +35,7 @@ router.use(bodyparser.urlencoded({
 router.use(bodyparser.json());
 
 router.use(function (req, res, next) {
-    console.log('package_router is connecting');
+    console.log('report_router is connecting');
 
     try {
         var baseUrl = req.baseUrl;
@@ -43,70 +43,49 @@ router.use(function (req, res, next) {
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            Term.setDefaultLanguage(language);
             next();
         }
         else {
             return msg.msgReturn(res, 6);
         }
     } catch (error) {
+
         return msg.msgReturn(res, 3);
     }
 });
 
 router.route('/get').get((req, res) => {
     try {
-        Term.find({}).select('name content').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
+        var page = req.query.page || 1
+        var limit = req.query.limit || 10
+
+        let query = {
+            status: true
+        }
+
+        let options = {
+            select: '-status -__v',
+            // populate: populateQuery,
+            sort: {
+                'createAt': -1
+            },
+            page: parseFloat(page),
+            limit: parseFloat(limit)
+        };
+
+        Report.paginate(query, options).then((data) => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4);
             } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    var m = []
-                    data.map(a => {
-                        var d = {
-                            _id: a._id,
-                            name: a.name,
-                            content: a.get('content.all')
-                        }
-                        m.push(d)
-                    })
-                    return msg.msgReturn(res, 0, m);
-                }
+                Owner.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
+                    if (error) return msg.msgReturn(res, 3);
+                    return msg.msgReturn(res, 0, data);
+                })
+
             }
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-})
-
-router.route('/update').put((req, res) => {
-    try {
-        var id = req.body.id;
-
-        var contentVi = req.body.contentVi;
-        var contentEn = req.body.contentEn;
-
-        Term.findOneAndUpdate(
-            {
-                _id: id,
-                status: true
-            },
-            {
-                $set: {
-                    content: {
-                        vi: contentVi,
-                        en: contentEn
-                    }
-                }
-            },
-            (error) => {
-                if (error) return msg.msgReturn(res, 3);
-                return msg.msgReturn(res, 0);
-            }
-        )
-    } catch (error) {
+        console.log(error)
         return msg.msgReturn(res, 3);
     }
 })
