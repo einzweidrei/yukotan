@@ -311,103 +311,108 @@ router.route('/maid/login').post((req, res) => {
 		var password = hash(req.body.password) || "";
 		var device_token = req.body.device_token || "";
 
-		Maid.findOne({ 'info.username': username }).select('_id info auth').exec((error, data) => {
-			if (validate.isNullorEmpty(data)) {
-				return msg.msgReturn(res, 3);
-			} else {
-				if (error) {
+		Maid.findOne({ 'info.username': username })
+			.populate({ path: 'work_info.ability', select: 'name image' })
+			// .select('info work_info')
+			.select('_id info work_info auth').exec((error, data) => {
+				if (validate.isNullorEmpty(data)) {
 					return msg.msgReturn(res, 3);
 				} else {
-					if (data.auth.password != password) {
-						return msg.msgReturn(res, 5);
+					if (error) {
+						return msg.msgReturn(res, 3);
 					} else {
-						Maid.findOneAndUpdate(
-							{
-								_id: data._id,
-								status: true
-							},
-							{
-								$set: {
-									'auth.device_token': device_token
-								}
-							},
-							{
-								upsert: true
-							}, (error) => {
-								if (error) return msg.msgReturn(res, 3, {});
-								else {
-									Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
-										if (error) {
-											return msg.msgReturn(res, 3);
-										} else {
-											var newToken = getToken();
-
-											if (validate.isNullorEmpty(result)) {
-												var session = new Session();
-												session.auth.userId = data._id;
-												session.auth.token = newToken;
-												session.loginAt = new Date();
-												session.auth.device_token = device_token;
-												session.status = true;
-
-												session.save((error) => {
-													if (error) {
-														return msg.msgReturn(res, 3);
-													} else {
-														return res.status(200).json({
-															status: true,
-															message: msg.msg_success,
-															data: {
-																token: newToken,
-																user: {
-																	_id: data._id,
-																	info: data.info
-																}
-															}
-														});
-													}
-												});
+						if (data.auth.password != password) {
+							return msg.msgReturn(res, 5);
+						} else {
+							Maid.findOneAndUpdate(
+								{
+									_id: data._id,
+									status: true
+								},
+								{
+									$set: {
+										'auth.device_token': device_token
+									}
+								},
+								{
+									upsert: true
+								}, (error) => {
+									if (error) return msg.msgReturn(res, 3, {});
+									else {
+										Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
+											if (error) {
+												return msg.msgReturn(res, 3);
 											} else {
-												Session.findOneAndUpdate(
-													{
-														'auth.userId': data._id,
-														status: true
-													},
-													{
-														$set:
-														{
-															'auth.token': newToken,
-															'auth.device_token': device_token,
-															loginAt: new Date()
-														}
-													},
-													{
-														upsert: true
-													},
-													(error, result) => {
-														return res.status(200).json({
-															status: true,
-															message: msg.msg_success,
-															data: {
-																token: newToken,
-																user: {
-																	_id: data._id,
-																	info: data.info
+												var newToken = getToken();
+
+												if (validate.isNullorEmpty(result)) {
+													var session = new Session();
+													session.auth.userId = data._id;
+													session.auth.token = newToken;
+													session.loginAt = new Date();
+													session.auth.device_token = device_token;
+													session.status = true;
+
+													session.save((error) => {
+														if (error) {
+															return msg.msgReturn(res, 3);
+														} else {
+															return res.status(200).json({
+																status: true,
+																message: msg.msg_success,
+																data: {
+																	token: newToken,
+																	user: {
+																		_id: data._id,
+																		info: data.info,
+																		work_info: data.work_info
+																	}
 																}
+															});
+														}
+													});
+												} else {
+													Session.findOneAndUpdate(
+														{
+															'auth.userId': data._id,
+															status: true
+														},
+														{
+															$set:
+															{
+																'auth.token': newToken,
+																'auth.device_token': device_token,
+																loginAt: new Date()
 															}
-														});
-													}
-												)
+														},
+														{
+															upsert: true
+														},
+														(error, result) => {
+															return res.status(200).json({
+																status: true,
+																message: msg.msg_success,
+																data: {
+																	token: newToken,
+																	user: {
+																		_id: data._id,
+																		info: data.info,
+																		work_info: data.work_info
+																	}
+																}
+															});
+														}
+													)
+												}
 											}
-										}
-									});
+										});
+									}
 								}
-							}
-						)
+							)
+						}
 					}
 				}
-			}
-		});
+			});
 	} catch (error) {
 		console.log(error);
 		return msg.msgReturn(res, 3);
