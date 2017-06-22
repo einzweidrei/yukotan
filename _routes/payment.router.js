@@ -220,4 +220,35 @@ router.route('/payDirectly').post((req, res) => {
     }
 });
 
+router.route('/pay3Confirm').post((req, res) => {
+    try {
+        var userId2 = req.cookies.userId;
+        var billId = req.body.billId;
+
+        Bill.findOneAndUpdate(
+            { _id: billId, owner: userId2, method: 3, isSolved: false, status: true },
+            {
+                $set: {
+                    isSolved: true,
+                    date: new Date()
+                }
+            },
+            {
+                upsert: true
+            },
+            (error) => {
+                if (error) return msg.msgReturn(res, 3);
+                else {
+                    return maid.auth.device_token == '' ?
+                        msg.msgReturn(res, 17) :
+                        FCMService.pushNotification(res, maid, req.cookies.language, 10, [])
+                }
+            }
+        )
+
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 module.exports = router;
