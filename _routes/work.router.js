@@ -84,7 +84,7 @@ router.route('/getAll').get((req, res) => {
         var language = req.cookies.language;
         Work.setDefaultLanguage(language);
 
-        Work.find({}).select('name').exec((error, data) => {
+        Work.find({ status: true }).select('name').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
