@@ -58,14 +58,22 @@ router.route('/get').get((req, res) => {
     try {
         var page = req.query.page || 1
         var limit = req.query.limit || 10
+        var from = req.query.from
 
         let query = {
             status: true
         }
 
+        if (from) query['from'] = from
+
+        var populateQuery = [
+            { path: 'ownerId', select: 'info' },
+            { path: 'maidId', select: 'info' }
+        ]
+
         let options = {
             select: '-status -__v',
-            // populate: populateQuery,
+            populate: populateQuery,
             sort: {
                 'createAt': -1
             },
@@ -77,15 +85,39 @@ router.route('/get').get((req, res) => {
             if (validate.isNullorEmpty(data)) {
                 return msg.msgReturn(res, 4);
             } else {
-                Owner.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
-                    if (error) return msg.msgReturn(res, 3);
-                    return msg.msgReturn(res, 0, data);
-                })
-
+                return msg.msgReturn(res, 0, data);
             }
         });
     } catch (error) {
-        console.log(error)
+        // console.log(error)
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/delete').put((req, res) => {
+    try {
+        var id = req.query.id
+
+        Report.findByIdAndUpdate(
+            {
+                _id: id,
+                status: true
+            },
+            {
+                $set: {
+                    status: false,
+                    updateAt: new Date()
+                }
+            },
+            {
+                upsert: true
+            },
+            (error) => {
+                if (error) return msg.msgReturn(res, 3);
+                return msg.msgReturn(res, 0);
+            }
+        )
+    } catch (error) {
         return msg.msgReturn(res, 3);
     }
 })

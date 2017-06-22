@@ -12,6 +12,7 @@ var ReportSchema = new Schema(
         from: { type: Number },
         content: { type: String },
         createAt: { type: Date },
+        updateAt: { type: Date },
         status: { type: Boolean }
     }
 );
