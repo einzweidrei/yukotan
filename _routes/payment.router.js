@@ -185,7 +185,7 @@ router.route('/payDirectly').post((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    Maid.findOne({ _id: data.maid, status: true }).exec((error, maid) => {
+                    Maid.findOne({ _id: data.maid, status: true }).select('info auth').exec((error, maid) => {
                         console.log(maid)
                         if (error) return msg.msgReturn(res, 3);
                         else {
