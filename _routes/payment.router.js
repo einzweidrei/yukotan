@@ -168,4 +168,51 @@ router.route('/payBillGV').post((req, res) => {
     }
 });
 
+router.route('/payDirectly').post((req, res) => {
+    try {
+        var userId2 = req.cookies.userId;
+        var billId = req.body.billId;
+
+        Bill.findOne({ _id: billId, owner: userId2, isSolved: false, status: true }).exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            }
+            else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    Maid.findOne({ _id: data.maidId, status: true }).select('auth').exec((error, maid) => {
+                        
+                    });
+
+
+
+
+
+                    Bill.findOneAndUpdate(
+                        { _id: billId, owner: userId2, isSolved: false, status: true },
+                        {
+                            $set: {
+                                method: 3
+                            }
+                        },
+                        {
+                            upsert: true
+                        },
+                        (error) => {
+                            if (error) return msg.msgReturn(res, 3);
+                            else {
+                                // return msg.msgReturn(res, 3);
+
+                            }
+                        }
+                    )
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 module.exports = router;

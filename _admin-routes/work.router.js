@@ -180,7 +180,7 @@ router.route('/delete').put((req, res) => {
 router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
-        Work.findOne({ _id: id, status: true }).select('name').exec((error, data) => {
+        Work.findOne({ _id: id, status: true }).select('name image').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -202,14 +202,23 @@ router.route('/getById').get((req, res) => {
 
 router.route('/getAll').get((req, res) => {
     try {
-        Work.find({ status: true }).select('name').exec((error, data) => {
+        Work.find({ status: true }).select('name image').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    return msg.msgReturn(res, 0, data);
+                    var m = []
+                    data.map(a => {
+                        var d = {
+                            _id: a._id,
+                            name: a.get('name.all'),
+                            image: a.image
+                        }
+                        m.push(d)
+                    })
+                    return msg.msgReturn(res, 0, m);
                 }
             }
         });

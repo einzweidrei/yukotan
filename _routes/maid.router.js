@@ -958,7 +958,7 @@ router.route('/getTaskOfOwner').get((req, res) => {
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
-})
+});
 
 router.route('/statistical').get((req, res) => {
     try {
