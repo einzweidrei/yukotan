@@ -1065,4 +1065,32 @@ router.route('/statistical').get((req, res) => {
     }
 });
 
+router.route('/report').post((req, res) => {
+    try {
+        let report = new Report();
+        report.fromId = req.cookies.userId;
+        report.toId = req.body.toId;
+        report.content = req.body.content;
+        report.createAt = new Date();
+        report.status = true;
+
+        Owner.findOne({ _id: report.toId, status: true }).exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    report.save((error) => {
+                        if (error) return msg.msgReturn(res, 3);
+                        return msg.msgReturn(res, 0);
+                    });
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 module.exports = router;
