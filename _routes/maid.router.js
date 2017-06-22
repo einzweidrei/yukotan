@@ -1075,7 +1075,7 @@ router.route('/report').post((req, res) => {
         report.createAt = new Date();
         report.status = true;
 
-        Owner.findOne({ _id: report.toId, status: true }).exec((error, data) => {
+        Owner.findOne({ _id: report.ownerId, status: true }).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {

@@ -837,7 +837,7 @@ router.route('/report').post((req, res) => {
         report.createAt = new Date();
         report.status = true;
 
-        Maid.findOne({ _id: report.toId, status: true }).select('work_info').exec((error, data) => {
+        Maid.findOne({ _id: report.maidId, status: true }).select('work_info').exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
