@@ -177,6 +177,7 @@ router.route('/payDirectly').post((req, res) => {
         var billId = req.body.billId;
 
         Bill.findOne({ _id: billId, owner: userId2, isSolved: false, status: true }).exec((error, data) => {
+            console.log(data)
             if (error) {
                 return msg.msgReturn(res, 3);
             }
@@ -184,7 +185,8 @@ router.route('/payDirectly').post((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    Maid.findOne({ _id: data.maidId, status: true }).select('auth').exec((error, maid) => {
+                    Maid.findOne({ _id: data.maid, status: true }).exec((error, maid) => {
+                        console.log(maid)
                         if (error) return msg.msgReturn(res, 3);
                         else {
                             if (validate.isNullorEmpty(maid)) {
