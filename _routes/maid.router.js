@@ -377,7 +377,8 @@ router.route('/getAllRequest').post((req, res) => {
 
         var matchQuery = {
             process: new ObjectId('000000000000000000000006'),
-            requestTo: new ObjectId(maidId),
+            'stakeholders.received.maid': maidId,
+            // requestTo: new ObjectId(maidId),
             status: true
         };
 
@@ -504,12 +505,12 @@ router.route('/getAllTasks').get((req, res) => {
                 //     { 'stakeholders.request.maid': new ObjectId(id) },
                 //     { 'requestTo': new ObjectId(id) }
                 // ]
-                findQuery['stakeholders.request.maid'] = new ObjectId(id);
+                findQuery['stakeholders.request.maid'] = id;
                 findQuery['process'] = {
                     $in: ['000000000000000000000001', '000000000000000000000006']
                 }
             } else {
-                findQuery['stakeholders.received'] = new ObjectId(id);
+                findQuery['stakeholders.received'] = id;
                 findQuery['process'] = process;
             }
         }

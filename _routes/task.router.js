@@ -930,50 +930,72 @@ router.route('/reserve').post((req, res) => {
                         {
                             _id: id,
                             process: '000000000000000000000001',
+                            'stakeholders.request.maid': maidId,
                             status: true
                         }).exec((error, data) => {
+                            console.log(data)
                             if (error) {
                                 return msg.msgReturn(res, 3);
                             }
                             else {
                                 if (validate.isNullorEmpty(data)) {
-                                    return msg.msgReturn(res, 4);
-                                } else {
-                                    var check = false
-                                    var lstMaid = data.stakeholders.request;
-
-                                    if (!validate.isNullorEmpty(lstMaid)) {
-                                        for (i = 0; i < lstMaid.length; i++) {
-                                            if (lstMaid[i].maid == maidId) {
-                                                check = true
-                                                break
+                                    Task.findOneAndUpdate(
+                                        {
+                                            _id: id,
+                                            process: '000000000000000000000001',
+                                            status: true
+                                        },
+                                        {
+                                            $push: {
+                                                'stakeholders.request': maid
                                             }
+                                        },
+                                        {
+                                            upsert: true
+                                        },
+                                        (error) => {
+                                            if (error) return msg.msgReturn(res, 3);
+                                            else return msg.msgReturn(res, 0);
                                         }
-                                    }
+                                    );
+                                    // return msg.msgReturn(res, 4);
+                                } else {
+                                    return msg.msgReturn(res, 16);
+                                    // var check = false
+                                    // var lstMaid = data.stakeholders.request;
 
-                                    if (check) {
-                                        return msg.msgReturn(res, 16);
-                                    } else {
-                                        Task.findOneAndUpdate(
-                                            {
-                                                _id: id,
-                                                process: '000000000000000000000001',
-                                                status: true
-                                            },
-                                            {
-                                                $push: {
-                                                    'stakeholders.request': maid
-                                                }
-                                            },
-                                            {
-                                                upsert: true
-                                            },
-                                            (error) => {
-                                                if (error) return msg.msgReturn(res, 3);
-                                                else return msg.msgReturn(res, 0);
-                                            }
-                                        );
-                                    }
+                                    // if (!validate.isNullorEmpty(lstMaid)) {
+                                    //     for (i = 0; i < lstMaid.length; i++) {
+                                    //         if (lstMaid[i].maid == maidId) {
+                                    //             check = true
+                                    //             break
+                                    //         }
+                                    //     }
+                                    // }
+
+                                    // if (check) {
+                                    //     return msg.msgReturn(res, 16);
+                                    // } else {
+                                    //     Task.findOneAndUpdate(
+                                    //         {
+                                    //             _id: id,
+                                    //             process: '000000000000000000000001',
+                                    //             status: true
+                                    //         },
+                                    //         {
+                                    //             $push: {
+                                    //                 'stakeholders.request': maid
+                                    //             }
+                                    //         },
+                                    //         {
+                                    //             upsert: true
+                                    //         },
+                                    //         (error) => {
+                                    //             if (error) return msg.msgReturn(res, 3);
+                                    //             else return msg.msgReturn(res, 0);
+                                    //         }
+                                    //     );
+                                    // }
                                 }
                             }
                         });
