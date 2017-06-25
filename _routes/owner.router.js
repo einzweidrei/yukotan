@@ -12,6 +12,9 @@ var validate = new validationService.Validation();
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
 
+var Mail = require('../_services/mail.service');
+var MailService = new Mail.MailService();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
@@ -22,6 +25,7 @@ var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
 var Report = require('../_model/report');
 var Bill = require('../_model/bill');
+var randomstring = require("randomstring");
 
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
@@ -1076,6 +1080,49 @@ router.route('/getWallet').get((req, res) => {
         Owner.findOne({ _id: id, status: true }).select('wallet').exec((error, data) => {
             return error ? msg.msgReturn(res, 3) : validate.isNullorEmpty(data) ? msg.msgReturn(res, 4) : msg.msgReturn(res, 0, data)
         })
+    } catch (error) {
+        return msg.msgReturn(res, 3)
+    }
+})
+
+router.route('/forgotPassword').post((req, res) => {
+    try {
+        var id = req.cookies.userId;
+        var verifyToken = randomstring.generate(5) + ':' + randomstring.generate(20);
+
+        Session.findOneAndUpdate(
+            {
+                'auth.userId': id,
+                status: true
+            },
+            {
+                $set: {
+                    verification: {
+                        password: {
+                            key: verifyToken,
+                            date: new Date()
+                        }
+                    }
+                }
+            },
+            {
+                upsert: true
+            },
+            (error) => {
+                if (error) return msg.msgReturn(res, 3)
+                Owner.findOne({ _id: id, status: true }).exec((error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3)
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            return msg.msgReturn(res, 4)
+                        } else {
+                            return MailService.sendMail(res, data, verifyToken);
+                        }
+                    }
+                })
+            }
+        )
     } catch (error) {
         return msg.msgReturn(res, 3)
     }

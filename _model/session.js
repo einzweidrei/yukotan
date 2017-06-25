@@ -15,6 +15,12 @@ var SessionSchema = new Schema(
             token: { type: String }
             // device_token: { type: String }
         },
+        verification: {
+            password: {
+                key: { type: String },
+                date: { type: Date }
+            }
+        },
         loginAt: { type: Date },
         status: { type: Boolean }
     }

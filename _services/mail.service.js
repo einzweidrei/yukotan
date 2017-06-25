@@ -10,17 +10,22 @@ var transporter = nodemailer.createTransport({
     }
 });
 
+var url = 'http://localhost:8000/'
+
 var MailService = (function () {
     function MailService() { }
 
-    MailService.prototype.sendMail = (res) => {
+    MailService.prototype.sendMail = (res, user, verifyToken) => {
         try {
+            var confirmUrl = url + user._id + '-' + verifyToken;
+
             // setup email data with unicode symbols
             let mailOptions = {
-                from: '"👑 Yuko Testing 👑" <YukoTesting01@gmail.com>', // sender address
-                to: 'tan.truong114@gmail.com', // list of receivers
-                subject: 'Testing 😘', // Subject line
-                text: 'Sending Mail 😋', // plain text body
+                from: '"GV24H" <YukoTesting01@gmail.com>', // sender address
+                to: user.info.email, // list of receivers
+                // to: 'einzweidrei2@gmail.com',
+                subject: 'Confirm to get a new password', // Subject line
+                text: 'Click to this follow link (activate in 7 days): ' + confirmUrl, // plain text body
                 // html: '<b>Test HTML 😋</b>' // html body
             };
 
@@ -37,11 +42,11 @@ var MailService = (function () {
         }
     };
 
-    MailService.prototype.resetPassword = (email, newPw, res) => {
+    MailService.prototype.resetPassword = (res, user) => {
         try {
             // setup email data with unicode symbols
             let mailOptions = {
-                from: '"Admin" <YukoTesting01@gmail.com>', // sender address
+                from: 'GV24H <YukoTesting01@gmail.com>', // sender address
                 to: email, // list of receivers
                 subject: 'Reset your password', // Subject line
                 text: 'Your new password: ' + newPw, // plain text body
