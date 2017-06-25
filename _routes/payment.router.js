@@ -177,7 +177,6 @@ router.route('/payDirectly').post((req, res) => {
         var billId = req.body.billId;
 
         Bill.findOne({ _id: billId, owner: userId2, isSolved: false, status: true }).exec((error, data) => {
-            console.log(data)
             if (error) {
                 return msg.msgReturn(res, 3);
             }
@@ -186,7 +185,6 @@ router.route('/payDirectly').post((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     Maid.findOne({ _id: data.maid, status: true }).select('info auth').exec((error, maid) => {
-                        console.log(maid)
                         if (error) return msg.msgReturn(res, 3);
                         else {
                             if (validate.isNullorEmpty(maid)) {
@@ -198,9 +196,6 @@ router.route('/payDirectly').post((req, res) => {
                                         $set: {
                                             method: 3
                                         }
-                                    },
-                                    {
-                                        upsert: true
                                     },
                                     (error) => {
                                         if (error) return msg.msgReturn(res, 3);
@@ -222,35 +217,79 @@ router.route('/payDirectly').post((req, res) => {
     }
 });
 
+// confirm pay directly
 router.route('/pay3Confirm').post((req, res) => {
     try {
-        var userId2 = req.cookies.userId;
+        var userId = req.cookies.userId;
         var billId = req.body.billId;
 
         Bill.findOneAndUpdate(
-            { _id: billId, owner: userId2, method: 3, isSolved: false, status: true },
+            { _id: billId, owner: userId, method: 3, isSolved: false, status: true },
             {
                 $set: {
                     isSolved: true,
                     date: new Date()
                 }
             },
-            {
-                upsert: true
-            },
             (error) => {
                 if (error) return msg.msgReturn(res, 3);
                 else {
-                    return maid.auth.device_token == '' ?
-                        msg.msgReturn(res, 17) :
-                        FCMService.pushNotification(res, maid, req.cookies.language, 10, [])
+                    return msg.msgReturn(res, 0);
+                    // return maid.auth.device_token == '' ?
+                    //     msg.msgReturn(res, 17) :
+                    //     FCMService.pushNotification(res, maid, req.cookies.language, 10, [])
                 }
             }
         )
-
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
 });
+
+router.route('/payOnlineConfirm').post((req, res) => {
+    try {
+        var userId = req.cookies.userId;
+        var billId = req.body.billId;
+
+        Bill.findOneAndUpdate(
+            { _id: billId, owner: userId, isSolved: false, status: true },
+            {
+                $set: {
+                    method: 2
+                }
+            },
+            (error) => {
+                if (error) return msg.msgReturn(res, 3);
+                return msg.msgReturn(res, 0);
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/payOnline').post((req, res) => {
+    try {
+        var userId = req.cookies.userId;
+        var billId = req.body.billId;
+
+        Bill.findOneAndUpdate(
+            { _id: billId, owner: userId, method: 2, isSolved: false, status: true },
+            {
+                $set: {
+                    isSolved: true,
+                    date: new Date()
+                }
+            },
+            (error) => {
+                if (error) return msg.msgReturn(res, 3);
+                return msg.msgReturn(res, 0);
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 
 module.exports = router;

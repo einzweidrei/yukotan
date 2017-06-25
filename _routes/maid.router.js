@@ -73,6 +73,14 @@ router.use(function (req, res, next) {
     }
 });
 
+router.route('/checkToken').get((req, res) => {
+    try {
+        return msg.msgReturn(res, 0);
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 /** GET - Get Maid By Maid ID
  * info {
  *      type: GET
