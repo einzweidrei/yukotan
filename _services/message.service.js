@@ -20,6 +20,8 @@ var Message = (function () {
     Message.RESERVE_EXIST = "Sorry! You had reserved in this task, your request was denied.";
     Message.PUSH_NOTIFY_FAILED = "Sorry! Failed to push notification."
     Message.PAYMENT_FAILED = "Sorry! Your wallet is not enough to pay this bill."
+    Message.FACE_IDENTICAL_FAILED = "FACE_IDENTICAL_FAILED"
+
 
     function Message() { }
 
@@ -72,6 +74,8 @@ var Message = (function () {
                 return res.status(200).send(Message.prototype.msgData(true, Message.PUSH_NOTIFY_FAILED, data));
             case 18:
                 return res.status(200).send(Message.prototype.msgData(false, Message.PAYMENT_FAILED, data));
+            case 19:
+                return res.status(200).send(Message.prototype.msgData(false, Message.FACE_IDENTICAL_FAILED, data));
             default:
                 break;
         }

@@ -1201,9 +1201,9 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
     try {
         let id = req.body.id;
         let ownerId = req.cookies.userId;
-        // let ownerId = req.body.ownerId;
-        // let subs_key = '8f22becb14664c0c87864d840dfcf114';
         let subs_key = 'b1726597dcc74171abf38be836846977'
+
+        if (!req.files.image) return msg.msgReturn(res, 3);
 
         Task.findOne(
             {
@@ -1214,7 +1214,6 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
             })
             .populate('stakeholders.owner')
             .exec((error, data) => {
-                // console.log(data.stakeholders.owner.info);
                 if (error) {
                     return msg.msgReturn(res, 3);
                 }
@@ -1222,134 +1221,140 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                     if (validate.isNullorEmpty(data)) {
                         return msg.msgReturn(res, 4);
                     } else {
-                        // if (validate.isNullorEmpty(data.check.check_in)) {
-                        //     cloudinary.uploader.upload(
-                        //         req.files.image.path,
-                        //         function (result) {
-
-                        //             let imgUrl = data.stakeholders.owner.info.image;
-                        //             console.log(imgUrl);
-
-                        //             async.parallel({
-                        //                 faceId1: function (callback) {
-                        //                     request({
-                        //                         method: 'POST',
-                        //                         preambleCRLF: true,
-                        //                         postambleCRLF: true,
-                        //                         uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
-                        //                         headers: {
-                        //                             'Content-Type': 'application/json',
-                        //                             'Ocp-Apim-Subscription-Key': subs_key
-                        //                         },
-                        //                         body: JSON.stringify(
-                        //                             {
-                        //                                 url: imgUrl
-                        //                             }
-                        //                         )
-                        //                     },
-                        //                         function (error, response, body) {
-                        //                             if (error) {
-                        //                                 console.error('upload failed:', error);
-                        //                                 callback(null, null);
-                        //                             }
-                        //                             console.log('FaceId1 successful!  Server responded with:', body);
-                        //                             var data = JSON.parse(body);
-
-                        //                             if (validate.isNullorEmpty(data)) callback(null, [])
-                        //                             callback(null, data[0].faceId);
-                        //                         });
-                        //                 },
-                        //                 faceId2: function (callback) {
-                        //                     request({
-                        //                         method: 'POST',
-                        //                         preambleCRLF: true,
-                        //                         postambleCRLF: true,
-                        //                         uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
-                        //                         headers: {
-                        //                             'Content-Type': 'application/json',
-                        //                             'Ocp-Apim-Subscription-Key': subs_key
-                        //                         },
-                        //                         body: JSON.stringify(
-                        //                             {
-                        //                                 url: result.url
-                        //                             }
-                        //                         )
-                        //                     },
-                        //                         function (error, response, body) {
-                        //                             if (error) {
-                        //                                 // console.error('upload failed:', error);
-                        //                                 callback(null, null);
-                        //                             }
-                        //                             console.log('FaceId2 successful!  Server responded with:', body);
-                        //                             var data = JSON.parse(body);
-                        //                             if (validate.isNullorEmpty(data)) callback(null, [])
-                        //                             callback(null, data[0].faceId);
-                        //                         });
-                        //                 }
-                        //             }, (error, data) => {
-                        //                 if (error) {
-                        //                     return msg.msgReturn(res, 3);
-                        //                 } else {
-                        //                     if (validate.isNullorEmpty(data.faceId1) || validate.isNullorEmpty(data.faceId2)) {
-                        //                         return msg.msgReturn(res, 3);
-                        //                     }
-                        //                     else {
-                        //                         request({
-                        //                             method: 'POST',
-                        //                             preambleCRLF: true,
-                        //                             postambleCRLF: true,
-                        //                             uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/verify',
-                        //                             headers: {
-                        //                                 'Content-Type': 'application/json',
-                        //                                 'Ocp-Apim-Subscription-Key': subs_key
-                        //                             },
-                        //                             body: JSON.stringify(
-                        //                                 {
-                        //                                     "faceId1": data.faceId1,
-                        //                                     "faceId2": data.faceId2
-                        //                                 }
-                        //                             )
-                        //                         },
-                        //                             function (error, response, body) {
-                        //                                 if (error) {
-                        //                                     console.error('upload failed:', error);
-                        //                                     return msg.msgReturn(res, 3);
-                        //                                 }
-                        //                                 var item = JSON.parse(body);
-                        //                                 return msg.msgReturn(res, 0, item);
-                        //                             });
-                        //                     }
-                        //                 }
-                        //             });
-                        //         }
-                        //     );
-                        // }
-                        // else {
-                        //     return msg.msgReturn(res, 11);
-                        // }
-
                         if (validate.isNullorEmpty(data.check.check_in)) {
-                            Task.findOneAndUpdate(
-                                {
-                                    _id: id,
-                                    'stakeholders.owner': ownerId,
-                                    process: '000000000000000000000003',
-                                    status: true
-                                },
-                                {
-                                    $set: {
-                                        process: new ObjectId('000000000000000000000004'),
-                                        'check.check_in': new Date()
-                                    }
-                                },
-                                {
-                                    upsert: true
-                                }, (error, data) => {
-                                    if (error) return msg.msgReturn(res, 3);
-                                    return msg.msgReturn(res, 0);
+                            cloudinary.uploader.upload(
+                                req.files.image.path,
+                                function (result) {
+                                    let imgUrl = data.stakeholders.owner.info.image;
+                                    async.parallel({
+                                        faceId1: function (callback) {
+                                            request({
+                                                method: 'POST',
+                                                preambleCRLF: true,
+                                                postambleCRLF: true,
+                                                uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'Ocp-Apim-Subscription-Key': subs_key
+                                                },
+                                                body: JSON.stringify(
+                                                    {
+                                                        url: imgUrl
+                                                        // url: 'https://www.biography.com/.image/t_share/MTE4MDAzNDEwNzg5ODI4MTEw/barack-obama-12782369-1-402.jpg'
+                                                        // url: 'https://hay.tv/upload/default/star/22022017/photo/justin-bieber-adult-male-fans.jpeg.jpg'
+                                                        // url: 'https://s-media-cache-ak0.pinimg.com/originals/4e/15/37/4e1537773cf37b9586ec8c1b17f44153.jpg'
+                                                    }
+                                                )
+                                            },
+                                                function (error, response, body) {
+                                                    if (error) {
+                                                        callback(null, '');
+                                                    }
+                                                    else {
+                                                        var data = JSON.parse(body);
+                                                        if (validate.isNullorEmpty(data)) {
+                                                            callback(null, '')
+                                                        } else {
+                                                            callback(null, data[0].faceId);
+                                                        }
+                                                    }
+                                                    console.log('FaceId1 successful!  Server responded with:', body);
+                                                });
+                                        },
+                                        faceId2: function (callback) {
+                                            request({
+                                                method: 'POST',
+                                                preambleCRLF: true,
+                                                postambleCRLF: true,
+                                                uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'Ocp-Apim-Subscription-Key': subs_key
+                                                },
+                                                body: JSON.stringify(
+                                                    {
+                                                        url: result.url
+                                                        // url: 'http://image.congan.com.vn/thumbnail/CATP-1382-2017-6-2/barack-obama.jpg'
+                                                    }
+                                                )
+                                            },
+                                                function (error, response, body) {
+                                                    if (error) {
+                                                        callback(null, '');
+                                                    }
+                                                    else {
+                                                        var data = JSON.parse(body);
+                                                        if (validate.isNullorEmpty(data)) {
+                                                            callback(null, '')
+                                                        } else {
+                                                            callback(null, data[0].faceId);
+                                                        }
+                                                    }
+                                                    console.log('FaceId2 successful!  Server responded with:', body);
+                                                });
+                                        }
+                                    }, (error, data) => {
+                                        if (error) {
+                                            return msg.msgReturn(res, 3);
+                                        } else {
+                                            if (data.faceId1 != '' && data.faceId2 != '') {
+                                                request({
+                                                    method: 'POST',
+                                                    preambleCRLF: true,
+                                                    postambleCRLF: true,
+                                                    uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/verify',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'Ocp-Apim-Subscription-Key': subs_key
+                                                    },
+                                                    body: JSON.stringify(
+                                                        {
+                                                            "faceId1": data.faceId1,
+                                                            "faceId2": data.faceId2
+                                                        }
+                                                    )
+                                                },
+                                                    function (error, response, body) {
+                                                        if (error) {
+                                                            console.error('upload failed:', error);
+                                                            return msg.msgReturn(res, 3);
+                                                        }
+                                                        var item = JSON.parse(body);
+
+                                                        if (item.isIdentical) {
+                                                            Task.findOneAndUpdate(
+                                                                {
+                                                                    _id: id,
+                                                                    'stakeholders.owner': ownerId,
+                                                                    process: '000000000000000000000003',
+                                                                    status: true
+                                                                },
+                                                                {
+                                                                    $set: {
+                                                                        process: new ObjectId('000000000000000000000004'),
+                                                                        'check.check_in': new Date()
+                                                                    }
+                                                                },
+                                                                {
+                                                                    upsert: true
+                                                                }, (error, data) => {
+                                                                    if (error) return msg.msgReturn(res, 3);
+                                                                    return msg.msgReturn(res, 0);
+                                                                }
+                                                            )
+                                                        } else {
+                                                            return msg.msgReturn(res, 19);
+                                                        }
+                                                    });
+                                            } else {
+                                                return msg.msgReturn(res, 19);
+                                            }
+                                        }
+                                    });
                                 }
-                            )
-                        } else {
+                            );
+                        }
+                        else {
                             return msg.msgReturn(res, 11);
                         }
                     }

@@ -331,14 +331,9 @@ router.route('/getAllDeniedTasks').get((req, res) => {
  */
 router.route('/getAllRequest').post((req, res) => {
     try {
-        // var language = req.cookies.language;
-        // Package.setDefaultLanguage(language);
-        // Work.setDefaultLanguage(language);
-        // Process.setDefaultLanguage(language);
-
         var maidId = req.cookies.userId;
 
-        var minDistance = req.body.minDistance || 1;
+        var minDistance = req.body.minDistance || 0;
         var maxDistance = req.body.maxDistance || 2000;
         var limit = req.body.limit || 20;
         var page = req.body.page || 1;

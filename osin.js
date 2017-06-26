@@ -115,6 +115,8 @@ app.use('/admin/:language/report', require('./_admin-routes/report.router'));
 // app.use('/image', require('./_routes/uploadImage.router'));
 
 // /:language(en|vi)
-app.listen(process.env.PORT || 8000, function () {
+server = app.listen(process.env.PORT || 8000, function () {
     console.log('listening on 8000 <3')
 });
+
+server.timeout = 10000;
