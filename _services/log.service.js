@@ -17,8 +17,8 @@ var winston = require('winston');
 //     ]
 // });
 
-let d = new Date();
-let strToday = d.getUTCDate() + '' + d.getUTCMonth() + '' + d.getUTCFullYear();
+var d = new Date();
+var strToday = d.getUTCDate() + '' + d.getUTCMonth() + '' + d.getUTCFullYear();
 
 var loggerInfo = new (winston.Logger)({
     transports: [
@@ -50,7 +50,7 @@ var Logs = (function () {
     }
 
     Logs.prototype.info = (type, metadata) => {
-        let inf = 'info';
+        var inf = 'info';
         switch (type) {
             case 0:
                 loggerInfo.log(inf, 'success', metadata);

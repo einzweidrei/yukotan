@@ -67,7 +67,7 @@ router.use(function (req, res, next) {
 
             // next();
             if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
+                var token = req.headers.hbbgvauth;
                 Session.findOne({ 'auth.token': token }).exec((error, data) => {
                     if (error) {
                         return msg.msgReturn(res, 3);
@@ -141,19 +141,19 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
         var owner = new Owner();
         var id = req.cookies.userId;
 
-        let phone = req.body.phone || "";
-        let name = req.body.name || "";
-        let age = req.body.age || 18;
-        let address = {
+        var phone = req.body.phone || "";
+        var name = req.body.name || "";
+        var age = req.body.age || 18;
+        var address = {
             name: req.body.addressName || "",
             coordinates: {
                 lat: req.body.lat || 0,
                 lng: req.body.lng || 0
             }
         };
-        let gender = req.body.gender || 0;
+        var gender = req.body.gender || 0;
 
-        let location = {
+        var location = {
             type: 'Point',
             coordinates: [req.body.lng || 0, req.body.lat || 0]
         }
@@ -192,7 +192,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                                 m.info.age = age;
                                 m.info.address = address;
                                 m.info.gender = gender;
-                                let d = {
+                                var d = {
                                     _id: m._id,
                                     info: m.info,
                                     evaluation_point: m.evaluation_point,
@@ -234,7 +234,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                                         m.info.gender = gender;
                                         m.info.image = result.url;
 
-                                        let d = {
+                                        var d = {
                                             _id: m._id,
                                             info: m.info,
                                             evaluation_point: m.evaluation_point,
@@ -275,7 +275,7 @@ router.route('/getMyInfo').get((req, res) => {
 
 router.route('/getAllDeniedTasks').get((req, res) => {
     try {
-        let ownerId = req.cookies.userId;
+        var ownerId = req.cookies.userId;
 
         var populateQuery = [
             {
@@ -332,16 +332,16 @@ router.route('/getAllDeniedTasks').get((req, res) => {
  */
 router.route('/getAllTasks').get((req, res) => {
     try {
-        let id = req.cookies.userId;
-        // let id = '5911460ae740560cb422ac35';
-        let process = req.query.process;
+        var id = req.cookies.userId;
+        // var id = '5911460ae740560cb422ac35';
+        var process = req.query.process;
 
-        let startAt = req.query.startAt;
-        let endAt = req.query.endAt;
-        let limit = req.query.limit || 0;
-        let sortByTaskTime = req.query.sortByTaskTime;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
+        var limit = req.query.limit || 0;
+        var sortByTaskTime = req.query.sortByTaskTime;
 
-        let findQuery = {
+        var findQuery = {
             'stakeholders.owner': id,
             status: true
         }
@@ -368,16 +368,16 @@ router.route('/getAllTasks').get((req, res) => {
         }
 
         if (startAt || endAt) {
-            let timeQuery = {};
+            var timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;
@@ -405,7 +405,7 @@ router.route('/getAllTasks').get((req, res) => {
             }
         ];
 
-        let sortQuery = { 'history.createAt': -1 };
+        var sortQuery = { 'history.createAt': -1 };
 
         if (sortByTaskTime) {
             sortQuery = { 'info.time.endAt': 1 };
@@ -455,17 +455,17 @@ router.route('/getAllTasks').get((req, res) => {
  */
 router.route('/getHistoryTasks').get((req, res) => {
     try {
-        let id = req.cookies.userId;
+        var id = req.cookies.userId;
         var maidId = req.query.maid;
-        // let id = '5911460ae740560cb422ac35';
-        let process = req.query.process || '000000000000000000000005';
+        // var id = '5911460ae740560cb422ac35';
+        var process = req.query.process || '000000000000000000000005';
 
-        let startAt = req.query.startAt;
-        let endAt = req.query.endAt;
-        let limit = req.query.limit || 10;
-        let page = req.query.page || 1;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
+        var limit = req.query.limit || 10;
+        var page = req.query.page || 1;
 
-        let findQuery = {
+        var findQuery = {
             'stakeholders.owner': id,
             status: true
         }
@@ -475,16 +475,16 @@ router.route('/getHistoryTasks').get((req, res) => {
         }
 
         if (startAt || endAt) {
-            let timeQuery = {};
+            var timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;
@@ -516,7 +516,7 @@ router.route('/getHistoryTasks').get((req, res) => {
             }
         ];
 
-        let options = {
+        var options = {
             select: '-location -status -__v',
             populate: populateQuery,
             sort: {
@@ -561,10 +561,10 @@ router.route('/getHistoryTasks').get((req, res) => {
 
 router.route('/getAllWorkedMaid').get((req, res) => {
     try {
-        let id = req.cookies.userId;
+        var id = req.cookies.userId;
 
-        let startAt = req.query.startAt;
-        let endAt = req.query.endAt;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
 
         var matchQuery = {
             process: new ObjectId('000000000000000000000005'),
@@ -572,16 +572,16 @@ router.route('/getAllWorkedMaid').get((req, res) => {
         };
 
         if (startAt || endAt) {
-            let timeQuery = {};
+            var timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;
@@ -637,17 +637,17 @@ router.route('/getAllWorkedMaid').get((req, res) => {
 
 router.route('/getTaskOfMaid').get((req, res) => {
     try {
-        let id = req.cookies.userId;
-        // let id = '5911460ae740560cb422ac35';
+        var id = req.cookies.userId;
+        // var id = '5911460ae740560cb422ac35';
         var maidId = req.query.maid;
-        let process = req.query.process || '000000000000000000000005';
+        var process = req.query.process || '000000000000000000000005';
 
-        let startAt = req.query.startAt;
-        let endAt = req.query.endAt;
-        let limit = req.query.limit || 10;
-        let page = req.query.page || 1;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
+        var limit = req.query.limit || 10;
+        var page = req.query.page || 1;
 
-        let findQuery = {
+        var findQuery = {
             'stakeholders.owner': id,
             'stakeholders.received': maidId,
             status: true
@@ -658,16 +658,16 @@ router.route('/getTaskOfMaid').get((req, res) => {
         }
 
         if (startAt || endAt) {
-            let timeQuery = {};
+            var timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;
@@ -695,7 +695,7 @@ router.route('/getTaskOfMaid').get((req, res) => {
             }
         ];
 
-        let options = {
+        var options = {
             select: '-location -status -__v',
             populate: populateQuery,
             sort: {
@@ -723,7 +723,7 @@ router.route('/getTaskOfMaid').get((req, res) => {
 
 router.route('/comment').post((req, res) => {
     try {
-        let comment = new Comment();
+        var comment = new Comment();
         comment.fromId = req.cookies.userId;
         // comment.fromId = req.body.fromId;
         comment.toId = req.body.toId;
@@ -745,8 +745,8 @@ router.route('/comment').post((req, res) => {
                             return msg.msgReturn(res, 3);
                         } else {
                             if (validate.isNullorEmpty(cmt)) {
-                                let ep_2 = data.work_info.evaluation_point;
-                                let new_ep = (comment.evaluation_point + ep_2) / 2;
+                                var ep_2 = data.work_info.evaluation_point;
+                                var new_ep = (comment.evaluation_point + ep_2) / 2;
 
                                 if ((comment.evaluation_point + ep_2) % 2 >= 5) {
                                     new_ep = Math.ceil(new_ep);
@@ -793,13 +793,13 @@ router.route('/comment').post((req, res) => {
 
 router.route('/getComment').get((req, res) => {
     try {
-        let id = req.query.id;
+        var id = req.query.id;
 
-        let limit = parseFloat(req.query.limit) || 20;
-        let page = req.query.page || 1;
+        var limit = parseFloat(req.query.limit) || 20;
+        var page = req.query.page || 1;
 
-        let query = { toId: id };
-        let options = {
+        var query = { toId: id };
+        var options = {
             select: 'evaluation_point content task createAt fromId',
             populate: { path: 'task', select: 'info' },
             sort: {
@@ -882,13 +882,13 @@ router.route('/statistical').get((req, res) => {
             const timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;
@@ -967,11 +967,11 @@ router.route('/statistical').get((req, res) => {
                 if (error) {
                     return msg.msgReturn(res, 3);
                 } else {
-                    let task = result.task;
-                    let bill = result.bill;
-                    let owner = result.owner;
+                    var task = result.task;
+                    var bill = result.bill;
+                    var owner = result.owner;
 
-                    let g = {};
+                    var g = {};
 
                     const d = {
                         totalPrice: bill.totalPrice,
@@ -1000,19 +1000,19 @@ router.route('/getDebt').get((req, res) => {
             isSolved: false
         }
 
-        let sortQuery = { createAt: -1 };
+        var sortQuery = { createAt: -1 };
 
         if (startAt || endAt) {
             const timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;

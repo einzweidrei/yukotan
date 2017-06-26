@@ -70,12 +70,12 @@ router.use(function (req, res, next) {
 
 router.route('/create').post((req, res) => {
     try {
-        let term = new Term();
-        let language = req.cookies.language;
+        var term = new Term();
+        var language = req.cookies.language;
         Term.setDefaultLanguage(language);
 
-        let name = req.body.name;
-        let content = req.body.content;
+        var name = req.body.name;
+        var content = req.body.content;
 
         term.name = name
         term.status = true;
@@ -99,8 +99,8 @@ router.route('/create').post((req, res) => {
 
 router.route('/resetPassword').post((req, res) => {
     try {
-        let newPw = randomstring.generate(7);
-        let hashPw = hash(newPw);
+        var newPw = randomstring.generate(7);
+        var hashPw = hash(newPw);
 
         var username = req.body.username;
         var email = req.body.email;
@@ -169,21 +169,21 @@ router.route('/resetPassword').post((req, res) => {
  */
 router.route('/getAllMaids').get((req, res) => {
     try {
-        let minDistance = req.query.minDistance || 1;
-        let maxDistance = req.query.maxDistance || 2000;
-        let limit = req.query.limit || 20;
-        let page = req.query.page || 1;
-        let skip = (page - 1) * limit;
+        var minDistance = req.query.minDistance || 1;
+        var maxDistance = req.query.maxDistance || 2000;
+        var limit = req.query.limit || 20;
+        var page = req.query.page || 1;
+        var skip = (page - 1) * limit;
 
-        let priceMin = req.query.priceMin;
-        let priceMax = req.query.priceMax;
+        var priceMin = req.query.priceMin;
+        var priceMax = req.query.priceMax;
 
-        let ageMin = req.query.ageMin;
-        let ageMax = req.query.ageMax;
+        var ageMin = req.query.ageMin;
+        var ageMax = req.query.ageMax;
 
-        let workId = req.query.workId;
+        var workId = req.query.workId;
 
-        let gender = req.query.gender;
+        var gender = req.query.gender;
 
         var sortBy = req.query.sortBy || "distance"; //distance & price
         var sortType = req.query.sortType || "asc"; //asc & desc
@@ -223,7 +223,7 @@ router.route('/getAllMaids').get((req, res) => {
         var matchQuery = { status: true };
 
         if (ageMin || ageMax) {
-            let query = {};
+            var query = {};
 
             if (ageMin) {
                 query['$gte'] = parseFloat(ageMin);
@@ -237,7 +237,7 @@ router.route('/getAllMaids').get((req, res) => {
         }
 
         if (priceMin || priceMax) {
-            let query = {};
+            var query = {};
 
             if (priceMin) {
                 query['$gte'] = parseFloat(priceMin);
@@ -560,7 +560,7 @@ router.route('/getTaskByWork').get((req, res) => {
                                             result.push(data[i])
                                         }
 
-                                        let d = {
+                                        var d = {
                                             docs: result,
                                             total: data.length,
                                             limit: limit,
@@ -718,10 +718,10 @@ router.route('/ownerForgotPassword').post((req, res) => {
 
 router.route('/updateAbility').post((req, res) => {
     try {
-        let ab = req.body.ab;
-        let maid = new Maid();
+        var ab = req.body.ab;
+        var maid = new Maid();
 
-        let id = '5923c12f7d7da13b240e7322'
+        var id = '5923c12f7d7da13b240e7322'
 
         if (ab) {
             ab.forEach(item => {
@@ -753,7 +753,7 @@ router.route('/updateAbility').post((req, res) => {
 
 router.route('/getMaidInfo').get((req, res) => {
     try {
-        let id = '5923c12f7d7da13b240e7322'
+        var id = '5923c12f7d7da13b240e7322'
 
         Maid
             // .find({ status: true })

@@ -57,7 +57,7 @@ router.use(function (req, res, next) {
 
 router.route('/comment').post((req, res) => {
     try {
-        let comment = new Comment();
+        var comment = new Comment();
         comment.fromId = req.body.fromId;
         comment.toId = req.body.toId;
         comment.content = req.body.content;
@@ -75,7 +75,7 @@ router.route('/comment').post((req, res) => {
 
 router.route('/getComment').get((req, res) => {
     try {
-        let id = req.query.id;
+        var id = req.query.id;
 
         Comment.find({ toId: id }).exec((error, data) => {
             if (error) {

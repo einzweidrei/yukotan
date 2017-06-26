@@ -51,7 +51,7 @@ router.use(function (req, res, next) {
             Process.setDefaultLanguage(language);
 
             if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
+                var token = req.headers.hbbgvauth;
                 Session.findOne({ 'auth.token': token }).exec((error, data) => {
                     if (error) {
                         return msg.msgReturn(res, 3);
@@ -492,13 +492,13 @@ router.route('/getAllRequest').post((req, res) => {
 router.route('/getAllTasks').get((req, res) => {
     try {
         // console.log(req.body)
-        let id = req.cookies.userId;
-        // let id = '5923c12f7d7da13b240e7a77';
-        let process = req.query.process;
-        let startAt = req.query.startAt;
-        let endAt = req.query.endAt;
-        let limit = req.query.limit || 0;
-        let sortByTaskTime = req.query.sortByTaskTime;
+        var id = req.cookies.userId;
+        // var id = '5923c12f7d7da13b240e7a77';
+        var process = req.query.process;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
+        var limit = req.query.limit || 0;
+        var sortByTaskTime = req.query.sortByTaskTime;
 
         console.log(req.body)
 
@@ -542,16 +542,16 @@ router.route('/getAllTasks').get((req, res) => {
         ]
 
         if (startAt || endAt) {
-            let timeQuery = {};
+            var timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;
@@ -560,7 +560,7 @@ router.route('/getAllTasks').get((req, res) => {
             findQuery['info.time.startAt'] = timeQuery;
         }
 
-        let sortQuery = { 'history.createAt': -1 };
+        var sortQuery = { 'history.createAt': -1 };
 
         if (sortByTaskTime) {
             sortQuery = { 'info.time.endAt': 1 };
@@ -592,7 +592,7 @@ router.route('/getAllTasks').get((req, res) => {
 
 router.route('/comment').post((req, res) => {
     try {
-        let comment = new Comment();
+        var comment = new Comment();
         comment.fromId = req.cookies.userId;
         comment.toId = req.body.toId;
         comment.task = req.body.task;
@@ -613,8 +613,8 @@ router.route('/comment').post((req, res) => {
                             return msg.msgReturn(res, 3);
                         } else {
                             if (validate.isNullorEmpty(cmt)) {
-                                let ep_2 = data.evaluation_point;
-                                let new_ep = (comment.evaluation_point + ep_2) / 2;
+                                var ep_2 = data.evaluation_point;
+                                var new_ep = (comment.evaluation_point + ep_2) / 2;
 
                                 if ((comment.evaluation_point + ep_2) % 2 >= 5) {
                                     new_ep = Math.ceil(new_ep);
@@ -661,13 +661,13 @@ router.route('/comment').post((req, res) => {
 
 router.route('/getComment').get((req, res) => {
     try {
-        let id = req.query.id;
+        var id = req.query.id;
 
-        let limit = parseFloat(req.query.limit) || 20;
-        let page = req.query.page || 1;
+        var limit = parseFloat(req.query.limit) || 20;
+        var page = req.query.page || 1;
 
-        let query = { toId: id };
-        let options = {
+        var query = { toId: id };
+        var options = {
             select: 'evaluation_point content task createAt fromId',
             populate: { path: 'task', select: 'info' },
             sort: {
@@ -703,16 +703,16 @@ router.route('/getComment').get((req, res) => {
 
 router.route('/getHistoryTasks').get((req, res) => {
     try {
-        let id = req.cookies.userId;
-        // let id = '5911460ae740560cb422ac35';
-        let process = req.query.process || '000000000000000000000005';
+        var id = req.cookies.userId;
+        // var id = '5911460ae740560cb422ac35';
+        var process = req.query.process || '000000000000000000000005';
 
-        let startAt = req.query.startAt;
-        let endAt = req.query.endAt;
-        let limit = req.query.limit || 10;
-        let page = req.query.page || 1;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
+        var limit = req.query.limit || 10;
+        var page = req.query.page || 1;
 
-        let findQuery = {
+        var findQuery = {
             'stakeholders.received': id,
             status: true
         }
@@ -722,16 +722,16 @@ router.route('/getHistoryTasks').get((req, res) => {
         }
 
         if (startAt || endAt) {
-            let timeQuery = {};
+            var timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;
@@ -759,7 +759,7 @@ router.route('/getHistoryTasks').get((req, res) => {
             }
         ];
 
-        let options = {
+        var options = {
             select: '-location -status -__v',
             populate: populateQuery,
             sort: {
@@ -784,10 +784,10 @@ router.route('/getHistoryTasks').get((req, res) => {
 
 router.route('/getAllWorkedOwner').get((req, res) => {
     try {
-        let id = req.cookies.userId;
+        var id = req.cookies.userId;
 
-        let startAt = req.query.startAt;
-        let endAt = req.query.endAt;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
 
         var matchQuery = {
             process: new ObjectId('000000000000000000000005'),
@@ -795,16 +795,16 @@ router.route('/getAllWorkedOwner').get((req, res) => {
         };
 
         if (startAt || endAt) {
-            let timeQuery = {};
+            var timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;
@@ -864,8 +864,8 @@ router.route('/getAllWorkedOwner').get((req, res) => {
 
 router.route('/getTaskComment').get((req, res) => {
     try {
-        let id = req.cookies.userId;
-        let task = req.query.task;
+        var id = req.cookies.userId;
+        var task = req.query.task;
 
         Comment.findOne({ toId: id, task: task, status: true }).select('createAt evaluation_point content').exec((error, data) => {
             if (error) {
@@ -885,17 +885,17 @@ router.route('/getTaskComment').get((req, res) => {
 
 router.route('/getTaskOfOwner').get((req, res) => {
     try {
-        let id = req.cookies.userId;
-        // let id = '5911460ae740560cb422ac35';
+        var id = req.cookies.userId;
+        // var id = '5911460ae740560cb422ac35';
         var ownerId = req.query.owner;
-        let process = req.query.process || '000000000000000000000005';
+        var process = req.query.process || '000000000000000000000005';
 
-        let startAt = req.query.startAt;
-        let endAt = req.query.endAt;
-        let limit = req.query.limit || 10;
-        let page = req.query.page || 1;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
+        var limit = req.query.limit || 10;
+        var page = req.query.page || 1;
 
-        let findQuery = {
+        var findQuery = {
             'stakeholders.owner': ownerId,
             'stakeholders.received': id,
             status: true
@@ -906,16 +906,16 @@ router.route('/getTaskOfOwner').get((req, res) => {
         }
 
         if (startAt || endAt) {
-            let timeQuery = {};
+            var timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;
@@ -943,7 +943,7 @@ router.route('/getTaskOfOwner').get((req, res) => {
             }
         ];
 
-        let options = {
+        var options = {
             select: '-location -status -__v',
             populate: populateQuery,
             sort: {
@@ -986,13 +986,13 @@ router.route('/statistical').get((req, res) => {
             var timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;
@@ -1075,7 +1075,7 @@ router.route('/statistical').get((req, res) => {
 
 router.route('/report').post((req, res) => {
     try {
-        let report = new Report();
+        var report = new Report();
         report.maidId = req.cookies.userId;
         report.ownerId = req.body.toId;
         report.from = 2;

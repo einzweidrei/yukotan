@@ -59,7 +59,7 @@ router.use(function (req, res, next) {
             Process.setDefaultLanguage(language);
 
             if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
+                var token = req.headers.hbbgvauth;
                 Session.findOne({ 'auth.token': token }).exec((error, data) => {
                     if (error) {
                         return msg.msgReturn(res, 3);

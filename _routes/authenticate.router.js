@@ -111,7 +111,7 @@ router.route('/login').post((req, res) => {
 													if (error) {
 														return msg.msgReturn(res, 3, {});
 													} else {
-														let dt = {
+														var dt = {
 															token: newToken,
 															user: {
 																_id: data._id,
@@ -141,7 +141,7 @@ router.route('/login').post((req, res) => {
 														upsert: true
 													},
 													(error, result) => {
-														let dt = {
+														var dt = {
 															token: newToken,
 															user: {
 																_id: data._id,
@@ -227,7 +227,7 @@ router.route('/register').post((req, res) => {
 								if (error) {
 									return msg.msgReturn(res, 3);
 								} else {
-									let dt = {
+									var dt = {
 										token: session.auth.token,
 										user: {
 											_id: data._id,
@@ -260,7 +260,7 @@ router.route('/register').post((req, res) => {
 										if (error) {
 											return msg.msgReturn(res, 3);
 										} else {
-											let dt = {
+											var dt = {
 												token: session.auth.token,
 												user: {
 													_id: data._id,
@@ -288,7 +288,7 @@ router.route('/register').post((req, res) => {
 
 router.route('/check').get((req, res) => {
 	try {
-		let username = req.query.username;
+		var username = req.query.username;
 		Owner.findOne({ 'info.username': username }).exec((error, data) => {
 			if (error) {
 				return msg.msgReturn(res, 3);
@@ -473,7 +473,7 @@ router.route('/thirdLogin').post((req, res) => {
 											if (error) {
 												return msg.msgReturn(res, 3, {});
 											} else {
-												let dt = {
+												var dt = {
 													token: token,
 													user: {
 														_id: data._id,
@@ -505,7 +505,7 @@ router.route('/thirdLogin').post((req, res) => {
 											},
 											(error, result) => {
 												if (error) return msg.msgReturn(res, 3, {});
-												let dt = {
+												var dt = {
 													token: token,
 													user: {
 														_id: data._id,
@@ -599,7 +599,7 @@ router.route('/thirdRegister').post((req, res) => {
 								if (error) {
 									return msg.msgReturn(res, 3, {});
 								} else {
-									let dt = {
+									var dt = {
 										token: session.auth.token,
 										user: {
 											_id: data._id,

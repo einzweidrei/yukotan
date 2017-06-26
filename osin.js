@@ -1,48 +1,25 @@
-// params
 var express = require('express');
 var bodyparser = require('body-parser');
 var mongoose = require('mongoose');
 var requestLanguage = require('express-request-language');
 var cookieParser = require('cookie-parser');
 var cloudinary = require('cloudinary');
-// var multer = require('multer')
-// var upload = multer({ dest: 'uploads/' })
-var multipart = require('connect-multiparty');
-// var log4js = require('log4js');
-
-var winston = require('winston');
-var multipartMiddleware = multipart();
-
-var messageService = require('./_services/message.service');
-var msg = new messageService.Message();
-
-var validationService = require('./_services/validation.service');
-var validate = new validationService.Validation();
-
-var languageService = require('./_services/language.service');
-var lnService = new languageService.Language();
-
-var Session = require('./_model/session');
-
 var app = express();
 var router = express.Router();
 
+// firebase admin setting
 var admin = require('firebase-admin');
 var serviceAccount = require('./_path/serviceAccountKey.json');
-
-var nodemailer = require('nodemailer');
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://gv24h-4792c.firebaseio.com"
+});
 
 // connecting mongodb
 // var mongodburi = 'mongodb://localhost:27017/Osin';
 var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodburi);
-
-// firebase admin setting
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://gv24h-4792c.firebaseio.com"
-});
 
 // config cdn
 cloudinary.config({
@@ -53,42 +30,13 @@ cloudinary.config({
 
 // Add headers
 app.use(function (req, res, next) {
-
-    // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', '*');
-
-    // Request methods you wish to allow
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-    // Request headers you wish to allow
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization, hbbgvauth');
-    // res.setHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers');
-
-    // Set to true if you need the website to include cookies in the requests sent
-    // to the API (e.g. in case you use sessions)
-
     res.setHeader('Access-Control-Allow-Credentials', true);
-
-    // Pass to next layer of middleware
     next();
 });
 
-// app.use(express.bodyparser());
-
-// parse application/x-www-form-urlencoded
-// app.use(bodyparser.json({
-//     limit: '50mb',
-// }));
-
-// // setting limit of FILE
-// app.use(bodyparser.urlencoded({
-//     limit: '50mb',
-//     parameterLimit: 1000000,
-//     extended: true
-// }));
-
-// // // parse application/json
-// app.use(bodyparser.json());
 app.use(cookieParser());
 
 // API
@@ -109,13 +57,6 @@ app.use('/admin/:language/more', require('./_admin-routes/more.router'));
 app.use('/admin/:language/work', require('./_admin-routes/work.router'));
 app.use('/admin/:language/report', require('./_admin-routes/report.router'));
 
-// app.use('/microsoft', require('./_routes/microsoftApi.router'));
-// app.use('/al', require('./_routes/algorithm.router'));
-// app.use('/image', require('./_routes/uploadImage.router'));
-
-// /:language(en|vi)
-server = app.listen(process.env.PORT || 8000, function () {
+app.listen(process.env.PORT || 8000, function () {
     console.log('listening on 8000 <3')
 });
-
-// server.timeout = 10000;

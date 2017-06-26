@@ -34,8 +34,8 @@ router.use(function (req, res, next) {
 
 router.route('/testTime').post((req, res) => {
     try {
-        let timeIn = new Date('2017-05-24T12:00:39.311Z');
-        let timeOut = new Date('2017-05-24T15:50:39.311Z');
+        var timeIn = new Date('2017-05-24T12:00:39.311Z');
+        var timeOut = new Date('2017-05-24T15:50:39.311Z');
 
         console.log(timeIn.getTime());
         console.log(timeOut.getTime());
@@ -44,10 +44,10 @@ router.route('/testTime').post((req, res) => {
         console.log(timeOut.getUTCHours());
 
 
-        // let e = timeOut.getDate() - timeIn.getDate();
+        // var e = timeOut.getDate() - timeIn.getDate();
 
         console.log(e);
-        let d = new Date(e);
+        var d = new Date(e);
 
         console.log(d);
     } catch (error) {
@@ -57,8 +57,8 @@ router.route('/testTime').post((req, res) => {
 
 router.route('/get').post((req, res) => {
     try {
-        let num = req.body.num;
-        let result = totalBinSum(num);
+        var num = req.body.num;
+        var result = totalBinSum(num);
         return res.json({ result: result })
     } catch (error) {
         console.log(error);
@@ -66,8 +66,8 @@ router.route('/get').post((req, res) => {
 });
 
 function totalBinSum(num) {
-    let string = '';
-    let res = 0;
+    var string = '';
+    var res = 0;
 
     // console.log(num instanceof Int16Array);
     console.log('Result: ' + parseInt(num, 2) % (Math.pow(10, 9) + 7))
@@ -77,7 +77,7 @@ function totalBinSum(num) {
     var isnum = /^\d+$/.test(num);
     console.log(isnum);
 
-    for (let i = 0; i < num.length; i++) {
+    for (var i = 0; i < num.length; i++) {
         string += num[0, i];
         res += parseInt(string, 2);
 

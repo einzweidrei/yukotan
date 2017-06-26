@@ -59,7 +59,7 @@ router.use(function (req, res, next) {
             Process.setDefaultLanguage(language);
 
             if (req.headers.hbbgvauth) {
-                let token = req.headers.hbbgvauth;
+                var token = req.headers.hbbgvauth;
                 Session.findOne({ 'auth.token': token }).exec((error, data) => {
                     if (error) {
                         return msg.msgReturn(res, 3);
@@ -242,7 +242,7 @@ router.route('/getAll').post((req, res) => {
                                 Process.populate(data, { path: 'process', select: 'name' }, (error, data) => {
                                     if (error) return msg.msgReturn(res, 3);
                                     else {
-                                        let d = {
+                                        var d = {
                                             docs: data,
                                             total: data.length,
                                             limit: limit,
@@ -402,8 +402,8 @@ router.route('/create').post((req, res) => {
 
         task.status = true;
 
-        let start = new Date(task.info.time.startAt);
-        let end = new Date(task.info.time.endAt);
+        var start = new Date(task.info.time.startAt);
+        var end = new Date(task.info.time.endAt);
         if (start >= end) {
             return msg.msgReturn(res, 9);
         }
@@ -594,8 +594,8 @@ router.route('/update').put((req, res) => {
             ]
         };
 
-        // let start = new Date(task.info.time.startAt);
-        // let end = new Date(task.info.time.endAt);
+        // var start = new Date(task.info.time.startAt);
+        // var end = new Date(task.info.time.endAt);
         // if (start >= end) {
         //     return msg.msgReturn(res, 9);
         // }
@@ -1199,9 +1199,9 @@ router.route('/submit').post((req, res) => {
  */
 router.route('/checkin').post(multipartMiddleware, (req, res) => {
     try {
-        let id = req.body.id;
-        let ownerId = req.cookies.userId;
-        let subs_key = 'b1726597dcc74171abf38be836846977'
+        var id = req.body.id;
+        var ownerId = req.cookies.userId;
+        var subs_key = 'b1726597dcc74171abf38be836846977'
 
         if (!req.files.image) return msg.msgReturn(res, 3);
 
@@ -1225,7 +1225,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                             cloudinary.uploader.upload(
                                 req.files.image.path,
                                 function (result) {
-                                    let imgUrl = result.url;
+                                    var imgUrl = result.url;
                                     console.log(result)
                                     // console.log(imgUrl)
                                     async.parallel({
@@ -1438,7 +1438,7 @@ router.route('/checkout').post((req, res) => {
                 return msg.msgReturn(res, 3);
             } else {
                 if (result.task == 0) {
-                    let checkOut = new Date();
+                    var checkOut = new Date();
                     Task.findOneAndUpdate(
                         {
                             _id: id,
@@ -1458,7 +1458,7 @@ router.route('/checkout').post((req, res) => {
                         (error, task) => {
                             if (error) return msg.msgReturn(res, 3);
                             else {
-                                let bill = new Bill();
+                                var bill = new Bill();
                                 bill.owner = task.stakeholders.owner;
                                 bill.maid = task.stakeholders.received;
                                 bill.task = task._id;
@@ -1475,13 +1475,13 @@ router.route('/checkout').post((req, res) => {
                                         if (task.info.package == '000000000000000000000001') {
                                             bill.price = task.info.price;
 
-                                            let timeIn = new Date(task.info.time.startAt);
-                                            let timeOut = new Date(task.info.time.endAt);
+                                            var timeIn = new Date(task.info.time.startAt);
+                                            var timeOut = new Date(task.info.time.endAt);
 
-                                            let t = new Date(timeOut.getTime() - timeIn.getTime());
+                                            var t = new Date(timeOut.getTime() - timeIn.getTime());
                                             bill.period = t;
 
-                                            let dt = {
+                                            var dt = {
                                                 _id: bill._id,
                                                 period: t,
                                                 price: task.info.price,
@@ -1502,13 +1502,13 @@ router.route('/checkout').post((req, res) => {
                                                 if (validate.isNullorEmpty(maid)) {
                                                     return msg.msgReturn(res, 4);
                                                 } else {
-                                                    let timeIn = new Date(task.check.check_in);
-                                                    let timeOut = new Date(checkOut);
-                                                    let t = new Date(timeOut.getTime() - timeIn.getTime());
+                                                    var timeIn = new Date(task.check.check_in);
+                                                    var timeOut = new Date(checkOut);
+                                                    var t = new Date(timeOut.getTime() - timeIn.getTime());
                                                     var price = 0;
-                                                    let maidPrice = maid.work_info.price;
-                                                    let hours = t.getUTCHours();
-                                                    let minutes = t.getUTCMinutes();
+                                                    var maidPrice = maid.work_info.price;
+                                                    var hours = t.getUTCHours();
+                                                    var minutes = t.getUTCMinutes();
 
                                                     if (hours == 0) {
                                                         price = maidPrice;
@@ -1527,7 +1527,7 @@ router.route('/checkout').post((req, res) => {
                                                     bill.period = t;
                                                     bill.price = price;
 
-                                                    let dt = {
+                                                    var dt = {
                                                         _id: bill._id,
                                                         period: t,
                                                         price: price,
@@ -1578,7 +1578,7 @@ router.route('/sendRequest').post((req, res) => {
     try {
         var task = new Task();
         var maidId = req.body.maidId;
-        let ownerId = req.cookies.userId;
+        var ownerId = req.cookies.userId;
 
         task.info = {
             title: req.body.title || "",
@@ -1631,8 +1631,8 @@ router.route('/sendRequest').post((req, res) => {
 
         task.status = true;
 
-        // let start = new Date(task.info.time.startAt);
-        // let end = new Date(task.info.time.endAt);
+        // var start = new Date(task.info.time.startAt);
+        // var end = new Date(task.info.time.endAt);
         // if (start >= end) {
         //     return msg.msgReturn(res, 9);
         // }
@@ -1914,8 +1914,8 @@ router.route('/denyRequest').post((req, res) => {
 
 router.route('/getRequest').get((req, res) => {
     try {
-        let id = req.query.id;
-        let matchQuery = { _id: new ObjectId(id), status: true };
+        var id = req.query.id;
+        var matchQuery = { _id: new ObjectId(id), status: true };
 
         Task.aggregate([
             {
@@ -1950,8 +1950,8 @@ router.route('/getRequest').get((req, res) => {
 
 router.route('/getComment').get((req, res) => {
     try {
-        let id = req.cookies.userId;
-        let task = req.query.task;
+        var id = req.cookies.userId;
+        var task = req.query.task;
 
         Comment.findOne({ fromId: id, task: task, status: true }).select('createAt evaluation_point content').exec((error, data) => {
             if (error) {

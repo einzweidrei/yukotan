@@ -20,7 +20,7 @@ var MailService = (function () {
             var confirmUrl = url + user._id + '-' + verifyToken;
 
             // setup email data with unicode symbols
-            let mailOptions = {
+            var mailOptions = {
                 from: '"GV24H" <YukoTesting01@gmail.com>', // sender address
                 to: user.info.email, // list of receivers
                 // to: 'einzweidrei2@gmail.com',
@@ -45,7 +45,7 @@ var MailService = (function () {
     MailService.prototype.resetPassword = (res, user) => {
         try {
             // setup email data with unicode symbols
-            let mailOptions = {
+            var mailOptions = {
                 from: 'GV24H <YukoTesting01@gmail.com>', // sender address
                 to: email, // list of receivers
                 subject: 'Reset your password', // Subject line
