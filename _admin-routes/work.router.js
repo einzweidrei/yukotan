@@ -147,7 +147,8 @@ router.route('/getById').get((req, res) => {
                 } else {
                     var g = {
                         _id: data._id,
-                        name: data.get('name.all')
+                        name: data.get('name.all'),
+                        image: data.image
                     }
                     return msg.msgReturn(res, 0, g);
                 }
