@@ -173,10 +173,10 @@ router.route('/payBillGV').post((req, res) => {
 
 router.route('/payDirectly').post((req, res) => {
     try {
-        var userId2 = req.cookies.userId;
+        var userId = req.cookies.userId;
         var billId = req.body.billId;
 
-        Bill.findOne({ _id: billId, owner: userId2, isSolved: false, status: true }).exec((error, data) => {
+        Bill.findOne({ _id: billId, owner: userId, isSolved: false, status: true }).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             }
@@ -191,7 +191,7 @@ router.route('/payDirectly').post((req, res) => {
                                 return msg.msgReturn(res, 4);
                             } else {
                                 Bill.findOneAndUpdate(
-                                    { _id: billId, owner: userId2, isSolved: false, status: true },
+                                    { _id: billId, owner: userId, isSolved: false, status: true },
                                     {
                                         $set: {
                                             method: 3
@@ -202,7 +202,7 @@ router.route('/payDirectly').post((req, res) => {
                                         else {
                                             return maid.auth.device_token == '' ?
                                                 msg.msgReturn(res, 17) :
-                                                FCMService.pushNotification(res, maid, req.cookies.language, 9, [])
+                                                FCMService.pushPayDirect(res, maid, req.cookies.language, 9, [], billId)
                                         }
                                     }
                                 )
