@@ -218,13 +218,13 @@ router.route('/payDirectly').post((req, res) => {
 });
 
 // confirm pay directly
-router.route('/pay3Confirm').post((req, res) => {
+router.route('/payDirectConfirm').post((req, res) => {
     try {
         var userId = req.cookies.userId;
         var billId = req.body.billId;
 
         Bill.findOneAndUpdate(
-            { _id: billId, owner: userId, method: 3, isSolved: false, status: true },
+            { _id: billId, maid: userId, method: 3, isSolved: false, status: true },
             {
                 $set: {
                     isSolved: true,
