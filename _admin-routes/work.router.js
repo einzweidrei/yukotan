@@ -55,7 +55,7 @@ router.use(function (req, res, next) {
     }
 });
 
-router.route('/create').post((req, res) => {
+router.route('/create').post(multipartMiddleware, (req, res) => {
     try {
         var nameVi = req.body.nameVi;
         var nameEn = req.body.nameEn;
