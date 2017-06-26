@@ -80,7 +80,7 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
     }
 });
 
-router.route('/update').put(multipartMiddleware, (req, res) => {
+router.route('/update').post(multipartMiddleware, (req, res) => {
     try {
         var id = req.body.id;
         var nameVi = req.body.nameVi || '';
@@ -112,7 +112,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
     }
 });
 
-router.route('/delete').put((req, res) => {
+router.route('/delete').post((req, res) => {
     try {
         var id = req.query.id;
         Work.findByIdAndUpdate(
