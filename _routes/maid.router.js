@@ -21,6 +21,7 @@ var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
 var Bill = require('../_model/bill');
+var Report = require('../_model/report');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 var bodyparser = require('body-parser');

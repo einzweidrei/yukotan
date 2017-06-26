@@ -833,7 +833,7 @@ router.route('/getComment').get((req, res) => {
 
 router.route('/report').post((req, res) => {
     try {
-        let report = new Report();
+        var report = new Report();
         report.ownerId = req.cookies.userId;
         report.maidId = req.body.toId;
         report.from = 1
