@@ -1262,36 +1262,47 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                 });
                                         },
                                         faceId2: function (callback) {
-                                            request({
-                                                method: 'POST',
-                                                preambleCRLF: true,
-                                                postambleCRLF: true,
-                                                uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
-                                                headers: {
-                                                    'Content-Type': 'application/json',
-                                                    'Ocp-Apim-Subscription-Key': subs_key
-                                                },
-                                                body: JSON.stringify(
-                                                    {
-                                                        url: result.url
-                                                        // url: 'http://image.congan.com.vn/thumbnail/CATP-1382-2017-6-2/barack-obama.jpg'
-                                                    }
-                                                )
-                                            },
-                                                function (error, response, body) {
-                                                    if (error) {
+                                            Maid.findOne({ _id: data.stakeholders.received, status: true }).exec((error, maid) => {
+                                                if (error) {
+                                                    callback(null, '');
+                                                } else {
+                                                    if (validate.isNullorEmpty(maid)) {
                                                         callback(null, '');
+                                                    } else {
+                                                        request({
+                                                            method: 'POST',
+                                                            preambleCRLF: true,
+                                                            postambleCRLF: true,
+                                                            uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
+                                                            headers: {
+                                                                'Content-Type': 'application/json',
+                                                                'Ocp-Apim-Subscription-Key': subs_key
+                                                            },
+                                                            body: JSON.stringify(
+                                                                {
+                                                                    url: maid.info.image
+                                                                    // url: result.url
+                                                                    // url: 'http://image.congan.com.vn/thumbnail/CATP-1382-2017-6-2/barack-obama.jpg'
+                                                                }
+                                                            )
+                                                        },
+                                                            function (error, response, body) {
+                                                                if (error) {
+                                                                    callback(null, '');
+                                                                }
+                                                                else {
+                                                                    var data = JSON.parse(body);
+                                                                    if (validate.isNullorEmpty(data)) {
+                                                                        callback(null, '')
+                                                                    } else {
+                                                                        callback(null, data[0].faceId);
+                                                                    }
+                                                                }
+                                                                console.log('FaceId2 successful!  Server responded with:', body);
+                                                            });
                                                     }
-                                                    else {
-                                                        var data = JSON.parse(body);
-                                                        if (validate.isNullorEmpty(data)) {
-                                                            callback(null, '')
-                                                        } else {
-                                                            callback(null, data[0].faceId);
-                                                        }
-                                                    }
-                                                    console.log('FaceId2 successful!  Server responded with:', body);
-                                                });
+                                                }
+                                            })
                                         }
                                     }, (error, data) => {
                                         if (error) {
