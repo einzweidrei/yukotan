@@ -1225,7 +1225,9 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                             cloudinary.uploader.upload(
                                 req.files.image.path,
                                 function (result) {
-                                    let imgUrl = data.stakeholders.owner.info.image;
+                                    let imgUrl = result.url;
+                                    console.log(result)
+                                    // console.log(imgUrl)
                                     async.parallel({
                                         faceId1: function (callback) {
                                             request({
@@ -1269,6 +1271,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                     if (validate.isNullorEmpty(maid)) {
                                                         callback(null, '');
                                                     } else {
+                                                        // console.log(maid.info.image)
                                                         request({
                                                             method: 'POST',
                                                             preambleCRLF: true,
@@ -1305,6 +1308,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                             })
                                         }
                                     }, (error, data) => {
+                                        console.log(data)
                                         if (error) {
                                             return msg.msgReturn(res, 3);
                                         } else {
@@ -1331,6 +1335,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                             return msg.msgReturn(res, 3);
                                                         }
                                                         var item = JSON.parse(body);
+                                                        console.log(item)
 
                                                         if (item.isIdentical) {
                                                             Task.findOneAndUpdate(
