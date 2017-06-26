@@ -55,13 +55,13 @@ router.use(function (req, res, next) {
     }
 });
 
-router.route('/create').post(multipartMiddleware, (req, res) => {
+router.route('/create').post((req, res) => {
     try {
-        var work = new Work();
-
         var nameVi = req.body.nameVi;
         var nameEn = req.body.nameEn;
 
+        var work = new Work();
+        work.image = req.body.image;
         work.status = true;
         work.history.createAt = new Date();
         work.history.updateAt = new Date();
@@ -71,23 +71,10 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
             vi: nameEn
         });
 
-        if (req.files.image) {
-            cloudinary.uploader.upload(
-                req.files.image.path,
-                function (result) {
-                    work.image = result.url;
-                    work.save((error) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        return msg.msgReturn(res, 0);
-                    })
-                })
-        } else {
-            work.image = ''
-            work.save((error) => {
-                if (error) return msg.msgReturn(res, 3);
-                return msg.msgReturn(res, 0);
-            })
-        }
+        work.save((error) => {
+            if (error) return msg.msgReturn(res, 3);
+            return msg.msgReturn(res, 0);
+        })
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
@@ -96,59 +83,30 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
 router.route('/update').put(multipartMiddleware, (req, res) => {
     try {
         var id = req.body.id;
-        var nameVi = req.body.nameVi;
-        var nameEn = req.body.nameEn;
+        var nameVi = req.body.nameVi || '';
+        var nameEn = req.body.nameEn || '';
+        var image = req.body.image || '';
 
-        if (req.files.image) {
-            cloudinary.uploader.upload(
-                req.files.image.path,
-                function (result) {
-                    var image = result.url;
-                    work.save((error) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        Work.findOneAndUpdate(
-                            {
-                                _id: id,
-                                status: true
-                            },
-                            {
-                                $set: {
-                                    name: {
-                                        vi: nameVi,
-                                        en: nameEn
-                                    },
-                                    image: image,
-                                    'history.updateAt': new Date()
-                                }
-                            },
-                            (error) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                return msg.msgReturn(res, 0);
-                            }
-                        )
-                    })
-                })
-        } else {
-            Work.findOneAndUpdate(
-                {
-                    _id: id,
-                    status: true
-                },
-                {
-                    $set: {
-                        name: {
-                            vi: nameVi,
-                            en: nameEn
-                        },
-                        'history.updateAt': new Date()
-                    }
-                },
-                (error) => {
-                    if (error) return msg.msgReturn(res, 3);
-                    return msg.msgReturn(res, 0);
+        Work.findOneAndUpdate(
+            {
+                _id: id,
+                status: true
+            },
+            {
+                $set: {
+                    name: {
+                        vi: nameVi,
+                        en: nameEn
+                    },
+                    image: image,
+                    'history.updateAt': new Date()
                 }
-            )
-        }
+            },
+            (error) => {
+                if (error) return msg.msgReturn(res, 3);
+                return msg.msgReturn(res, 0);
+            }
+        )
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
