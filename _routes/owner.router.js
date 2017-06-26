@@ -1088,11 +1088,11 @@ router.route('/getWallet').get((req, res) => {
 
 router.route('/forgotPassword').post((req, res) => {
     try {
-        // var id = req.cookies.userId;
+        var username = req.body.username;
         var email = req.body.email;
         var verifyToken = randomstring.generate(5) + ':' + randomstring.generate(20);
 
-        Owner.findOne({ 'info.email': email, status: true }).exec((error, data) => {
+        Owner.findOne({ 'info.username': username, 'info.email': email, status: true }).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3)
             } else {
