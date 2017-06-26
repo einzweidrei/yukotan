@@ -1102,49 +1102,5 @@ router.route('/report').post((req, res) => {
     }
 });
 
-router.route('/forgotPassword').post((req, res) => {
-    try {
-        var username = req.body.username;
-        var email = req.body.email;
-        var verifyToken = randomstring.generate(5) + ':' + randomstring.generate(20);
-
-        Maid.findOne({ 'info.username': username, 'info.email': email, status: true }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3)
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4)
-                } else {
-                    Session.findOneAndUpdate(
-                        {
-                            'auth.userId': data._id,
-                            status: true
-                        },
-                        {
-                            $set: {
-                                verification: {
-                                    password: {
-                                        key: verifyToken,
-                                        date: new Date()
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            upsert: true
-                        },
-                        (error) => {
-                            if (error) return msg.msgReturn(res, 3)
-                            return MailService.sendMail(res, data, verifyToken);
-                        }
-                    )
-                }
-            }
-        })
-    } catch (error) {
-        return msg.msgReturn(res, 3)
-    }
-})
-
 
 module.exports = router;

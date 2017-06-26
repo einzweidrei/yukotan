@@ -627,6 +627,95 @@ router.route('/getGV24HInfo').get((req, res) => {
     }
 });
 
+router.route('/maidForgotPassword').post((req, res) => {
+
+    try {
+        var username = req.body.username;
+        var email = req.body.email;
+        var verifyToken = randomstring.generate(5) + ':' + randomstring.generate(20);
+
+        Maid.findOne({ 'info.username': username, 'info.email': email, status: true }).exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3)
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4)
+                } else {
+                    Session.findOneAndUpdate(
+                        {
+                            'auth.userId': data._id,
+                            status: true
+                        },
+                        {
+                            $set: {
+                                verification: {
+                                    password: {
+                                        key: verifyToken,
+                                        date: new Date()
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            upsert: true
+                        },
+                        (error) => {
+                            if (error) return msg.msgReturn(res, 3)
+                            return mailService.sendMail(res, data, verifyToken);
+                        }
+                    )
+                }
+            }
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3)
+    }
+})
+
+router.route('/ownerForgotPassword').post((req, res) => {
+    try {
+        var username = req.body.username;
+        var email = req.body.email;
+        var verifyToken = randomstring.generate(5) + ':' + randomstring.generate(20);
+
+        Owner.findOne({ 'info.username': username, 'info.email': email, status: true }).exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3)
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4)
+                } else {
+                    Session.findOneAndUpdate(
+                        {
+                            'auth.userId': data._id,
+                            status: true
+                        },
+                        {
+                            $set: {
+                                verification: {
+                                    password: {
+                                        key: verifyToken,
+                                        date: new Date()
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            upsert: true
+                        },
+                        (error) => {
+                            if (error) return msg.msgReturn(res, 3)
+                            return mailService.sendMail(res, data, verifyToken);
+                        }
+                    )
+                }
+            }
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3)
+    }
+})
+
 router.route('/updateAbility').post((req, res) => {
     try {
         let ab = req.body.ab;
