@@ -934,7 +934,7 @@ router.route('/statistical').get((req, res) => {
                                 }
                                 callback(null, d);
                             } else {
-                                callback(null, data);
+                                callback(null, data[0]);
                             }
                         }
                     });
@@ -964,6 +964,8 @@ router.route('/statistical').get((req, res) => {
                     });
                 }
             }, (error, result) => {
+                console.log(result)
+
                 if (error) {
                     return msg.msgReturn(res, 3);
                 } else {
