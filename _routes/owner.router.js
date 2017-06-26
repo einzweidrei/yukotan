@@ -1000,6 +1000,8 @@ router.route('/getDebt').get((req, res) => {
             isSolved: false
         }
 
+        let sortQuery = { createAt: -1 };
+
         if (startAt || endAt) {
             const timeQuery = {};
 
@@ -1024,10 +1026,9 @@ router.route('/getDebt').get((req, res) => {
                 $match: billQuery
             },
             {
-                // $group: {
-                //     _id: '$owner',
-                //     tasks: { $push: '$task' }
-                // }
+                $sort: sortQuery
+            },
+            {
                 $project: {
                     _id: 1,
                     task: 1,
