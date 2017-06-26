@@ -1403,7 +1403,6 @@ router.route('/checkout').post((req, res) => {
     try {
         var id = req.body.id;
         var ownerId = req.cookies.userId;
-        // var ownerId = '5911460ae740560cb422ac35';
 
         async.parallel({
             task: function (callback) {
@@ -1435,13 +1434,10 @@ router.route('/checkout').post((req, res) => {
                     });
             }
         }, (error, result) => {
-            console.log(result);
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
                 if (result.task == 0) {
-                    // if (0 === 0) {
-                    console.log('doing')
                     let checkOut = new Date();
                     Task.findOneAndUpdate(
                         {
@@ -1474,102 +1470,83 @@ router.route('/checkout').post((req, res) => {
 
                                 Maid.findOne({ _id: task.stakeholders.received, status: true }).exec((error, maid) => {
                                     if (error) return msg.msgReturn(res, 3);
-                                    if (validate.isNullorEmpty(maid)) return msg.msgReturn(res, 4);
+                                    else if (validate.isNullorEmpty(maid)) return msg.msgReturn(res, 4);
+                                    else {
+                                        if (task.info.package == '000000000000000000000001') {
+                                            bill.price = task.info.price;
 
-                                    if (task.info.package == '000000000000000000000001') {
-                                        bill.price = task.info.price;
+                                            let timeIn = new Date(task.info.time.startAt);
+                                            let timeOut = new Date(task.info.time.endAt);
 
-                                        let timeIn = new Date(task.info.time.startAt);
-                                        let timeOut = new Date(task.info.time.endAt);
+                                            let t = new Date(timeOut.getTime() - timeIn.getTime());
+                                            bill.period = t;
 
-                                        let t = new Date(timeOut.getTime() - timeIn.getTime());
-                                        bill.period = t;
-
-                                        let dt = {
-                                            _id: bill._id,
-                                            period: t,
-                                            price: task.info.price,
-                                            date: new Date()
-                                        }
-
-                                        bill.save((error) => {
-                                            if (error) return msg.msgReturn(res, 3);
-                                            return maid.auth.device_token == '' ?
-                                                msg.msgReturn(res, 17) :
-                                                FCMService.pushNotification(res, maid, req.cookies.language, 5, dt)
-                                        });
-                                    }
-
-                                    if (task.info.package == '000000000000000000000002') {
-
-                                        // console.log(maid);
-                                        if (error) {
-                                            return msg.msgReturn(res, 0);
-                                        } else {
-                                            if (validate.isNullorEmpty(maid)) {
-                                                return msg.msgReturn(res, 4);
-                                            } else {
-                                                let timeIn = new Date(task.check.check_in);
-                                                let timeOut = new Date(checkOut);
-                                                // console.log(timeIn);
-                                                // console.log(timeOut);
-
-                                                let t = new Date(timeOut.getTime() - timeIn.getTime());
-                                                console.log(t);
-
-                                                var price = 0;
-                                                console.log(price);
-
-                                                let maidPrice = maid.work_info.price;
-                                                console.log(maidPrice);
-
-                                                let hours = t.getUTCHours();
-                                                let minutes = t.getUTCMinutes();
-
-                                                if (hours == 0) {
-                                                    price = maidPrice;
-                                                } else {
-                                                    if (minutes >= 0 && minutes < 15) {
-                                                        price = maidPrice * hours + maidPrice / 4;
-                                                    } else if (minutes >= 15 && minutes < 30) {
-                                                        price = maidPrice * hours + maidPrice / 2;
-                                                    } else if (minutes >= 30 && minutes < 45) {
-                                                        price = maidPrice * hours + maidPrice * (3 / 4);
-                                                    } else {
-                                                        price = maidPrice * (hours + 1);
-                                                    }
-                                                }
-                                                // console.log('price: ' + price);
-
-                                                // console.log(maid.work_info.price);
-
-                                                // console.log(t)
-                                                // console.log(period)
-
-                                                bill.period = t;
-                                                bill.price = price;
-
-                                                let dt = {
-                                                    _id: bill._id,
-                                                    period: t,
-                                                    price: price,
-                                                    date: new Date()
-                                                }
-
-                                                bill.save((error) => {
-                                                    console.log(error)
-                                                    if (error) return msg.msgReturn(res, 3);
-                                                    else {
-                                                        return maid.auth.device_token == '' ?
-                                                            msg.msgReturn(res, 17) :
-                                                            FCMService.pushNotification(res, maid, req.cookies.language, 5, dt)
-                                                    }
-                                                    // return msg.msgReturn(res, 0, bill);
-                                                });
+                                            let dt = {
+                                                _id: bill._id,
+                                                period: t,
+                                                price: task.info.price,
+                                                date: new Date()
                                             }
+
+                                            bill.save((error) => {
+                                                if (error) return msg.msgReturn(res, 3);
+                                                return maid.auth.device_token == '' ?
+                                                    msg.msgReturn(res, 17) :
+                                                    FCMService.pushNotification(res, maid, req.cookies.language, 5, dt)
+                                            });
                                         }
-                                    } else {
-                                        return msg.msgReturn(res, 4);
+                                        else if (task.info.package == '000000000000000000000002') {
+                                            if (error) {
+                                                return msg.msgReturn(res, 0);
+                                            } else {
+                                                if (validate.isNullorEmpty(maid)) {
+                                                    return msg.msgReturn(res, 4);
+                                                } else {
+                                                    let timeIn = new Date(task.check.check_in);
+                                                    let timeOut = new Date(checkOut);
+                                                    let t = new Date(timeOut.getTime() - timeIn.getTime());
+                                                    var price = 0;
+                                                    let maidPrice = maid.work_info.price;
+                                                    let hours = t.getUTCHours();
+                                                    let minutes = t.getUTCMinutes();
+
+                                                    if (hours == 0) {
+                                                        price = maidPrice;
+                                                    } else {
+                                                        if (minutes >= 0 && minutes < 15) {
+                                                            price = maidPrice * hours + maidPrice / 4;
+                                                        } else if (minutes >= 15 && minutes < 30) {
+                                                            price = maidPrice * hours + maidPrice / 2;
+                                                        } else if (minutes >= 30 && minutes < 45) {
+                                                            price = maidPrice * hours + maidPrice * (3 / 4);
+                                                        } else {
+                                                            price = maidPrice * (hours + 1);
+                                                        }
+                                                    }
+
+                                                    bill.period = t;
+                                                    bill.price = price;
+
+                                                    let dt = {
+                                                        _id: bill._id,
+                                                        period: t,
+                                                        price: price,
+                                                        date: new Date()
+                                                    }
+
+                                                    bill.save((error) => {
+                                                        if (error) return msg.msgReturn(res, 3);
+                                                        else {
+                                                            return maid.auth.device_token == '' ?
+                                                                msg.msgReturn(res, 17) :
+                                                                FCMService.pushNotification(res, maid, req.cookies.language, 5, dt)
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        } else {
+                                            return msg.msgReturn(res, 4);
+                                        }
                                     }
                                 })
                             }
