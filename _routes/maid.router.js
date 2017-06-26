@@ -1028,7 +1028,7 @@ router.route('/statistical').get((req, res) => {
                                 }
                                 callback(null, d);
                             } else {
-                                callback(null, data);
+                                callback(null, data[0]);
                             }
                         }
                     });
