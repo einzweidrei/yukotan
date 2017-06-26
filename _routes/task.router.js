@@ -175,16 +175,7 @@ router.route('/getAll').post((req, res) => {
         }
 
         if (package) {
-            var arr = new Array();
-            if (package instanceof Array) {
-                for (var i = 0; i < package.length; i++) {
-                    arr.push(new ObjectId(package[i]));
-                }
-
-                matchQuery['info.package'] = {
-                    $in: arr
-                }
-            }
+            matchQuery['info.package'] = new ObjectId(package);
         }
 
         if (work) {

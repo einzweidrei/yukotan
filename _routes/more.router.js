@@ -322,13 +322,6 @@ router.route('/getAllMaids').get((req, res) => {
  *      sortBy: "distance" | "price"
  *      sortType: "asc" | "desc"
  * }
- * 
- * body {
- *      title: String
- *      process: process_ID
- *      package: [ package_ID ]
- *      work: [ work_ID ]
- * }
  */
 router.route('/getTaskAround').get((req, res) => {
     try {
@@ -376,12 +369,6 @@ router.route('/getTaskAround').get((req, res) => {
             status: true
         };
 
-        // if (!process) {
-        //     matchQuery['process'] = new ObjectId('000000000000000000000001');
-        // }
-
-        // console.log(maxDistance)
-
         Task.aggregate([
             {
                 $geoNear: {
@@ -398,11 +385,6 @@ router.route('/getTaskAround').get((req, res) => {
             {
                 $match: matchQuery
             },
-            // {
-            //     $project: {
-            //         dist: 1
-            //     }
-            // },
             {
                 $group: {
                     _id: '$info.work',
@@ -415,7 +397,6 @@ router.route('/getTaskAround').get((req, res) => {
                 $sort: sortQuery
             }
         ], (error, places) => {
-            // return msg.msgReturn(res, 0, places);
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -429,7 +410,6 @@ router.route('/getTaskAround').get((req, res) => {
             }
         });
     } catch (error) {
-        // console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
@@ -760,7 +740,7 @@ router.route('/getContact').get((req, res) => {
 
 router.route('/test1').get((req, res) => {
     try {
-        
+
     } catch (error) {
         console.log(error)
     }
