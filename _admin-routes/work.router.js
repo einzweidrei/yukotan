@@ -67,8 +67,8 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
         work.history.updateAt = new Date();
 
         work.set('name.all', {
-            en: nameVi,
-            vi: nameEn
+            en: nameEn,
+            vi: nameVi
         });
 
         work.save((error) => {
