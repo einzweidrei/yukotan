@@ -81,6 +81,30 @@ router.route('/get').get((req, res) => {
     }
 })
 
+router.route('/getById').get((req, res) => {
+    try {
+        var id = req.query.id;
+        Term.findOne({ _id: id, status: true }).select('name content').exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    var d = {
+                        _id: data._id,
+                        name: data.name,
+                        content: data.get('content.all')
+                    }
+                    return msg.msgReturn(res, 0, d);
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 router.route('/update').put((req, res) => {
     try {
         var id = req.body.id;
