@@ -23,25 +23,24 @@ var multipartMiddleware = multipart();
 
 router.use(multipartMiddleware);
 
-router.use(function (req, res, next) {
-	try {
-		// console.log(mess.msg_success);
-		// console.log(req.cookies);
-		// console.log(hash('123123'))
+router.use(function(req, res, next) {
+    try {
+        // console.log(mess.msg_success);
+        // console.log(req.cookies);
+        // console.log(hash('123123'))
 
-		var baseUrl = req.baseUrl;
-		var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
+        var baseUrl = req.baseUrl;
+        var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
 
-		if (lnService.isValidLanguage(language)) {
-			req.cookies['language'] = language;
-			next();
-		}
-		else {
-			return msg.msgReturn(res, 6);
-		}
-	} catch (error) {
-		return msg.msgReturn(res, 3);
-	}
+        if (lnService.isValidLanguage(language)) {
+            req.cookies['language'] = language;
+            next();
+        } else {
+            return msg.msgReturn(res, 6);
+        }
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
 });
 
 const hash_key = 'LULULUL';
@@ -49,579 +48,561 @@ const hash_key = 'LULULUL';
 const token_length = 64;
 
 function hash(content) {
-	const crypto = require('crypto');
-	const hash = crypto.createHmac('sha256', hash_key)
-		.update(content)
-		.digest('hex');
-	return hash;
+    const crypto = require('crypto');
+    const hash = crypto.createHmac('sha256', hash_key)
+        .update(content)
+        .digest('hex');
+    return hash;
 }
 
 function getToken() {
-	var crypto = require('crypto');
-	var token = crypto.randomBytes(token_length).toString('hex');
-	return token;
+    var crypto = require('crypto');
+    var token = crypto.randomBytes(token_length).toString('hex');
+    return token;
 }
 
 router.route('/login').post((req, res) => {
-	try {
-		var username = req.body.username || "";
-		var password = hash(req.body.password) || "";
-		var device_token = req.body.device_token || "";
+    try {
+        var username = req.body.username || "";
+        var password = hash(req.body.password) || "";
+        var device_token = req.body.device_token || "";
 
-		Owner.findOne({ 'info.username': username }).select('_id info evaluation_point wallet auth').exec((error, data) => {
-			if (validate.isNullorEmpty(data)) {
-				return msg.msgReturn(res, 4, {});
-			} else {
-				if (error) {
-					return msg.msgReturn(res, 3, {});
-				} else {
-					if (data.auth.password != password) {
-						return msg.msgReturn(res, 5, {});
-					} else {
-						Owner.findOneAndUpdate(
-							{
-								_id: data._id,
-								status: true
-							},
-							{
-								$set: {
-									'auth.device_token': device_token
-								}
-							},
-							{
-								upsert: true
-							}, (error) => {
-								if (error) return msg.msgReturn(res, 3, {});
-								else {
-									Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
-										if (error) {
-											return msg.msgReturn(res, 3, {});
-										} else {
-											var newToken = getToken();
+        Owner.findOne({ 'info.username': username }).select('_id info evaluation_point wallet auth').exec((error, data) => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4, {});
+            } else {
+                if (error) {
+                    return msg.msgReturn(res, 3, {});
+                } else {
+                    if (data.auth.password != password) {
+                        return msg.msgReturn(res, 5, {});
+                    } else {
+                        Owner.findOneAndUpdate({
+                            _id: data._id,
+                            status: true
+                        }, {
+                            $set: {
+                                'auth.device_token': device_token
+                            }
+                        }, {
+                            upsert: true
+                        }, (error) => {
+                            if (error) return msg.msgReturn(res, 3, {});
+                            else {
+                                Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
+                                    if (error) {
+                                        return msg.msgReturn(res, 3, {});
+                                    } else {
+                                        var newToken = getToken();
 
-											if (validate.isNullorEmpty(result)) {
-												var session = new Session();
-												session.auth.userId = data._id;
-												session.auth.token = newToken;
-												session.loginAt = new Date();
-												session.auth.device_token = device_token;
-												session.status = true;
+                                        if (validate.isNullorEmpty(result)) {
+                                            var session = new Session();
+                                            session.auth.userId = data._id;
+                                            session.auth.token = newToken;
+                                            session.loginAt = new Date();
+                                            session.auth.device_token = device_token;
+                                            session.status = true;
 
-												session.save((error) => {
-													if (error) {
-														return msg.msgReturn(res, 3, {});
-													} else {
-														var dt = {
-															token: newToken,
-															user: {
-																_id: data._id,
-																info: data.info,
-																evaluation_point: data.evaluation_point,
-																wallet: data.wallet
-															}
-														}
-														return msg.msgReturn(res, 0, dt);
-													}
-												});
-											} else {
-												Session.findOneAndUpdate(
-													{
-														'auth.userId': data._id,
-														status: true
-													},
-													{
-														$set:
-														{
-															'auth.token': newToken,
-															'auth.device_token': device_token,
-															loginAt: new Date()
-														}
-													},
-													{
-														upsert: true
-													},
-													(error, result) => {
-														var dt = {
-															token: newToken,
-															user: {
-																_id: data._id,
-																info: data.info,
-																evaluation_point: data.evaluation_point,
-																wallet: data.wallet
-															}
-														}
-														return msg.msgReturn(res, 0, dt);
-													}
-												)
-											}
-										}
-									});
-								}
-							}
-						)
-					}
-				}
-			}
-		});
-	} catch (error) {
-		return msg.msgReturn(res, 3, {});
-	}
+                                            session.save((error) => {
+                                                if (error) {
+                                                    return msg.msgReturn(res, 3, {});
+                                                } else {
+                                                    var dt = {
+                                                        token: newToken,
+                                                        user: {
+                                                            _id: data._id,
+                                                            info: data.info,
+                                                            evaluation_point: data.evaluation_point,
+                                                            wallet: data.wallet
+                                                        }
+                                                    }
+                                                    return msg.msgReturn(res, 0, dt);
+                                                }
+                                            });
+                                        } else {
+                                            Session.findOneAndUpdate({
+                                                    'auth.userId': data._id,
+                                                    status: true
+                                                }, {
+                                                    $set: {
+                                                        'auth.token': newToken,
+                                                        'auth.device_token': device_token,
+                                                        loginAt: new Date()
+                                                    }
+                                                }, {
+                                                    upsert: true
+                                                },
+                                                (error, result) => {
+                                                    var dt = {
+                                                        token: newToken,
+                                                        user: {
+                                                            _id: data._id,
+                                                            info: data.info,
+                                                            evaluation_point: data.evaluation_point,
+                                                            wallet: data.wallet
+                                                        }
+                                                    }
+                                                    return msg.msgReturn(res, 0, dt);
+                                                }
+                                            )
+                                        }
+                                    }
+                                });
+                            }
+                        })
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3, {});
+    }
 });
 
 router.route('/register').post((req, res) => {
-	try {
-		var owner = new Owner();
+    try {
+        var owner = new Owner();
 
-		owner.info = {
-			username: req.body.username || "",
-			email: req.body.email || "",
-			phone: req.body.phone || "",
-			name: req.body.name || "",
-			age: req.body.age || 18,
-			address: {
-				name: req.body.addressName || "",
-				coordinates: {
-					lat: req.body.lat || 0,
-					lng: req.body.lng || 0
-				}
-			},
-			gender: req.body.gender || 0,
-		};
+        owner.info = {
+            username: req.body.username || "",
+            email: req.body.email || "",
+            phone: req.body.phone || "",
+            name: req.body.name || "",
+            age: req.body.age || 18,
+            address: {
+                name: req.body.addressName || "",
+                coordinates: {
+                    lat: req.body.lat || 0,
+                    lng: req.body.lng || 0
+                }
+            },
+            gender: req.body.gender || 0,
+        };
 
-		owner.evaluation_point = 2.5;
+        owner.evaluation_point = 2.5;
 
-		owner.wallet = 0;
+        owner.wallet = 0;
 
-		owner.auth = {
-			password: hash(req.body.password),
-			device_token: req.body.device_token
-		};
+        owner.auth = {
+            password: hash(req.body.password),
+            device_token: req.body.device_token
+        };
 
-		owner.history = {
-			createAt: new Date(),
-			updateAt: new Date()
-		};
+        owner.history = {
+            createAt: new Date(),
+            updateAt: new Date()
+        };
 
-		owner.status = true;
+        owner.status = true;
 
-		owner.location = {
-			type: 'Point',
-			coordinates: [req.body.lng, req.body.lat]
-		};
+        owner.location = {
+            type: 'Point',
+            coordinates: [req.body.lng, req.body.lat]
+        };
 
-		Owner.findOne({ $or: [{ 'info.username': req.body.username }, { 'info.email': req.body.email }] }).exec((error, data) => {
-			if (validate.isNullorEmpty(data)) {
-				if (!req.files.image) {
-					owner.info.image = "";
-					owner.save((error, data) => {
-						if (error) {
-							return msg.msgReturn(res, 3);
-						} else {
-							var session = new Session();
-							session.auth.userId = data._id;
-							session.auth.token = getToken();
-							session.loginAt = new Date();
-							session.status = true;
+        Owner.findOne({ $or: [{ 'info.username': req.body.username }, { 'info.email': req.body.email }] }).exec((error, data) => {
+            if (validate.isNullorEmpty(data)) {
+                if (!req.files.image) {
+                    owner.info.image = "";
+                    owner.save((error, data) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            var session = new Session();
+                            session.auth.userId = data._id;
+                            session.auth.token = getToken();
+                            session.loginAt = new Date();
+                            session.status = true;
 
-							session.save((error) => {
-								if (error) {
-									return msg.msgReturn(res, 3);
-								} else {
-									var dt = {
-										token: session.auth.token,
-										user: {
-											_id: data._id,
-											info: data.info,
-											evaluation_point: data.evaluation_point,
-											wallet: data.wallet
-										}
-									};
-									return msg.msgReturn(res, 0, dt);
-								}
-							});
-						}
-					});
-				} else {
-					cloudinary.uploader.upload(
-						req.files.image.path,
-						function (result) {
-							owner.info.image = result.url;
-							owner.save((error, data) => {
-								if (error) {
-									return msg.msgReturn(res, 3);
-								} else {
-									var session = new Session();
-									session.auth.userId = data._id;
-									session.auth.token = getToken();
-									session.loginAt = new Date();
-									session.status = true;
+                            session.save((error) => {
+                                if (error) {
+                                    return msg.msgReturn(res, 3);
+                                } else {
+                                    var dt = {
+                                        token: session.auth.token,
+                                        user: {
+                                            _id: data._id,
+                                            info: data.info,
+                                            evaluation_point: data.evaluation_point,
+                                            wallet: data.wallet
+                                        }
+                                    };
+                                    return msg.msgReturn(res, 0, dt);
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    cloudinary.uploader.upload(
+                        req.files.image.path,
+                        function(result) {
+                            owner.info.image = result.url;
+                            owner.save((error, data) => {
+                                if (error) {
+                                    return msg.msgReturn(res, 3);
+                                } else {
+                                    var session = new Session();
+                                    session.auth.userId = data._id;
+                                    session.auth.token = getToken();
+                                    session.loginAt = new Date();
+                                    session.status = true;
 
-									session.save((error) => {
-										if (error) {
-											return msg.msgReturn(res, 3);
-										} else {
-											var dt = {
-												token: session.auth.token,
-												user: {
-													_id: data._id,
-													info: data.info,
-													evaluation_point: data.evaluation_point,
-													wallet: data.wallet
-												}
-											};
-											return msg.msgReturn(res, 0, dt);
-										}
-									});
-								}
-							});
-						}
-					)
-				}
-			} else {
-				return msg.msgReturn(res, 2, {});
-			}
-		})
-	} catch (error) {
-		return msg.msgReturn(res, 3);
-	}
+                                    session.save((error) => {
+                                        if (error) {
+                                            return msg.msgReturn(res, 3);
+                                        } else {
+                                            var dt = {
+                                                token: session.auth.token,
+                                                user: {
+                                                    _id: data._id,
+                                                    info: data.info,
+                                                    evaluation_point: data.evaluation_point,
+                                                    wallet: data.wallet
+                                                }
+                                            };
+                                            return msg.msgReturn(res, 0, dt);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    )
+                }
+            } else {
+                return msg.msgReturn(res, 2, {});
+            }
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
 });
 
 router.route('/check').get((req, res) => {
-	try {
-		var username = req.query.username;
-		Owner.findOne({ 'info.username': username }).exec((error, data) => {
-			if (error) {
-				return msg.msgReturn(res, 3);
-			} else {
-				if (validate.isNullorEmpty(data)) {
-					return msg.msgReturn(res, 4);
-				} else {
-					return msg.msgReturn(res, 2);
-				}
-			}
-		});
-	} catch (error) {
-		return msg.msgReturn(res, 3);
-	}
+    try {
+        var username = req.query.username;
+        Owner.findOne({ 'info.username': username }).exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    return msg.msgReturn(res, 2);
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
 });
 
 router.route('/maid/login').post((req, res) => {
-	try {
-		var username = req.body.username || "";
-		var password = hash(req.body.password) || "";
-		var device_token = req.body.device_token || "";
+    try {
+        var username = req.body.username || "";
+        var password = hash(req.body.password) || "";
+        var device_token = req.body.device_token || "";
 
-		Maid.findOne({ 'info.username': username })
-			.populate({ path: 'work_info.ability', select: 'name image' })
-			// .select('info work_info')
-			.select('_id info work_info auth').exec((error, data) => {
-				if (validate.isNullorEmpty(data)) {
-					return msg.msgReturn(res, 3);
-				} else {
-					if (error) {
-						return msg.msgReturn(res, 3);
-					} else {
-						if (data.auth.password != password) {
-							return msg.msgReturn(res, 5);
-						} else {
-							Maid.findOneAndUpdate(
-								{
-									_id: data._id,
-									status: true
-								},
-								{
-									$set: {
-										'auth.device_token': device_token
-									}
-								},
-								{
-									upsert: true
-								}, (error) => {
-									if (error) return msg.msgReturn(res, 3, {});
-									else {
-										Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
-											if (error) {
-												return msg.msgReturn(res, 3);
-											} else {
-												var newToken = getToken();
+        Maid.findOne({ 'info.username': username })
+            .populate({ path: 'work_info.ability', select: 'name image' })
+            .select('_id info work_info auth').exec((error, data) => {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (data.auth.password != password) {
+                            return msg.msgReturn(res, 5);
+                        } else {
+                            Maid.findOneAndUpdate({
+                                _id: data._id,
+                                status: true
+                            }, {
+                                $set: {
+                                    'auth.device_token': device_token
+                                }
+                            }, {
+                                upsert: true
+                            }, (error) => {
+                                if (error) return msg.msgReturn(res, 3, {});
+                                else {
+                                    Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
+                                        if (error) {
+                                            return msg.msgReturn(res, 3);
+                                        } else {
+                                            var newToken = getToken();
 
-												if (validate.isNullorEmpty(result)) {
-													var session = new Session();
-													session.auth.userId = data._id;
-													session.auth.token = newToken;
-													session.loginAt = new Date();
-													session.auth.device_token = device_token;
-													session.status = true;
+                                            var d = {
+                                                token: newToken,
+                                                user: {
+                                                    _id: data._id,
+                                                    info: data.info,
+                                                    work_info: data.work_info
+                                                }
+                                            }
 
-													session.save((error) => {
-														if (error) {
-															return msg.msgReturn(res, 3);
-														} else {
-															return res.status(200).json({
-																status: true,
-																message: msg.msg_success,
-																data: {
-																	token: newToken,
-																	user: {
-																		_id: data._id,
-																		info: data.info,
-																		work_info: data.work_info
-																	}
-																}
-															});
-														}
-													});
-												} else {
-													Session.findOneAndUpdate(
-														{
-															'auth.userId': data._id,
-															status: true
-														},
-														{
-															$set:
-															{
-																'auth.token': newToken,
-																'auth.device_token': device_token,
-																loginAt: new Date()
-															}
-														},
-														{
-															upsert: true
-														},
-														(error, result) => {
-															return res.status(200).json({
-																status: true,
-																message: msg.msg_success,
-																data: {
-																	token: newToken,
-																	user: {
-																		_id: data._id,
-																		info: data.info,
-																		work_info: data.work_info
-																	}
-																}
-															});
-														}
-													)
-												}
-											}
-										});
-									}
-								}
-							)
-						}
-					}
-				}
-			});
-	} catch (error) {
-		console.log(error);
-		return msg.msgReturn(res, 3);
-	}
+                                            if (validate.isNullorEmpty(result)) {
+                                                var session = new Session();
+                                                session.auth.userId = data._id;
+                                                session.auth.token = newToken;
+                                                session.loginAt = new Date();
+                                                session.auth.device_token = device_token;
+                                                session.status = true;
+                                                session.save((error) => {
+                                                    if (error) return msg.msgReturn(res, 3);
+                                                    return msg.msgReturn(res, 0, d);
+
+                                                    // return res.status(200).json({
+                                                    //     status: true,
+                                                    //     message: msg.msg_success,
+                                                    //     data: {
+                                                    //         token: newToken,
+                                                    //         user: {
+                                                    //             _id: data._id,
+                                                    //             info: data.info,
+                                                    //             work_info: data.work_info
+                                                    //         }
+                                                    //     }
+                                                    // });
+
+                                                });
+                                            } else {
+                                                Session.findOneAndUpdate({
+                                                        'auth.userId': data._id,
+                                                        status: true
+                                                    }, {
+                                                        $set: {
+                                                            'auth.token': newToken,
+                                                            'auth.device_token': device_token,
+                                                            loginAt: new Date()
+                                                        }
+                                                    }, {
+                                                        upsert: true
+                                                    },
+                                                    (error) => {
+                                                        if (error) return msg.msgReturn(res, 3);
+                                                        return msg.msgReturn(res, 0, d);
+
+                                                        // return res.status(200).json({
+                                                        //     status: true,
+                                                        //     message: msg.msg_success,
+                                                        //     data: {
+                                                        //         token: newToken,
+                                                        //         user: {
+                                                        //             _id: data._id,
+                                                        //             info: data.info,
+                                                        //             work_info: data.work_info
+                                                        //         }
+                                                        //     }
+                                                        // });
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    });
+                                }
+                            })
+                        }
+                    }
+                }
+            });
+    } catch (error) {
+        return msg.msgReturn(res, 3, {});
+    }
 });
 
 function remakeId(n) {
-	while (n.length < 24) {
-		n += '0'
-	}
-	return n
+    while (n.length < 24) {
+        n += '0'
+    }
+    return n
 }
 
 router.route('/thirdLogin').post((req, res) => {
-	try {
-		var id = req.body.id;
-		var token = req.body.token;
-		var device_token = req.body.device_token;
-		var realId = remakeId(id);
+    try {
+        var id = req.body.id;
+        var token = req.body.token;
+        var device_token = req.body.device_token;
+        var realId = remakeId(id);
 
-		console.log('here')
+        Owner.findOne({ _id: realId, status: true }).exec((error, data) => {
+            if (error) return msg.msgReturn(res, 3, {})
+            else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4, {})
+                } else {
+                    Owner.findOneAndUpdate({
+                        _id: data._id,
+                        status: true
+                    }, {
+                        $set: {
+                            'auth.device_token': device_token
+                        }
+                    }, {
+                        upsert: true
+                    }, (error) => {
+                        Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
+                            if (error) {
+                                return msg.msgReturn(res, 3, {});
+                            } else {
+                                console.log('here')
+                                if (validate.isNullorEmpty(result)) {
+                                    var session = new Session();
+                                    session.auth.userId = data._id;
+                                    session.auth.token = token;
+                                    session.loginAt = new Date();
+                                    session.status = true;
 
-		Owner.findOne({ _id: realId, status: true }).exec((error, data) => {
-			if (error) return msg.msgReturn(res, 3, {})
-			else {
-				if (validate.isNullorEmpty(data)) {
-					return msg.msgReturn(res, 4, {})
-				} else {
-					console.log('here')
-					Owner.findOneAndUpdate(
-						{
-							_id: data._id,
-							status: true
-						},
-						{
-							$set: {
-								'auth.device_token': device_token
-							}
-						},
-						{
-							upsert: true
-						}, (error) => {
-							Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
-								if (error) {
-									return msg.msgReturn(res, 3, {});
-								} else {
-									console.log('here')
-									if (validate.isNullorEmpty(result)) {
-										var session = new Session();
-										session.auth.userId = data._id;
-										session.auth.token = token;
-										session.loginAt = new Date();
-										session.status = true;
+                                    // console.log(session)
 
-										// console.log(session)
+                                    session.save((error) => {
+                                        if (error) {
+                                            return msg.msgReturn(res, 3, {});
+                                        } else {
+                                            var dt = {
+                                                token: token,
+                                                user: {
+                                                    _id: data._id,
+                                                    info: data.info,
+                                                    evaluation_point: data.evaluation_point,
+                                                    wallet: data.wallet
+                                                }
+                                            };
 
-										session.save((error) => {
-											if (error) {
-												return msg.msgReturn(res, 3, {});
-											} else {
-												var dt = {
-													token: token,
-													user: {
-														_id: data._id,
-														info: data.info,
-														evaluation_point: data.evaluation_point,
-														wallet: data.wallet
-													}
-												};
+                                            return msg.msgReturn(res, 0, dt);
+                                        }
+                                    });
+                                } else {
+                                    Session.findOneAndUpdate({
+                                            'auth.userId': data._id,
+                                            status: true
+                                        }, {
+                                            $set: {
+                                                'auth.token': token,
+                                                // 'auth.device_token': device_token,
+                                                loginAt: new Date()
+                                            }
+                                        }, {
+                                            upsert: true
+                                        },
+                                        (error, result) => {
+                                            if (error) return msg.msgReturn(res, 3, {});
+                                            var dt = {
+                                                token: token,
+                                                user: {
+                                                    _id: data._id,
+                                                    info: data.info,
+                                                    evaluation_point: data.evaluation_point,
+                                                    wallet: data.wallet
+                                                }
+                                            };
 
-												return msg.msgReturn(res, 0, dt);
-											}
-										});
-									} else {
-										Session.findOneAndUpdate(
-											{
-												'auth.userId': data._id,
-												status: true
-											},
-											{
-												$set:
-												{
-													'auth.token': token,
-													// 'auth.device_token': device_token,
-													loginAt: new Date()
-												}
-											},
-											{
-												upsert: true
-											},
-											(error, result) => {
-												if (error) return msg.msgReturn(res, 3, {});
-												var dt = {
-													token: token,
-													user: {
-														_id: data._id,
-														info: data.info,
-														evaluation_point: data.evaluation_point,
-														wallet: data.wallet
-													}
-												};
-
-												return msg.msgReturn(res, 0, dt);
-											}
-										)
-									}
-								}
-							});
-						}
-					)
-				}
-			}
-		})
-	} catch (error) {
-		console.log(error)
-		return msg.msgReturn(res, 3, {});
-	}
+                                            return msg.msgReturn(res, 0, dt);
+                                        }
+                                    )
+                                }
+                            }
+                        });
+                    })
+                }
+            }
+        })
+    } catch (error) {
+        console.log(error)
+        return msg.msgReturn(res, 3, {});
+    }
 })
 
 router.route('/thirdRegister').post((req, res) => {
-	try {
-		var id = req.body.id;
-		var token = req.body.token;
-		var device_token = req.body.device_token;
-		// var email = req.body.email;
+    try {
+        var id = req.body.id;
+        var token = req.body.token;
+        var device_token = req.body.device_token;
+        // var email = req.body.email;
 
-		realId = remakeId(id)
+        realId = remakeId(id)
 
-		var owner = new Owner();
-		owner._id = new ObjectId(realId)
+        var owner = new Owner();
+        owner._id = new ObjectId(realId)
 
-		owner.info = {
-			username: req.body.username || "",
-			email: req.body.email || "",
-			phone: req.body.phone || "",
-			name: req.body.name || "",
-			age: req.body.age || 18,
-			address: {
-				name: req.body.addressName || "",
-				coordinates: {
-					lat: req.body.lat || 0,
-					lng: req.body.lng || 0
-				}
-			},
-			gender: req.body.gender || 0,
-			image: req.body.image || ""
-		};
+        owner.info = {
+            username: req.body.username || "",
+            email: req.body.email || "",
+            phone: req.body.phone || "",
+            name: req.body.name || "",
+            age: req.body.age || 18,
+            address: {
+                name: req.body.addressName || "",
+                coordinates: {
+                    lat: req.body.lat || 0,
+                    lng: req.body.lng || 0
+                }
+            },
+            gender: req.body.gender || 0,
+            image: req.body.image || ""
+        };
 
-		owner.evaluation_point = 2.5;
+        owner.evaluation_point = 2.5;
 
-		owner.wallet = 0;
+        owner.wallet = 0;
 
-		owner.auth = {
-			device_token: device_token
-		}
+        owner.auth = {
+            device_token: device_token
+        }
 
-		owner.history = {
-			createAt: new Date(),
-			updateAt: new Date()
-		};
+        owner.history = {
+            createAt: new Date(),
+            updateAt: new Date()
+        };
 
-		owner.status = true;
+        owner.status = true;
 
-		owner.location = {
-			type: 'Point',
-			coordinates: [req.body.lng, req.body.lat]
-		};
+        owner.location = {
+            type: 'Point',
+            coordinates: [req.body.lng, req.body.lat]
+        };
 
-		Owner.findOne({ $or: [{ _id: realId }, { 'info.email': req.body.email }], status: true }).exec((error, data) => {
-			if (error) return msg.msgReturn(res, 3, {})
-			else {
-				if (validate.isNullorEmpty(data)) {
-					owner.save((error, data) => {
-						if (error) {
-							return msg.msgReturn(res, 3, {});
-						} else {
-							var session = new Session();
-							session.auth.userId = data._id;
-							session.auth.token = token;
-							session.loginAt = new Date();
-							session.status = true;
+        Owner.findOne({ $or: [{ _id: realId }, { 'info.email': req.body.email }], status: true }).exec((error, data) => {
+            if (error) return msg.msgReturn(res, 3, {})
+            else {
+                if (validate.isNullorEmpty(data)) {
+                    owner.save((error, data) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3, {});
+                        } else {
+                            var session = new Session();
+                            session.auth.userId = data._id;
+                            session.auth.token = token;
+                            session.loginAt = new Date();
+                            session.status = true;
 
-							session.save((error) => {
-								if (error) {
-									return msg.msgReturn(res, 3, {});
-								} else {
-									var dt = {
-										token: session.auth.token,
-										user: {
-											_id: data._id,
-											info: data.info,
-											evaluation_point: data.evaluation_point,
-											wallet: data.wallet
-										}
-									};
-									return msg.msgReturn(res, 0, dt);
-								}
-							});
-						}
-					});
-				} else {
-					return msg.msgReturn(res, 2, {});
-				}
-			}
-		})
-	} catch (error) {
-		// console.log(error)
-		return msg.msgReturn(res, 3)
-	}
+                            session.save((error) => {
+                                if (error) {
+                                    return msg.msgReturn(res, 3, {});
+                                } else {
+                                    var dt = {
+                                        token: session.auth.token,
+                                        user: {
+                                            _id: data._id,
+                                            info: data.info,
+                                            evaluation_point: data.evaluation_point,
+                                            wallet: data.wallet
+                                        }
+                                    };
+                                    return msg.msgReturn(res, 0, dt);
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    return msg.msgReturn(res, 2, {});
+                }
+            }
+        })
+    } catch (error) {
+        // console.log(error)
+        return msg.msgReturn(res, 3)
+    }
 })
 
 /** POST - Create Maid's Information
@@ -648,80 +629,80 @@ router.route('/thirdRegister').post((req, res) => {
  * }
  */
 router.route('/maid/register').post((req, res) => {
-	try {
-		var maid = new Maid();
+    try {
+        var maid = new Maid();
 
-		maid.info = {
-			username: req.body.username || "",
-			email: req.body.email || "",
-			phone: req.body.phone || "",
-			name: req.body.name || "",
-			age: req.body.age || 18,
-			address: {
-				name: req.body.addressName || "",
-				coordinates: {
-					lat: req.body.lat || 0,
-					lng: req.body.lng || 0
-				}
-			},
-			gender: req.body.gender || 0,
-		};
+        maid.info = {
+            username: req.body.username || "",
+            email: req.body.email || "",
+            phone: req.body.phone || "",
+            name: req.body.name || "",
+            age: req.body.age || 18,
+            address: {
+                name: req.body.addressName || "",
+                coordinates: {
+                    lat: req.body.lat || 0,
+                    lng: req.body.lng || 0
+                }
+            },
+            gender: req.body.gender || 0,
+        };
 
-		// maid.evaluation_point = 0;
+        // maid.evaluation_point = 0;
 
-		maid.work_info = {
-			evaluation_point: 0,
-			price: 0
-		};
+        maid.work_info = {
+            evaluation_point: 0,
+            price: 0
+        };
 
-		maid.auth = {
-			password: hash(req.body.password),
-			device_token: req.body.device_token
-		};
+        maid.auth = {
+            password: hash(req.body.password),
+            device_token: req.body.device_token
+        };
 
-		maid.history = {
-			createAt: new Date(),
-			updateAt: new Date()
-		};
+        maid.history = {
+            createAt: new Date(),
+            updateAt: new Date()
+        };
 
-		maid.status = true;
+        maid.status = true;
 
-		maid.location = {
-			type: 'Point',
-			coordinates: [req.body.lng, req.body.lat]
-		};
+        maid.location = {
+            type: 'Point',
+            coordinates: [req.body.lng, req.body.lat]
+        };
 
-		Maid.findOne({ 'info.username': req.body.username }).exec((error, data) => {
-			if (error) {
-				return msg.msgReturn(res, 3);
-			} else {
-				if (validate.isNullorEmpty(data)) {
-					if (!req.files.image) {
-						maid.info['image'] = req.body.image || "";
-						maid.save((error) => {
-							if (error) return msg.msgReturn(res, 3);
-							return msg.msgReturn(res, 0);
-						});
-					} else {
-						cloudinary.uploader.upload(
-							req.files.image.path,
-							function (result) {
-								maid.info['image'] = result.url;
-								maid.save((error) => {
-									if (error) return msg.msgReturn(res, 3);
-									return msg.msgReturn(res, 0);
-								});
-							});
-					}
-				} else {
-					return msg.msgReturn(res, 2);
-				}
-			}
-		});
-	} catch (error) {
-		console.log(error);
-		return msg.msgReturn(res, 3);
-	}
+        Maid.findOne({ 'info.username': req.body.username }).exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    if (!req.files.image) {
+                        maid.info['image'] = req.body.image || "";
+                        maid.save((error) => {
+                            if (error) return msg.msgReturn(res, 3);
+                            return msg.msgReturn(res, 0);
+                        });
+                    } else {
+                        cloudinary.uploader.upload(
+                            req.files.image.path,
+                            function(result) {
+                                maid.info['image'] = result.url;
+                                maid.save((error) => {
+                                    if (error) return msg.msgReturn(res, 3);
+                                    return msg.msgReturn(res, 0);
+                                });
+                            });
+                    }
+                } else {
+                    return msg.msgReturn(res, 2);
+                }
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        return msg.msgReturn(res, 3);
+    }
 });
 
 /** PUT - Update Maid's Information
@@ -749,100 +730,94 @@ router.route('/maid/register').post((req, res) => {
  * }
  */
 router.route('/maid/update').put((req, res) => {
-	try {
-		var id = req.body.id;
+    try {
+        var id = req.body.id;
 
-		var maid = new Maid();
-		maid.info = {
-			username: req.body.username || "",
-			email: req.body.email || "",
-			phone: req.body.phone || "",
-			name: req.body.name || "",
-			age: req.body.age || 18,
-			address: {
-				name: req.body.addressName || "",
-				coordinates: {
-					lat: req.body.lat || 0,
-					lng: req.body.lng || 0
-				}
-			},
-			gender: req.body.gender || 0,
-		};
+        var maid = new Maid();
+        maid.info = {
+            username: req.body.username || "",
+            email: req.body.email || "",
+            phone: req.body.phone || "",
+            name: req.body.name || "",
+            age: req.body.age || 18,
+            address: {
+                name: req.body.addressName || "",
+                coordinates: {
+                    lat: req.body.lat || 0,
+                    lng: req.body.lng || 0
+                }
+            },
+            gender: req.body.gender || 0,
+        };
 
-		maid.work_info = {
-			ability: req.body.ability,
-			price: 0
-		};
+        maid.work_info = {
+            ability: req.body.ability,
+            price: 0
+        };
 
-		maid.location = {
-			type: 'Point',
-			coordinates: [req.body.lng, req.body.lat]
-		};
+        maid.location = {
+            type: 'Point',
+            coordinates: [req.body.lng, req.body.lat]
+        };
 
-		Maid.findOne({ _id: id }).exec((error, data) => {
-			if (error) {
-				return msg.msgReturn(res, 3);
-			} else {
-				if (validate.isNullorEmpty(data)) {
-					return msg.msgReturn(res, 4);
-				} else {
-					if (!req.files.image) {
-						maid.info['image'] = req.body.image || "";
-						Maid.findOneAndUpdate(
-							{
-								_id: id,
-								status: true
-							},
-							{
-								$set: {
-									info: maid.info,
-									work_info: maid.work_info,
-									location: maid.location,
-									'history.updateAt': new Date()
-								}
-							},
-							{
-								upsert: true
-							},
-							(error, result) => {
-								if (error) return msg.msgReturn(res, 3);
-								return msg.msgReturn(res, 0);
-							}
-						);
-					} else {
-						cloudinary.uploader.upload(
-							req.files.image.path,
-							function (result) {
-								maid.info['image'] = result.url;
-								Maid.findOneAndUpdate(
-									{
-										_id: id,
-										status: true
-									},
-									{
-										$set: {
-											info: maid.info,
-											work_info: maid.work_info,
-											location: maid.location,
-											'history.updateAt': new Date()
-										}
-									},
-									{
-										upsert: true
-									},
-									(error, result) => {
-										if (error) return msg.msgReturn(res, 3);
-										return msg.msgReturn(res, 0);
-									}
-								);
-							});
-					}
-				}
-			}
-		});
-	} catch (error) {
-		return msg.msgReturn(res, 3);
-	}
+        Maid.findOne({ _id: id }).exec((error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                } else {
+                    if (!req.files.image) {
+                        maid.info['image'] = req.body.image || "";
+                        Maid.findOneAndUpdate({
+                                _id: id,
+                                status: true
+                            }, {
+                                $set: {
+                                    info: maid.info,
+                                    work_info: maid.work_info,
+                                    location: maid.location,
+                                    'history.updateAt': new Date()
+                                }
+                            }, {
+                                upsert: true
+                            },
+                            (error, result) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                return msg.msgReturn(res, 0);
+                            }
+                        );
+                    } else {
+                        cloudinary.uploader.upload(
+                            req.files.image.path,
+                            function(result) {
+                                maid.info['image'] = result.url;
+                                Maid.findOneAndUpdate({
+                                        _id: id,
+                                        status: true
+                                    }, {
+                                        $set: {
+                                            info: maid.info,
+                                            work_info: maid.work_info,
+                                            location: maid.location,
+                                            'history.updateAt': new Date()
+                                        }
+                                    }, {
+                                        upsert: true
+                                    },
+                                    (error, result) => {
+                                        if (error) return msg.msgReturn(res, 3);
+                                        return msg.msgReturn(res, 0);
+                                    }
+                                );
+                            });
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
 });
 
 module.exports = router;

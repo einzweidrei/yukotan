@@ -49,8 +49,8 @@ function hash(content) {
     return hash;
 }
 
-router.use(function (req, res, next) {
-    console.log('package_router is connecting');
+router.use(function(req, res, next) {
+    console.log('more_router is connecting');
 
     try {
         var baseUrl = req.baseUrl;
@@ -59,8 +59,7 @@ router.use(function (req, res, next) {
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
             next();
-        }
-        else {
+        } else {
             return msg.msgReturn(res, 6);
         }
     } catch (error) {
@@ -113,24 +112,21 @@ router.route('/resetPassword').post((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    Owner.findOneAndUpdate(
-                        {
+                    Owner.findOneAndUpdate({
                             'info.username': username,
                             'info.email': email
-                        },
-                        {
+                        }, {
                             $set: {
                                 'auth.password': hashPw
                             }
-                        },
-                        {
+                        }, {
                             upsert: true
                         },
                         (error) => {
                             if (error) {
                                 return msg.msgReturn(res, 3);
                             } else {
-                                mailService.resetPassword(email, newPw, res);
+                                return mailService.resetPassword(email, newPw, res);
 
                                 // console.log(mailService.resetPassword(email, newPw));
                                 // if (boolean) return msg.msgReturn(res, 0);
@@ -258,8 +254,7 @@ router.route('/getAllMaids').get((req, res) => {
             matchQuery['info.gender'] = parseFloat(gender);
         }
 
-        Maid.aggregate([
-            {
+        Maid.aggregate([{
                 $geoNear: {
                     near: loc,
                     distanceField: 'dist.calculated',
@@ -369,8 +364,7 @@ router.route('/getTaskAround').get((req, res) => {
             status: true
         };
 
-        Task.aggregate([
-            {
+        Task.aggregate([{
                 $geoNear: {
                     near: loc,
                     distanceField: 'dist.calculated',
@@ -507,8 +501,7 @@ router.route('/getTaskByWork').get((req, res) => {
             matchQuery['info.title'] = new RegExp(title, 'i');
         }
 
-        Task.aggregate([
-            {
+        Task.aggregate([{
                 $geoNear: {
                     near: loc,
                     distanceField: 'dist.calculated',
@@ -533,6 +526,7 @@ router.route('/getTaskByWork').get((req, res) => {
                 }
             }
         ], (error, places) => {
+            console.log(places)
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -635,12 +629,10 @@ router.route('/maidForgotPassword').post((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4)
                 } else {
-                    Session.findOneAndUpdate(
-                        {
+                    Session.findOneAndUpdate({
                             'auth.userId': data._id,
                             status: true
-                        },
-                        {
+                        }, {
                             $set: {
                                 verification: {
                                     password: {
@@ -649,8 +641,7 @@ router.route('/maidForgotPassword').post((req, res) => {
                                     }
                                 }
                             }
-                        },
-                        {
+                        }, {
                             upsert: true
                         },
                         (error) => {
@@ -679,12 +670,10 @@ router.route('/ownerForgotPassword').post((req, res) => {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4)
                 } else {
-                    Session.findOneAndUpdate(
-                        {
+                    Session.findOneAndUpdate({
                             'auth.userId': data._id,
                             status: true
-                        },
-                        {
+                        }, {
                             $set: {
                                 verification: {
                                     password: {
@@ -693,8 +682,7 @@ router.route('/ownerForgotPassword').post((req, res) => {
                                     }
                                 }
                             }
-                        },
-                        {
+                        }, {
                             upsert: true
                         },
                         (error) => {
@@ -723,17 +711,14 @@ router.route('/updateAbility').post((req, res) => {
             })
         }
 
-        Maid.findOneAndUpdate(
-            {
+        Maid.findOneAndUpdate({
                 _id: id,
                 status: true
-            },
-            {
+            }, {
                 $set: {
                     'work_info.ability': maid.work_info.ability
                 }
-            },
-            {
+            }, {
                 upsert: true
             },
             (error) => {
@@ -750,7 +735,7 @@ router.route('/getMaidInfo').get((req, res) => {
         var id = '5923c12f7d7da13b240e7322'
 
         Maid
-            // .find({ status: true })
+        // .find({ status: true })
             .findOne({ _id: id, status: true })
             .populate({ path: 'work_info.ability', select: 'name image' })
             .select('info work_info')
