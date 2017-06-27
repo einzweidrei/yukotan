@@ -84,6 +84,28 @@ router.route('/checkToken').get((req, res) => {
     }
 })
 
+router.route('/getAbility').get((req, res) => {
+    try {
+        var id = req.cookies.userId;
+
+        Maid.findOne({ _id: id, status: true })
+            .populate({ path: 'work_info.ability', select: 'name image' })
+            .select('work_info.ability').exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        return msg.msgReturn(res, 0, data.work_info.ability);
+                    }
+                }
+            });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
 /** GET - Get Maid By Maid ID
  * info {
  *      type: GET
@@ -104,19 +126,19 @@ router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
 
-        Maid.findOne({ _id: id }).select('-status -location -__v').exec((error, data) => {
+        Maid.findOne({ _id: id, status: true }).select('-status -location -__v').exec((error, data) => {
             if (error) {
-                return msg.msgReturn(res, 3);
+                return msg.msgReturn(res, 3, {});
             } else {
                 if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
+                    return msg.msgReturn(res, 4, {});
                 } else {
                     return msg.msgReturn(res, 0, data);
                 }
             }
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, 3, {});
     }
 });
 
