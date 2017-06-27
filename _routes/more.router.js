@@ -443,7 +443,7 @@ router.route('/getTaskAround').get((req, res) => {
  */
 router.route('/getTaskByWork').get((req, res) => {
     try {
-        var minDistance = req.query.minDistance || 1;
+        var minDistance = req.query.minDistance || 0;
         var maxDistance = req.query.maxDistance || 5;
         var limit = req.query.limit || 20;
         var page = req.query.page || 1;
@@ -523,12 +523,6 @@ router.route('/getTaskByWork').get((req, res) => {
             {
                 $sort: sortQuery
             },
-            // {
-            //     $limit: parseFloat(limit)
-            // },
-            // {
-            //     $skip: skip
-            // },
             {
                 $project: {
                     process: 1,
