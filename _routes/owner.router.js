@@ -52,7 +52,7 @@ router.use(bodyparser.json());
 /** Middle Ware
  * 
  */
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     console.log('owner_router is connecting');
 
     try {
@@ -83,8 +83,7 @@ router.use(function (req, res, next) {
             } else {
                 return msg.msgReturn(res, 14);
             }
-        }
-        else {
+        } else {
             return msg.msgReturn(res, 6);
         }
     } catch (error) {
@@ -166,12 +165,10 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     if (!req.files.image) {
-                        Owner.findOneAndUpdate(
-                            {
+                        Owner.findOneAndUpdate({
                                 _id: id,
                                 status: true
-                            },
-                            {
+                            }, {
                                 $set: {
                                     'info.phone': phone,
                                     'info.name': name,
@@ -181,8 +178,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                                     location: location,
                                     'history.updateAt': new Date()
                                 }
-                            },
-                            {
+                            }, {
                                 upsert: true
                             },
                             (error, m) => {
@@ -204,13 +200,11 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                     } else {
                         cloudinary.uploader.upload(
                             req.files.image.path,
-                            function (result) {
-                                Owner.findOneAndUpdate(
-                                    {
+                            function(result) {
+                                Owner.findOneAndUpdate({
                                         _id: id,
                                         status: true
-                                    },
-                                    {
+                                    }, {
                                         $set: {
                                             'info.phone': phone,
                                             'info.name': name,
@@ -221,8 +215,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                                             location: location,
                                             'history.updateAt': new Date()
                                         }
-                                    },
-                                    {
+                                    }, {
                                         upsert: true
                                     },
                                     (error, m) => {
@@ -277,8 +270,7 @@ router.route('/getAllDeniedTasks').get((req, res) => {
     try {
         var ownerId = req.cookies.userId;
 
-        var populateQuery = [
-            {
+        var populateQuery = [{
                 path: 'info.package',
                 select: 'name'
             },
@@ -296,15 +288,13 @@ router.route('/getAllDeniedTasks').get((req, res) => {
             }
         ];
 
-        Task.find(
-            {
-                'stakeholders.owner': ownerId,
-                process: {
-                    $in: ['000000000000000000000003', '000000000000000000000004']
-                },
-                status: false
-            }
-        ).populate(populateQuery).exec((error, data) => {
+        Task.find({
+            'stakeholders.owner': ownerId,
+            process: {
+                $in: ['000000000000000000000003', '000000000000000000000004']
+            },
+            status: false
+        }).populate(populateQuery).exec((error, data) => {
             if (error) return msg.msgReturn(res, 3);
             return msg.msgReturn(res, 0, data);
         });
@@ -386,8 +376,7 @@ router.route('/getAllTasks').get((req, res) => {
             findQuery['info.time.startAt'] = timeQuery;
         }
 
-        var populateQuery = [
-            {
+        var populateQuery = [{
                 path: 'info.package',
                 select: 'name'
             },
@@ -493,8 +482,7 @@ router.route('/getHistoryTasks').get((req, res) => {
             findQuery['info.time.startAt'] = timeQuery;
         }
 
-        var populateQuery = [
-            {
+        var populateQuery = [{
                 path: 'info.package',
                 select: 'name'
             },
@@ -590,24 +578,23 @@ router.route('/getAllWorkedMaid').get((req, res) => {
             matchQuery['info.time.startAt'] = timeQuery;
         };
 
-        Task.aggregate([
-            {
-                $match: matchQuery
-            },
-            {
-                $sort: {
-                    'info.time.startAt': -1
+        Task.aggregate([{
+                    $match: matchQuery
                 },
-            },
-            {
-                $group: {
-                    _id: '$stakeholders.received',
-                    times: {
-                        $push: '$info.time.startAt'
+                {
+                    $sort: {
+                        'info.time.startAt': -1
+                    },
+                },
+                {
+                    $group: {
+                        _id: '$stakeholders.received',
+                        times: {
+                            $push: '$info.time.startAt'
+                        }
                     }
                 }
-            }
-        ],
+            ],
             // {
             //     allowDiskUse: true
             // },
@@ -676,8 +663,7 @@ router.route('/getTaskOfMaid').get((req, res) => {
             findQuery['info.time.startAt'] = timeQuery;
         }
 
-        var populateQuery = [
-            {
+        var populateQuery = [{
                 path: 'info.package',
                 select: 'name'
             },
@@ -710,10 +696,10 @@ router.route('/getTaskOfMaid').get((req, res) => {
                 return msg.msgReturn(res, 4);
             } else {
                 Work.populate(data, { path: 'docs.stakeholders.received.work_info.ability', select: 'name image' }, (error, data) => {
-                    if (error) return msg.msgReturn(res, 3);
-                    return msg.msgReturn(res, 0, data);
-                })
-                // return msg.msgReturn(res, 0, data);
+                        if (error) return msg.msgReturn(res, 3);
+                        return msg.msgReturn(res, 0, data);
+                    })
+                    // return msg.msgReturn(res, 0, data);
             }
         });
     } catch (error) {
@@ -754,17 +740,14 @@ router.route('/comment').post((req, res) => {
                                     new_ep = Math.round(new_ep);
                                 }
 
-                                Maid.findOneAndUpdate(
-                                    {
+                                Maid.findOneAndUpdate({
                                         _id: comment.toId,
                                         status: true
-                                    },
-                                    {
+                                    }, {
                                         $set: {
                                             'work_info.evaluation_point': new_ep
                                         }
-                                    },
-                                    {
+                                    }, {
                                         upsert: true
                                     },
                                     (error) => {
@@ -899,92 +882,88 @@ router.route('/statistical').get((req, res) => {
         };
 
 
-        async.parallel(
-            {
-                owner: function (callback) {
-                    Owner.findOne({ _id: id, status: true }).exec((error, data) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            callback(null, data);
-                        }
-                    });
-                },
-                bill: function (callback) {
-                    Bill.aggregate([
-                        {
-                            $match: billQuery
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                totalPrice: {
-                                    $sum: '$price'
-                                }
-                            }
-                        },
-                    ], (error, data) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            if (validate.isNullorEmpty(data)) {
-                                const d = {
-                                    _id: null,
-                                    totalPrice: 0
-                                }
-                                callback(null, d);
-                            } else {
-                                callback(null, data[0]);
-                            }
-                        }
-                    });
-                },
-                task: function (callback) {
-                    Task.aggregate([
-                        {
-                            $match: taskQuery
-                        },
-                        {
-                            $group: {
-                                _id: '$process',
-                                // task: {
-                                //     $push: '$_id'
-                                // },
-                                count: {
-                                    $sum: 1
-                                }
-                            }
-                        }
-                    ], (error, data) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            callback(null, data);
-                        }
-                    });
-                }
-            }, (error, result) => {
-                console.log(result)
-
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    var task = result.task;
-                    var bill = result.bill;
-                    var owner = result.owner;
-
-                    var g = {};
-
-                    const d = {
-                        totalPrice: bill.totalPrice,
-                        task: task,
-                        wallet: owner.wallet
+        async.parallel({
+            owner: function(callback) {
+                Owner.findOne({ _id: id, status: true }).exec((error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        callback(null, data);
                     }
-
-                    return msg.msgReturn(res, 0, d);
-                }
+                });
+            },
+            bill: function(callback) {
+                Bill.aggregate([{
+                        $match: billQuery
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalPrice: {
+                                $sum: '$price'
+                            }
+                        }
+                    },
+                ], (error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            const d = {
+                                _id: null,
+                                totalPrice: 0
+                            }
+                            callback(null, d);
+                        } else {
+                            callback(null, data[0]);
+                        }
+                    }
+                });
+            },
+            task: function(callback) {
+                Task.aggregate([{
+                        $match: taskQuery
+                    },
+                    {
+                        $group: {
+                            _id: '$process',
+                            // task: {
+                            //     $push: '$_id'
+                            // },
+                            count: {
+                                $sum: 1
+                            }
+                        }
+                    }
+                ], (error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        callback(null, data);
+                    }
+                });
             }
-        );
+        }, (error, result) => {
+            console.log(result)
+
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                var task = result.task;
+                var bill = result.bill;
+                var owner = result.owner;
+
+                var g = {};
+
+                const d = {
+                    totalPrice: bill.totalPrice,
+                    task: task,
+                    wallet: owner.wallet
+                }
+
+                return msg.msgReturn(res, 0, d);
+            }
+        });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
@@ -1023,14 +1002,11 @@ router.route('/getDebt').get((req, res) => {
             billQuery['createAt'] = timeQuery;
         };
 
-        Bill.aggregate(
-            {
+        Bill.aggregate({
                 $match: billQuery
-            },
-            {
+            }, {
                 $sort: sortQuery
-            },
-            {
+            }, {
                 $project: {
                     _id: 1,
                     task: 1,
@@ -1050,8 +1026,7 @@ router.route('/getDebt').get((req, res) => {
                             if (error) return msg.msgReturn(res, 3);
                             if (validate.isNullorEmpty(result)) return msg.msgReturn(res, 4);
                             Maid.populate(result, { path: 'task.stakeholders.received', select: 'info work_info' }, (error, result) => {
-                                Work.populate(result,
-                                    [
+                                Work.populate(result, [
                                         { path: 'task.info.work', select: 'name image' },
                                         { path: 'task.stakeholders.received.work_info.ability', select: 'name image' }
                                     ],

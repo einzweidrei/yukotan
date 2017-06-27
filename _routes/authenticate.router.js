@@ -306,13 +306,13 @@ router.route('/maid/login').post((req, res) => {
             .populate({ path: 'work_info.ability', select: 'name image' })
             .select('_id info work_info auth').exec((error, data) => {
                 if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 3);
+                    return msg.msgReturn(res, 3, {});
                 } else {
                     if (error) {
                         return msg.msgReturn(res, 3);
                     } else {
                         if (data.auth.password != password) {
-                            return msg.msgReturn(res, 5);
+                            return msg.msgReturn(res, 5, {});
                         } else {
                             Maid.findOneAndUpdate({
                                 _id: data._id,
@@ -328,7 +328,7 @@ router.route('/maid/login').post((req, res) => {
                                 else {
                                     Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
                                         if (error) {
-                                            return msg.msgReturn(res, 3);
+                                            return msg.msgReturn(res, 3, {});
                                         } else {
                                             var newToken = getToken();
 

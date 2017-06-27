@@ -37,7 +37,7 @@ router.use(bodyparser.json());
 /** Middle Ware
  * 
  */
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     console.log('maid_router is connecting');
 
     try {
@@ -68,8 +68,7 @@ router.use(function (req, res, next) {
                 return msg.msgReturn(res, 14);
             }
             // next();
-        }
-        else {
+        } else {
             return msg.msgReturn(res, 6);
         }
     } catch (error) {
@@ -210,8 +209,7 @@ router.route('/getAll').get((req, res) => {
         //             matchQuery['info.name'] = new RegExp(name, 'i');
         //         }
 
-        Maid.aggregate([
-            {
+        Maid.aggregate([{
                 $geoNear: {
                     near: loc,
                     distanceField: 'dist.calculated',
@@ -237,8 +235,8 @@ router.route('/getAll').get((req, res) => {
                 $project: {
                     info: 1,
                     work_info: 1
-                    // history: 1,
-                    // __v: 0
+                        // history: 1,
+                        // __v: 0
                 }
             }
         ], (error, places) => {
@@ -274,8 +272,7 @@ router.route('/getAllDeniedTasks').get((req, res) => {
     try {
         var maidId = req.cookies.userId;
 
-        var populateQuery = [
-            {
+        var populateQuery = [{
                 path: 'info.package',
                 select: 'name'
             },
@@ -293,15 +290,13 @@ router.route('/getAllDeniedTasks').get((req, res) => {
             }
         ];
 
-        Task.find(
-            {
-                'stakeholders.received': maidId,
-                process: {
-                    $in: ['000000000000000000000003', '000000000000000000000004']
-                },
-                status: false
-            }
-        ).populate(populateQuery).exec((error, data) => {
+        Task.find({
+            'stakeholders.received': maidId,
+            process: {
+                $in: ['000000000000000000000003', '000000000000000000000004']
+            },
+            status: false
+        }).populate(populateQuery).exec((error, data) => {
             if (error) return msg.msgReturn(res, 3);
             return msg.msgReturn(res, 0, data);
         });
@@ -418,8 +413,7 @@ router.route('/getAllRequest').post((req, res) => {
             matchQuery['info.title'] = new RegExp(title, 'i');
         }
 
-        Task.aggregate([
-            {
+        Task.aggregate([{
                 $geoNear: {
                     near: loc,
                     distanceField: 'dist.calculated',
@@ -522,8 +516,7 @@ router.route('/getAllTasks').get((req, res) => {
             }
         }
 
-        var populateQuery = [
-            {
+        var populateQuery = [{
                 path: 'info.package',
                 select: 'name'
             },
@@ -622,17 +615,14 @@ router.route('/comment').post((req, res) => {
                                     new_ep = Math.round(new_ep);
                                 }
 
-                                Owner.findOneAndUpdate(
-                                    {
+                                Owner.findOneAndUpdate({
                                         _id: comment.toId,
                                         status: true
-                                    },
-                                    {
+                                    }, {
                                         $set: {
                                             evaluation_point: new_ep
                                         }
-                                    },
-                                    {
+                                    }, {
                                         upsert: true
                                     },
                                     (error) => {
@@ -678,7 +668,6 @@ router.route('/getComment').get((req, res) => {
         };
 
         Comment.paginate(query, options).then((data) => {
-            console.log(data);
             if (validate.isNullorEmpty(data)) {
                 return msg.msgReturn(res, 4);
             } else {
@@ -696,7 +685,6 @@ router.route('/getComment').get((req, res) => {
             }
         });
     } catch (error) {
-        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
@@ -740,8 +728,7 @@ router.route('/getHistoryTasks').get((req, res) => {
             findQuery['info.time.startAt'] = timeQuery;
         }
 
-        var populateQuery = [
-            {
+        var populateQuery = [{
                 path: 'info.package',
                 select: 'name'
             },
@@ -813,25 +800,24 @@ router.route('/getAllWorkedOwner').get((req, res) => {
             matchQuery['info.time.startAt'] = timeQuery;
         };
 
-        Task.aggregate([
-            {
-                $match: matchQuery
-            },
-            {
-                $sort: {
-                    'info.time.startAt': -1
+        Task.aggregate([{
+                    $match: matchQuery
                 },
-            },
-            {
-                $group: {
-                    _id: '$stakeholders.owner',
-                    times: {
-                        $push: '$info.time.startAt'
+                {
+                    $sort: {
+                        'info.time.startAt': -1
+                    },
+                },
+                {
+                    $group: {
+                        _id: '$stakeholders.owner',
+                        times: {
+                            $push: '$info.time.startAt'
+                        }
+                        // time: '$info.time.startAt'
                     }
-                    // time: '$info.time.startAt'
                 }
-            }
-        ],
+            ],
             // {
             //     allowDiskUse: true
             // },
@@ -924,8 +910,7 @@ router.route('/getTaskOfOwner').get((req, res) => {
             findQuery['info.time.startAt'] = timeQuery;
         }
 
-        var populateQuery = [
-            {
+        var populateQuery = [{
                 path: 'info.package',
                 select: 'name'
             },
@@ -1002,72 +987,68 @@ router.route('/statistical').get((req, res) => {
             taskQuery['info.time.startAt'] = timeQuery;
         };
 
-        async.parallel(
-            {
-                bill: function (callback) {
-                    Bill.aggregate([
-                        {
-                            $match: billQuery
-                        },
-                        {
-                            $group: {
+        async.parallel({
+            bill: function(callback) {
+                Bill.aggregate([{
+                        $match: billQuery
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalPrice: {
+                                $sum: '$price'
+                            }
+                        }
+                    },
+                ], (error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            const d = {
                                 _id: null,
-                                totalPrice: {
-                                    $sum: '$price'
-                                }
+                                totalPrice: 0
                             }
-                        },
-                    ], (error, data) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
+                            callback(null, d);
                         } else {
-                            if (validate.isNullorEmpty(data)) {
-                                const d = {
-                                    _id: null,
-                                    totalPrice: 0
-                                }
-                                callback(null, d);
-                            } else {
-                                callback(null, data[0]);
-                            }
+                            callback(null, data[0]);
                         }
-                    });
-                },
-                task: function (callback) {
-                    Task.aggregate([
-                        {
-                            $match: taskQuery
-                        },
-                        {
-                            $group: {
-                                _id: '$process',
-                                count: {
-                                    $sum: 1
-                                }
-                            }
-                        }
-                    ], (error, data) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            callback(null, data);
-                        }
-                    });
-                }
-            }, (error, result) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    var task = result.task;
-                    var bill = result.bill;
-                    var d = {
-                        totalPrice: bill.totalPrice,
-                        task: task
                     }
-                    return msg.msgReturn(res, 0, d);
-                }
+                });
+            },
+            task: function(callback) {
+                Task.aggregate([{
+                        $match: taskQuery
+                    },
+                    {
+                        $group: {
+                            _id: '$process',
+                            count: {
+                                $sum: 1
+                            }
+                        }
+                    }
+                ], (error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        callback(null, data);
+                    }
+                });
             }
-        );
+        }, (error, result) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                var task = result.task;
+                var bill = result.bill;
+                var d = {
+                    totalPrice: bill.totalPrice,
+                    task: task
+                }
+                return msg.msgReturn(res, 0, d);
+            }
+        });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
