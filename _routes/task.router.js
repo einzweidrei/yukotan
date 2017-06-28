@@ -725,41 +725,38 @@ router.route('/delete').delete((req, res) => {
         var id = req.body.id;
         var ownerId = req.cookies.userId;
 
-        Task.findOne(
+        Task.findOneAndUpdate(
             {
                 _id: id,
                 'stakeholders.owner': ownerId,
                 status: true
-            }).exec((error, data) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    if (validate.isNullorEmpty(data)) {
+            },
+            {
+                $set: {
+                    'history.updateAt': new Date(),
+                    status: false
+                }
+            },
+            (error, result) => {
+                if (error) return msg.msgReturn(res, 3);
+                else {
+                    if (validate.isNullorEmpty(result)) {
                         return msg.msgReturn(res, 4);
                     } else {
-                        Task.findOneAndUpdate(
-                            {
-                                _id: id,
-                                'stakeholders.owner': ownerId,
-                                status: true
-                            },
-                            {
-                                $set: {
-                                    'history.updateAt': new Date(),
-                                    status: false
-                                }
-                            },
-                            {
-                                upsert: true
-                            },
-                            (error, result) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                return msg.msgReturn(res, 0);
-                            }
-                        )
+                        if (result.process == '000000000000000000000001') {
+                            return msg.msgReturn(res, 0);
+                        } else {
+                            var maidId = result.stakeholders.received;
+                            Maid.findOne({ _id: maidId, status: true })
+                                .exec((error, maid) => {
+                                    if (error || validate.isNullorEmpty(maid)) return msg.msgReturn(res, 0);
+                                    return FCMService.pushNotification(res, maid, req.cookies.language, 1, [])
+                                })
+                        }
                     }
                 }
-            });
+            }
+        )
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
