@@ -5,7 +5,7 @@ var Message = (function () {
     Message.msg_duplicated = "DUPLICATED";
     Message.msg_required = "REQUIRED";
     Message.msg_data_exist = "DATA_EXIST";
-    Message.msg_data_not_exist = "Sorry! Data is not exist.";
+    Message.DATA_NOT_EXIST = "DATA_NOT_EXIST";
     Message.msg_language_not_support = "LANGUAGE_NOT_SUPPORT";
     Message.INVALID_PASSWORD = "Sorry! Your password is not match";
     Message.TASK_UPDATE_FAILED = "Sorry! Your task is picking up by some maid, your request was denied."
@@ -21,7 +21,7 @@ var Message = (function () {
     Message.PUSH_NOTIFY_FAILED = "Sorry! Failed to push notification."
     Message.PAYMENT_FAILED = "Sorry! Your wallet is not enough to pay this bill."
     Message.FACE_IDENTICAL_FAILED = "FACE_IDENTICAL_FAILED"
-
+    // Message.FORGOTPW_NOT_EXIST = 'FORGOTPW_NOT_EXIST'
 
     function Message() { }
 
@@ -45,7 +45,7 @@ var Message = (function () {
             case 3:
                 return res.status(500).send(Message.prototype.msgData(false, Message.msg_failed, data));
             case 4:
-                return res.status(200).send(Message.prototype.msgData(false, Message.msg_data_not_exist, data));
+                return res.status(200).send(Message.prototype.msgData(false, Message.DATA_NOT_EXIST, data));
             case 5:
                 return res.status(200).send(Message.prototype.msgData(false, Message.INVALID_PASSWORD, data));
             case 6:

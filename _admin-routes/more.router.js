@@ -105,7 +105,7 @@ router.route('/getById').get((req, res) => {
     }
 })
 
-router.route('/update').put((req, res) => {
+router.route('/update').post((req, res) => {
     try {
         var id = req.body.id;
 

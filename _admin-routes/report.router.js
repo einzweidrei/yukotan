@@ -94,7 +94,7 @@ router.route('/get').get((req, res) => {
     }
 })
 
-router.route('/delete').put((req, res) => {
+router.route('/delete').post((req, res) => {
     try {
         var id = req.query.id
 

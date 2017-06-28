@@ -39,6 +39,7 @@ var FCMService = (function () {
                     time: d.toString()
                 }
             };
+
             admin.messaging().sendToDevice(registrationToken, payload)
                 .then(function (response) {
                     // See the MessagingDevicesResponse reference documentation for
@@ -83,6 +84,7 @@ var FCMService = (function () {
                     time: d.toString()
                 }
             };
+
             admin.messaging().sendToDevice(registrationToken, payload)
                 .then(function (response) {
                     // See the MessagingDevicesResponse reference documentation for
