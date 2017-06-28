@@ -337,6 +337,7 @@ router.route('/chargeOnlineFiConfirm').post((req, res) => {
         billCharge.status = true;
 
         var d = {
+            bill: billCharge._id,
             key: newKey
         }
 
@@ -354,13 +355,14 @@ router.route('/chargeOnlineSecConfirm').post((req, res) => {
         if (req.headers.hbbgv_accesskey) {
             var key = req.headers.hbbgv_accesskey;
             var owner = req.cookies.userId;
+            var billId = req.body.billId;
             var newKey = getToken();
 
             var d = {
                 key: newKey
             }
 
-            BillCharge.findOne({ owner: owner, 'verify.key': key, isSolved: false, status: true }).exec((error, data) => {
+            BillCharge.findOne({ _id: billId, owner: owner, 'verify.key': key, isSolved: false, status: true }).exec((error, data) => {
                 if (error) {
                     return msg.msgReturn(res, 3);
                 } else {
@@ -369,6 +371,7 @@ router.route('/chargeOnlineSecConfirm').post((req, res) => {
                     } else {
                         BillCharge.findOneAndUpdate(
                             {
+                                _id: billId,
                                 owner: owner,
                                 'verify.key': key,
                                 isSolved: false,
@@ -403,15 +406,16 @@ router.route('/chargeOnlineSecConfirm').post((req, res) => {
 
 router.route('/chargeOnlineThiConfirm').post((req, res) => {
     try {
-        if (req.headers.hbbgv_confirmkey) {
-            var key = req.headers.hbbgv_confirmkey;
+        if (req.headers.hbbgv_accesskey) {
+            var key = req.headers.hbbgv_accesskey;
             var owner = req.cookies.userId;
+            var billId = req.body.billId;
 
             Owner.findOne({ _id: owner, status: true }).select('wallet').exec((error, ow) => {
                 if (error) {
                     return msg.msgReturn(res, 3);
                 } else {
-                    BillCharge.findOne({ owner: owner, 'verify.key': key, isSolved: false, status: true }).exec((error, data) => {
+                    BillCharge.findOne({ _id: billId, owner: owner, 'verify.key': key, isSolved: false, status: true }).exec((error, data) => {
                         if (error) {
                             return msg.msgReturn(res, 3);
                         } else {
