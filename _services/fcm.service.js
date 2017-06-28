@@ -3,6 +3,8 @@ var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
 
 var title = 'NGV247'
+var bodyVi = ' đã gửi yêu cầu trực tiếp cho bạn.'
+var bodyEn = ' has sent the request directly to you.'
 
 var FCMService = (function () {
     function FCMService() { }
@@ -19,17 +21,17 @@ var FCMService = (function () {
 
             body = user.info.name
             if (language == 'vi') {
-                body += ' đã gửi yêu cầu trực tiếp cho bạn.'
+                body += bodyVi
             } else {
-                body += ' has sent the request directly to you.'
+                body += bodyEn
             }
 
             d = new Date()
             var payload = {
-                // notification: {
-                //     title: 'This is title',
-                //     body: 'This is body'
-                // },
+                notification: {
+                    title: title,
+                    body: body
+                },
                 data: {
                     title: title,
                     body: body,
@@ -62,13 +64,17 @@ var FCMService = (function () {
             var data = data || []
             body = user.info.name
             if (language == 'vi') {
-                body += ' đã gửi yêu cầu trực tiếp cho bạn.'
+                body += bodyVi
             } else {
-                body += ' has sent the request directly to you.'
+                body += bodyEn
             }
 
             d = new Date()
             var payload = {
+                notification: {
+                    title: title,
+                    body: body
+                },
                 data: {
                     title: title,
                     body: body,
