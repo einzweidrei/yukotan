@@ -19,7 +19,7 @@ var Message = (function () {
     Message.DELETE_DENY = "Sorry! You can't delete this task";
     Message.RESERVE_EXIST = "Sorry! You had reserved in this task, your request was denied.";
     Message.PUSH_NOTIFY_FAILED = "Sorry! Failed to push notification."
-    Message.PAYMENT_FAILED = "Sorry! Your wallet is not enough to pay this bill."
+    Message.PAYMENT_FAILED = "WALLET_NOT_ENOUGH"
     Message.FACE_IDENTICAL_FAILED = "FACE_IDENTICAL_FAILED"
     // Message.FORGOTPW_NOT_EXIST = 'FORGOTPW_NOT_EXIST'
 
