@@ -49,7 +49,7 @@ function hash(content) {
     return hash;
 }
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     console.log('more_router is connecting');
 
     try {
@@ -113,9 +113,9 @@ router.route('/resetPassword').post((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     Owner.findOneAndUpdate({
-                            'info.username': username,
-                            'info.email': email
-                        }, {
+                        'info.username': username,
+                        'info.email': email
+                    }, {
                             $set: {
                                 'auth.password': hashPw
                             }
@@ -166,7 +166,7 @@ router.route('/resetPassword').post((req, res) => {
 router.route('/getAllMaids').get((req, res) => {
     try {
         var minDistance = req.query.minDistance || 1;
-        var maxDistance = req.query.maxDistance || 2000;
+        var maxDistance = req.query.maxDistance || 2;
         var limit = req.query.limit || 20;
         var page = req.query.page || 1;
         var skip = (page - 1) * limit;
@@ -255,30 +255,30 @@ router.route('/getAllMaids').get((req, res) => {
         }
 
         Maid.aggregate([{
-                $geoNear: {
-                    near: loc,
-                    distanceField: 'dist.calculated',
-                    minDistance: minDistance,
-                    maxDistance: maxDistance,
-                    num: limit,
-                    spherical: true
-                }
-            },
-            {
-                $match: matchQuery
-            },
-            {
-                $sort: sortQuery
-            },
-            {
-                $skip: skip
-            },
-            {
-                $project: {
-                    info: 1,
-                    work_info: 1
-                }
+            $geoNear: {
+                near: loc,
+                distanceField: 'dist.calculated',
+                minDistance: parseFloat(minDistance),
+                maxDistance: parseFloat(maxDistance) * 1000,
+                num: limit,
+                spherical: true
             }
+        },
+        {
+            $match: matchQuery
+        },
+        {
+            $sort: sortQuery
+        },
+        {
+            $skip: skip
+        },
+        {
+            $project: {
+                info: 1,
+                work_info: 1
+            }
+        }
         ], (error, places) => {
             if (error) {
                 return msg.msgReturn(res, 3);
@@ -365,31 +365,31 @@ router.route('/getTaskAround').get((req, res) => {
         };
 
         Task.aggregate([{
-                $geoNear: {
-                    near: loc,
-                    distanceField: 'dist.calculated',
-                    minDistance: parseFloat(minDistance),
-                    maxDistance: parseFloat(maxDistance) * 1000,
-                    // maxDistance: (maxDistance / 111.12),
-                    // num: limit,
-                    // distanceMultiplier: 0.001,
-                    spherical: true
-                }
-            },
-            {
-                $match: matchQuery
-            },
-            {
-                $group: {
-                    _id: '$info.work',
-                    count: {
-                        $sum: 1
-                    }
-                }
-            },
-            {
-                $sort: sortQuery
+            $geoNear: {
+                near: loc,
+                distanceField: 'dist.calculated',
+                minDistance: parseFloat(minDistance),
+                maxDistance: parseFloat(maxDistance) * 1000,
+                // maxDistance: (maxDistance / 111.12),
+                // num: limit,
+                // distanceMultiplier: 0.001,
+                spherical: true
             }
+        },
+        {
+            $match: matchQuery
+        },
+        {
+            $group: {
+                _id: '$info.work',
+                count: {
+                    $sum: 1
+                }
+            }
+        },
+        {
+            $sort: sortQuery
+        }
         ], (error, places) => {
             if (error) {
                 return msg.msgReturn(res, 3);
@@ -502,29 +502,29 @@ router.route('/getTaskByWork').get((req, res) => {
         }
 
         Task.aggregate([{
-                $geoNear: {
-                    near: loc,
-                    distanceField: 'dist.calculated',
-                    minDistance: parseFloat(minDistance),
-                    maxDistance: parseFloat(maxDistance) * 1000,
-                    spherical: true
-                }
-            },
-            {
-                $match: matchQuery
-            },
-            {
-                $sort: sortQuery
-            },
-            {
-                $project: {
-                    process: 1,
-                    history: 1,
-                    stakeholders: 1,
-                    info: 1,
-                    dist: 1
-                }
+            $geoNear: {
+                near: loc,
+                distanceField: 'dist.calculated',
+                minDistance: parseFloat(minDistance),
+                maxDistance: parseFloat(maxDistance) * 1000,
+                spherical: true
             }
+        },
+        {
+            $match: matchQuery
+        },
+        {
+            $sort: sortQuery
+        },
+        {
+            $project: {
+                process: 1,
+                history: 1,
+                stakeholders: 1,
+                info: 1,
+                dist: 1
+            }
+        }
         ], (error, places) => {
             console.log(places)
             if (error) {
@@ -630,9 +630,9 @@ router.route('/maidForgotPassword').post((req, res) => {
                     return msg.msgReturn(res, 4)
                 } else {
                     Session.findOneAndUpdate({
-                            'auth.userId': data._id,
-                            status: true
-                        }, {
+                        'auth.userId': data._id,
+                        status: true
+                    }, {
                             $set: {
                                 verification: {
                                     password: {
@@ -671,9 +671,9 @@ router.route('/ownerForgotPassword').post((req, res) => {
                     return msg.msgReturn(res, 4)
                 } else {
                     Session.findOneAndUpdate({
-                            'auth.userId': data._id,
-                            status: true
-                        }, {
+                        'auth.userId': data._id,
+                        status: true
+                    }, {
                             $set: {
                                 verification: {
                                     password: {
@@ -712,9 +712,9 @@ router.route('/updateAbility').post((req, res) => {
         }
 
         Maid.findOneAndUpdate({
-                _id: id,
-                status: true
-            }, {
+            _id: id,
+            status: true
+        }, {
                 $set: {
                     'work_info.ability': maid.work_info.ability
                 }
@@ -735,7 +735,7 @@ router.route('/getMaidInfo').get((req, res) => {
         var id = '5923c12f7d7da13b240e7322'
 
         Maid
-        // .find({ status: true })
+            // .find({ status: true })
             .findOne({ _id: id, status: true })
             .populate({ path: 'work_info.ability', select: 'name image' })
             .select('info work_info')

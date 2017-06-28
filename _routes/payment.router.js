@@ -87,11 +87,8 @@ router.use(function (req, res, next) {
 
 router.route('/payBillGV').post((req, res) => {
     try {
-        // var userId1 = req.body.userId;
         var userId2 = req.cookies.userId;
         var billId = req.body.billId;
-
-        // if (userId1 != userId2) return msg.msgReturn(res, 3);
 
         async.parallel({
             bill: function (callback) {
@@ -194,7 +191,8 @@ router.route('/payDirectly').post((req, res) => {
                                     { _id: billId, owner: userId, isSolved: false, status: true },
                                     {
                                         $set: {
-                                            method: 3
+                                            method: 3,
+                                            date: new Date()
                                         }
                                     },
                                     (error) => {
