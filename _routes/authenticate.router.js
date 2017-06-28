@@ -56,6 +56,7 @@ function hash(content) {
 }
 
 function getToken() {
+    // const token_length = 64;
     var crypto = require('crypto');
     var token = crypto.randomBytes(token_length).toString('hex');
     return token;

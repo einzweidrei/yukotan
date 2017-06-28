@@ -27,6 +27,7 @@ var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Bill = require('../_model/bill');
 var Comment = require('../_model/comment');
+var BillCharge = require('../_model/bill_charge');
 
 var cloudinary = require('cloudinary');
 
@@ -34,13 +35,19 @@ var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 
 var ObjectId = require('mongoose').Types.ObjectId;
-
 var bodyparser = require('body-parser');
 
 router.use(bodyparser.urlencoded({
     extended: true
 }));
 router.use(bodyparser.json());
+
+function getToken() {
+    const token_length = 64;
+    var crypto = require('crypto');
+    var token = crypto.randomBytes(token_length).toString('hex');
+    return token;
+}
 
 /** Middle Ware
  * 
@@ -215,7 +222,29 @@ router.route('/payDirectly').post((req, res) => {
     }
 });
 
-// confirm pay directly
+router.route('/getDirectlyBill').get((req, res) => {
+    try {
+        var id = req.query.id;
+        var userId = req.cookies.userId;
+
+        Bill.findOne({ _id: id, owner: userId, method: 3, isSolved: false, status: true })
+            .select('task price')
+            .exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        return msg.msgReturn(res, 0, data);
+                    }
+                }
+            })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 router.route('/payDirectConfirm').post((req, res) => {
     try {
         var userId = req.cookies.userId;
@@ -289,5 +318,166 @@ router.route('/payOnline').post((req, res) => {
     }
 });
 
+router.route('/chargeOnlineFiConfirm').post((req, res) => {
+    try {
+        var price = req.body.price || 0;
+        var owner = req.cookies.userId;
+        var newKey = getToken();
+
+        var billCharge = new BillCharge();
+        billCharge.price = price;
+        billCharge.owner = owner;
+        billCharge.isSolved = false;
+        billCharge.date = new Date();
+        billCharge.createAt = new Date();
+        billCharge.verify = {
+            key: newKey,
+            date: new Date()
+        }
+        billCharge.status = true;
+
+        var d = {
+            key: newKey
+        }
+
+        billCharge.save((error) => {
+            if (error) return msg.msgReturn(res, 3);
+            return msg.msgReturn(res, 0, d);
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/chargeOnlineSecConfirm').post((req, res) => {
+    try {
+        if (req.headers.hbbgv_accesskey) {
+            var key = req.headers.hbbgv_accesskey;
+            var owner = req.cookies.userId;
+            var newKey = getToken();
+
+            var d = {
+                key: newKey
+            }
+
+            BillCharge.findOne({ owner: owner, 'verify.key': key, isSolved: false, status: true }).exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        BillCharge.findOneAndUpdate(
+                            {
+                                owner: owner,
+                                'verify.key': key,
+                                isSolved: false,
+                                status: true
+                            },
+                            {
+                                $set: {
+                                    verify: {
+                                        key: newKey,
+                                        date: new Date()
+                                    }
+                                }
+                            },
+                            {
+                                upsert: true
+                            },
+                            (error) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                return msg.msgReturn(res, 0, d);
+                            }
+                        )
+                    }
+                }
+            })
+        } else {
+            return msg.msgReturn(res, 3);
+        }
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/chargeOnlineThiConfirm').post((req, res) => {
+    try {
+        if (req.headers.hbbgv_confirmkey) {
+            var key = req.headers.hbbgv_confirmkey;
+            var owner = req.cookies.userId;
+
+            Owner.findOne({ _id: owner, status: true }).select('wallet').exec((error, ow) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    BillCharge.findOne({ owner: owner, 'verify.key': key, isSolved: false, status: true }).exec((error, data) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            if (validate.isNullorEmpty(data)) {
+                                return msg.msgReturn(res, 3);
+                            } else {
+                                var now = new Date();
+                                var time = new Date(data.verify.date);
+                                var diff = now - time;
+                                var second = ~~(diff / 1e3)
+
+                                if (second > 60) {
+                                    return msg.msgReturn(res, 3);
+                                } else {
+                                    BillCharge.findOneAndUpdate(
+                                        {
+                                            owner: owner,
+                                            'verify.key': key,
+                                            isSolved: false,
+                                            status: true
+                                        },
+                                        {
+                                            $set: {
+                                                isSolved: true
+                                            }
+                                        },
+                                        {
+                                            upsert: true
+                                        },
+                                        (error) => {
+                                            if (error) return msg.msgReturn(res, 3);
+                                            else {
+                                                var p = ow.wallet + data.price;
+                                                Owner.findOneAndUpdate(
+                                                    {
+                                                        _id: owner,
+                                                        status: true
+                                                    },
+                                                    {
+                                                        $set: {
+                                                            wallet: p
+                                                        }
+                                                    },
+                                                    {
+                                                        upsert: true
+                                                    },
+                                                    (error) => {
+                                                        if (error) return msg.msgReturn(res, 3);
+                                                        return msg.msgReturn(res, 0);
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    })
+                }
+            })
+        } else {
+            return msg.msgReturn(res, 3);
+        }
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
 
 module.exports = router;
