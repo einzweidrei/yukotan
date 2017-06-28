@@ -53,33 +53,6 @@ router.use(function (req, res, next) {
     }
 });
 
-router.route('/create').post((req, res) => {
-    try {
-        var package = new Package();
-
-        var language = req.cookies.language;
-        Package.setDefaultLanguage(language);
-
-        var name = req.body.name;
-
-        package.status = true;
-        package.history.createAt = new Date();
-        package.history.updateAt = new Date();
-
-        package.set('name.all', {
-            en: name,
-            vi: name
-        });
-
-        package.save((error) => {
-            if (error) return msg.msgReturn(res, 3);
-            return msg.msgReturn(res, 0);
-        })
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
-
 router.route('/getAll').get((req, res) => {
     try {
         var language = req.cookies.language;
@@ -100,21 +73,5 @@ router.route('/getAll').get((req, res) => {
         return msg.msgReturn(res, 3);
     }
 });
-
-// router.route('/pushNotify').post((req, res) => {
-//     try {
-//         FCMService.pushNotification(res);
-//     } catch (error) {
-//         console.error(error);
-//     }
-// });
-
-// router.route('/sendMail').post((req, res) => {
-//     try {
-//         MailService.sendMail(res);
-//     } catch (error) {
-//         return msg.msgReturn(res, 3);
-//     }
-// });
 
 module.exports = router;

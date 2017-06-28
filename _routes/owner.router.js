@@ -53,8 +53,6 @@ router.use(bodyparser.json());
  * 
  */
 router.use(function (req, res, next) {
-    console.log('owner_router is connecting');
-
     try {
         var baseUrl = req.baseUrl;
         var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
@@ -65,7 +63,6 @@ router.use(function (req, res, next) {
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
-            // next();
             if (req.headers.hbbgvauth) {
                 var token = req.headers.hbbgvauth;
                 Session.findOne({ 'auth.token': token }).exec((error, data) => {
