@@ -657,9 +657,7 @@ router.route('/update').put((req, res) => {
                 });
             }
         }, (error, result) => {
-            console.log(result);
             if (error) {
-                console.log(error);
                 return msg.msgReturn(res, 3);
             } else {
                 if (result.work == 0 && result.package == 0 && result.task == 0) {
@@ -1027,16 +1025,13 @@ router.route('/submit').post((req, res) => {
     try {
         var id = req.body.id;
         var ownerId = req.cookies.userId;
-        // var ownerId = '5911460ae740560cb422ac35';
         var maidId = req.body.maidId;
 
-        console.log(req.body);
         async.parallel({
             //check maid exist
             maid: function (callback) {
                 Maid.findOne({ _id: maidId, status: true }).exec((error, data) => {
                     if (error) {
-                        console.log(error)
                         callback(null, 2);
                     }
                     else {
@@ -1059,7 +1054,6 @@ router.route('/submit').post((req, res) => {
                         status: true
                     }).exec((error, data) => {
                         if (error) {
-                            console.log(error)
                             callback(null, 2);
                         }
                         else {
@@ -1132,9 +1126,7 @@ router.route('/submit').post((req, res) => {
                     });
             }
         }, (error, result) => {
-            console.log(result);
             if (error) {
-                // console.log(error)
                 return msg.msgReturn(res, 3);
             } else {
                 if (result.maid == 0 && result.task == 0) {
@@ -1174,7 +1166,6 @@ router.route('/submit').post((req, res) => {
             }
         });
     } catch (error) {
-        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
@@ -1226,8 +1217,6 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                 req.files.image.path,
                                 function (result) {
                                     var imgUrl = result.url;
-                                    console.log(result)
-                                    // console.log(imgUrl)
                                     async.parallel({
                                         faceId1: function (callback) {
                                             request({
@@ -1242,9 +1231,6 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                 body: JSON.stringify(
                                                     {
                                                         url: imgUrl
-                                                        // url: 'https://www.biography.com/.image/t_share/MTE4MDAzNDEwNzg5ODI4MTEw/barack-obama-12782369-1-402.jpg'
-                                                        // url: 'https://hay.tv/upload/default/star/22022017/photo/justin-bieber-adult-male-fans.jpeg.jpg'
-                                                        // url: 'https://s-media-cache-ak0.pinimg.com/originals/4e/15/37/4e1537773cf37b9586ec8c1b17f44153.jpg'
                                                     }
                                                 )
                                             },
@@ -1271,7 +1257,6 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                     if (validate.isNullorEmpty(maid)) {
                                                         callback(null, '');
                                                     } else {
-                                                        // console.log(maid.info.image)
                                                         request({
                                                             method: 'POST',
                                                             preambleCRLF: true,
@@ -1284,8 +1269,6 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                             body: JSON.stringify(
                                                                 {
                                                                     url: maid.info.image
-                                                                    // url: result.url
-                                                                    // url: 'http://image.congan.com.vn/thumbnail/CATP-1382-2017-6-2/barack-obama.jpg'
                                                                 }
                                                             )
                                                         },
@@ -1308,7 +1291,6 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                             })
                                         }
                                     }, (error, data) => {
-                                        console.log(data)
                                         if (error) {
                                             return msg.msgReturn(res, 3);
                                         } else {
@@ -1335,7 +1317,6 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                             return msg.msgReturn(res, 3);
                                                         }
                                                         var item = JSON.parse(body);
-                                                        console.log(item)
 
                                                         if (item.isIdentical) {
                                                             Task.findOneAndUpdate(
@@ -1569,7 +1550,6 @@ router.route('/checkout').post((req, res) => {
             }
         });
     } catch (error) {
-        console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
@@ -1622,31 +1602,12 @@ router.route('/sendRequest').post((req, res) => {
             ]
         };
 
-        // task.requestTo = maidId;
-
         task.history = {
             createAt: new Date(),
             updateAt: new Date()
         };
 
         task.status = true;
-
-        // var start = new Date(task.info.time.startAt);
-        // var end = new Date(task.info.time.endAt);
-        // if (start >= end) {
-        //     return msg.msgReturn(res, 9);
-        // }
-
-        // if (task.info.time.startAt >= task.info.time.endAt) {
-        //     return msg.msgReturn(res, 9);
-        // } else {
-        //     var h = task.info.time.startAt.getHours() + task.info.time.endAt.getHours();
-        //     if (task.info.time.hour > h) {
-        //         return msg.msgReturn(res, 9);
-        //     }
-        // }
-
-        // console.log(task);
 
         Owner.findOne({ _id: ownerId, status: true }).exec((error, owner) => {
             if (error) {
@@ -1685,7 +1646,6 @@ router.route('/sendRequest').post((req, res) => {
                             });
                         }
                     }, (error, result) => {
-                        console.log(result)
                         if (error) {
                             return msg.msgReturn(res, 3);
                         } else {
@@ -1714,7 +1674,6 @@ router.route('/sendRequest').post((req, res) => {
             }
         });
     } catch (error) {
-        console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
@@ -1809,7 +1768,6 @@ router.route('/acceptRequest').post((req, res) => {
                                         ]
                                     }
                                 ).exec((error, result) => {
-                                    console.log(result)
                                     if (error) {
                                         callback(null, 2);
                                     } else {
@@ -1825,7 +1783,6 @@ router.route('/acceptRequest').post((req, res) => {
                     });
             }
         }, (error, result) => {
-            console.log(result)
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -1853,7 +1810,6 @@ router.route('/acceptRequest').post((req, res) => {
                                     msg.msgReturn(res, 17) :
                                     FCMService.pushNotification(res, result.owner.data, req.cookies.language, 2, [])
                             }
-                            // return msg.msgReturn(res, 0);
                         }
                     );
                 } else {
