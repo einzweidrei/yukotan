@@ -231,17 +231,17 @@ router.route('/getDirectlyBill').get((req, res) => {
             .select('task price')
             .exec((error, data) => {
                 if (error) {
-                    return msg.msgReturn(res, 3);
+                    return msg.msgReturn(res, 3, {});
                 } else {
                     if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
+                        return msg.msgReturn(res, 4, {});
                     } else {
                         return msg.msgReturn(res, 0, data);
                     }
                 }
             })
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, 3, {});
     }
 })
 

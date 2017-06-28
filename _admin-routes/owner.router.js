@@ -475,4 +475,70 @@ router.route('/delete').post((req, res) => {
     }
 });
 
+router.route('/getComment').get((req, res) => {
+    try {
+        var id = req.query.id;
+
+        var limit = parseFloat(req.query.limit) || 20;
+        var page = req.query.page || 1;
+
+        var query = { toId: id };
+        var options = {
+            select: 'evaluation_point content task createAt fromId',
+            populate: { path: 'task', select: 'info' },
+            sort: {
+                createAt: -1
+            },
+            page: page,
+            limit: limit
+        };
+
+        Comment.paginate(query, options).then((data) => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4);
+            } else {
+                Maid.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            return msg.msgReturn(res, 4);
+                        } else {
+                            return msg.msgReturn(res, 0, data);
+                        }
+                    }
+                });
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/deleteComment').post((req, res) => {
+    try {
+        var id = req.body.id;
+
+        Comment.findByIdAndRemove(
+            {
+                _id: id,
+                status: true
+            },
+            (error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        return msg.msgReturn(res, 0);
+                    }
+                }
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 module.exports = router;
