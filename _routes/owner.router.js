@@ -52,7 +52,7 @@ router.use(bodyparser.json());
 /** Middle Ware
  * 
  */
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     console.log('owner_router is connecting');
 
     try {
@@ -166,9 +166,9 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                 } else {
                     if (!req.files.image) {
                         Owner.findOneAndUpdate({
-                                _id: id,
-                                status: true
-                            }, {
+                            _id: id,
+                            status: true
+                        }, {
                                 $set: {
                                     'info.phone': phone,
                                     'info.name': name,
@@ -200,11 +200,11 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
                     } else {
                         cloudinary.uploader.upload(
                             req.files.image.path,
-                            function(result) {
+                            function (result) {
                                 Owner.findOneAndUpdate({
-                                        _id: id,
-                                        status: true
-                                    }, {
+                                    _id: id,
+                                    status: true
+                                }, {
                                         $set: {
                                             'info.phone': phone,
                                             'info.name': name,
@@ -271,21 +271,21 @@ router.route('/getAllDeniedTasks').get((req, res) => {
         var ownerId = req.cookies.userId;
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.received',
-                select: 'info'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'stakeholders.received',
+            select: 'info'
+        },
+        {
+            path: 'process',
+            select: 'name'
+        }
         ];
 
         Task.find({
@@ -377,21 +377,21 @@ router.route('/getAllTasks').get((req, res) => {
         }
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.received',
-                select: 'info work_info'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'stakeholders.received',
+            select: 'info work_info'
+        },
+        {
+            path: 'process',
+            select: 'name'
+        }
         ];
 
         var sortQuery = { 'history.createAt': -1 };
@@ -483,25 +483,25 @@ router.route('/getHistoryTasks').get((req, res) => {
         }
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.received',
-                select: 'info work_info'
-            },
-            // {
-            //     path: 'stakeholders.received.work_info.ability',
-            //     select: 'name image'
-            // },
-            {
-                path: 'process',
-                select: 'name'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'stakeholders.received',
+            select: 'info work_info'
+        },
+        // {
+        //     path: 'stakeholders.received.work_info.ability',
+        //     select: 'name image'
+        // },
+        {
+            path: 'process',
+            select: 'name'
+        }
         ];
 
         var options = {
@@ -579,22 +579,22 @@ router.route('/getAllWorkedMaid').get((req, res) => {
         };
 
         Task.aggregate([{
-                    $match: matchQuery
-                },
-                {
-                    $sort: {
-                        'info.time.startAt': -1
-                    },
-                },
-                {
-                    $group: {
-                        _id: '$stakeholders.received',
-                        times: {
-                            $push: '$info.time.startAt'
-                        }
-                    }
+            $match: matchQuery
+        },
+        {
+            $sort: {
+                'info.time.startAt': -1
+            },
+        },
+        {
+            $group: {
+                _id: '$stakeholders.received',
+                times: {
+                    $push: '$info.time.startAt'
                 }
-            ],
+            }
+        }
+        ],
             // {
             //     allowDiskUse: true
             // },
@@ -664,21 +664,21 @@ router.route('/getTaskOfMaid').get((req, res) => {
         }
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.received',
-                select: 'info work_info'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'stakeholders.received',
+            select: 'info work_info'
+        },
+        {
+            path: 'process',
+            select: 'name'
+        }
         ];
 
         var options = {
@@ -696,10 +696,10 @@ router.route('/getTaskOfMaid').get((req, res) => {
                 return msg.msgReturn(res, 4);
             } else {
                 Work.populate(data, { path: 'docs.stakeholders.received.work_info.ability', select: 'name image' }, (error, data) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        return msg.msgReturn(res, 0, data);
-                    })
-                    // return msg.msgReturn(res, 0, data);
+                    if (error) return msg.msgReturn(res, 3);
+                    return msg.msgReturn(res, 0, data);
+                })
+                // return msg.msgReturn(res, 0, data);
             }
         });
     } catch (error) {
@@ -741,9 +741,9 @@ router.route('/comment').post((req, res) => {
                                 }
 
                                 Maid.findOneAndUpdate({
-                                        _id: comment.toId,
-                                        status: true
-                                    }, {
+                                    _id: comment.toId,
+                                    status: true
+                                }, {
                                         $set: {
                                             'work_info.evaluation_point': new_ep
                                         }
@@ -819,7 +819,7 @@ router.route('/report').post((req, res) => {
         var report = new Report();
         report.ownerId = req.cookies.userId;
         report.maidId = req.body.toId;
-        report.from = 1
+        report.from = 1;
         report.content = req.body.content;
         report.createAt = new Date();
         report.status = true;
@@ -883,7 +883,7 @@ router.route('/statistical').get((req, res) => {
 
 
         async.parallel({
-            owner: function(callback) {
+            owner: function (callback) {
                 Owner.findOne({ _id: id, status: true }).exec((error, data) => {
                     if (error) {
                         return msg.msgReturn(res, 3);
@@ -892,18 +892,18 @@ router.route('/statistical').get((req, res) => {
                     }
                 });
             },
-            bill: function(callback) {
+            bill: function (callback) {
                 Bill.aggregate([{
-                        $match: billQuery
-                    },
-                    {
-                        $group: {
-                            _id: null,
-                            totalPrice: {
-                                $sum: '$price'
-                            }
+                    $match: billQuery
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalPrice: {
+                            $sum: '$price'
                         }
-                    },
+                    }
+                },
                 ], (error, data) => {
                     if (error) {
                         return msg.msgReturn(res, 3);
@@ -920,21 +920,21 @@ router.route('/statistical').get((req, res) => {
                     }
                 });
             },
-            task: function(callback) {
+            task: function (callback) {
                 Task.aggregate([{
-                        $match: taskQuery
-                    },
-                    {
-                        $group: {
-                            _id: '$process',
-                            // task: {
-                            //     $push: '$_id'
-                            // },
-                            count: {
-                                $sum: 1
-                            }
+                    $match: taskQuery
+                },
+                {
+                    $group: {
+                        _id: '$process',
+                        // task: {
+                        //     $push: '$_id'
+                        // },
+                        count: {
+                            $sum: 1
                         }
                     }
+                }
                 ], (error, data) => {
                     if (error) {
                         return msg.msgReturn(res, 3);
@@ -1003,8 +1003,8 @@ router.route('/getDebt').get((req, res) => {
         };
 
         Bill.aggregate({
-                $match: billQuery
-            }, {
+            $match: billQuery
+        }, {
                 $sort: sortQuery
             }, {
                 $project: {
@@ -1027,9 +1027,9 @@ router.route('/getDebt').get((req, res) => {
                             if (validate.isNullorEmpty(result)) return msg.msgReturn(res, 4);
                             Maid.populate(result, { path: 'task.stakeholders.received', select: 'info work_info' }, (error, result) => {
                                 Work.populate(result, [
-                                        { path: 'task.info.work', select: 'name image' },
-                                        { path: 'task.stakeholders.received.work_info.ability', select: 'name image' }
-                                    ],
+                                    { path: 'task.info.work', select: 'name image' },
+                                    { path: 'task.stakeholders.received.work_info.ability', select: 'name image' }
+                                ],
                                     (error, result) => {
                                         if (error) return msg.msgReturn(res, 3);
                                         Package.populate(result, { path: 'task.info.package', select: 'name' }, (error, result) => {
