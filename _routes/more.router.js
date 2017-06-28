@@ -67,35 +67,6 @@ router.use(function (req, res, next) {
     }
 });
 
-router.route('/create').post((req, res) => {
-    try {
-        var term = new Term();
-        var language = req.cookies.language;
-        Term.setDefaultLanguage(language);
-
-        var name = req.body.name;
-        var content = req.body.content;
-
-        term.name = name
-        term.status = true;
-        term.history.createAt = new Date();
-        term.history.updateAt = new Date();
-
-        term.set('content.all', {
-            en: content,
-            vi: content
-        })
-
-        term.save((error) => {
-            if (error) return msg.msgReturn(res, 3);
-            return msg.msgReturn(res, 0);
-        })
-    } catch (error) {
-        console.log(error)
-        return msg.msgReturn(res, 3);
-    }
-});
-
 router.route('/resetPassword').post((req, res) => {
     try {
         var newPw = randomstring.generate(7);
@@ -698,37 +669,37 @@ router.route('/ownerForgotPassword').post((req, res) => {
     }
 })
 
-router.route('/updateAbility').post((req, res) => {
-    try {
-        var ab = req.body.ab;
-        var maid = new Maid();
+// router.route('/updateAbility').post((req, res) => {
+//     try {
+//         var ab = req.body.ab;
+//         var maid = new Maid();
 
-        var id = '5923c12f7d7da13b240e7322'
+//         var id = '5923c12f7d7da13b240e7322'
 
-        if (ab) {
-            ab.forEach(item => {
-                maid.work_info.ability.push(item)
-            })
-        }
+//         if (ab) {
+//             ab.forEach(item => {
+//                 maid.work_info.ability.push(item)
+//             })
+//         }
 
-        Maid.findOneAndUpdate({
-            _id: id,
-            status: true
-        }, {
-                $set: {
-                    'work_info.ability': maid.work_info.ability
-                }
-            }, {
-                upsert: true
-            },
-            (error) => {
-                return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0)
-            }
-        )
-    } catch (error) {
-        return msg.msgReturn(res, 3)
-    }
-})
+//         Maid.findOneAndUpdate({
+//             _id: id,
+//             status: true
+//         }, {
+//                 $set: {
+//                     'work_info.ability': maid.work_info.ability
+//                 }
+//             }, {
+//                 upsert: true
+//             },
+//             (error) => {
+//                 return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0)
+//             }
+//         )
+//     } catch (error) {
+//         return msg.msgReturn(res, 3)
+//     }
+// })
 
 router.route('/getMaidInfo').get((req, res) => {
     try {
@@ -753,48 +724,6 @@ router.route('/getMaidInfo').get((req, res) => {
     }
 })
 
-router.route('/createAppInfo').post((req, res) => {
-    try {
-        var app = new AppInfo();
-
-        var language = req.cookies.language;
-        AppInfo.setDefaultLanguage(language);
-
-        var name = req.body.name;
-        var address = req.body.address;
-        var phone = req.body.phone;
-        var note = req.body.note;
-        var email = req.body.email;
-
-        app.phone = phone;
-        app.email = email;
-        app.status = true;
-        app.history.createAt = new Date();
-        app.history.updateAt = new Date();
-
-        app.set('name.all', {
-            en: name,
-            vi: name
-        });
-
-        app.set('address.all', {
-            en: address,
-            vi: address
-        });
-
-        app.set('note.all', {
-            en: note,
-            vi: note
-        });
-
-        app.save((error) => {
-            return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0)
-        })
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-})
-
 router.route('/getContact').get((req, res) => {
     try {
         AppInfo.findOne({ _id: '000000000000000000000001', status: true })
@@ -805,13 +734,5 @@ router.route('/getContact').get((req, res) => {
         return msg.msgReturn(res, 3);
     }
 });
-
-router.route('/test1').get((req, res) => {
-    try {
-
-    } catch (error) {
-        console.log(error)
-    }
-})
 
 module.exports = router;

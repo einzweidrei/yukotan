@@ -48,7 +48,6 @@ app.use('/:language/work', require('./_routes/work.router'));
 app.use('/:language/task', require('./_routes/task.router'));
 app.use('/:language/process', require('./_routes/process.router'));
 app.use('/:language/more', require('./_routes/more.router'));
-app.use('/:language/comment', require('./_routes/comment.router'));
 app.use('/:language/payment', require('./_routes/payment.router'));
 
 app.use('/admin/:language/owner', require('./_admin-routes/owner.router'));

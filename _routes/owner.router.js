@@ -263,43 +263,6 @@ router.route('/getMyInfo').get((req, res) => {
     }
 });
 
-router.route('/getAllDeniedTasks').get((req, res) => {
-    try {
-        var ownerId = req.cookies.userId;
-
-        var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'stakeholders.received',
-            select: 'info'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        }
-        ];
-
-        Task.find({
-            'stakeholders.owner': ownerId,
-            process: {
-                $in: ['000000000000000000000003', '000000000000000000000004']
-            },
-            status: false
-        }).populate(populateQuery).exec((error, data) => {
-            if (error) return msg.msgReturn(res, 3);
-            return msg.msgReturn(res, 0, data);
-        });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
-
 /** GET - Get All Tasks By Owner ID
  * info {
  *      type: GET
@@ -320,7 +283,6 @@ router.route('/getAllDeniedTasks').get((req, res) => {
 router.route('/getAllTasks').get((req, res) => {
     try {
         var id = req.cookies.userId;
-        // var id = '5911460ae740560cb422ac35';
         var process = req.query.process;
 
         var startAt = req.query.startAt;
@@ -333,23 +295,12 @@ router.route('/getAllTasks').get((req, res) => {
             status: true
         }
 
-        // if (process) {
-        //     findQuery['process'] = 
-        //     {process };
-        // }
-
         if (process) {
             if (process == '000000000000000000000001') {
-                // findQuery['$or'] = [
-                //     { 'stakeholders.request.maid': new ObjectId(id) },
-                //     { 'requestTo': new ObjectId(id) }
-                // ]
-                // findQuery['stakeholders.request.maid'] = id;
                 findQuery['process'] = {
                     $in: ['000000000000000000000001', '000000000000000000000006']
                 }
             } else {
-                // findQuery['stakeholders.received'] = id;
                 findQuery['process'] = process;
             }
         }
@@ -417,7 +368,6 @@ router.route('/getAllTasks').get((req, res) => {
                 }
             });
     } catch (error) {
-        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
@@ -443,7 +393,6 @@ router.route('/getHistoryTasks').get((req, res) => {
     try {
         var id = req.cookies.userId;
         var maidId = req.query.maid;
-        // var id = '5911460ae740560cb422ac35';
         var process = req.query.process || '000000000000000000000005';
 
         var startAt = req.query.startAt;
@@ -491,10 +440,6 @@ router.route('/getHistoryTasks').get((req, res) => {
             path: 'stakeholders.received',
             select: 'info work_info'
         },
-        // {
-        //     path: 'stakeholders.received.work_info.ability',
-        //     select: 'name image'
-        // },
         {
             path: 'process',
             select: 'name'
@@ -511,23 +456,6 @@ router.route('/getHistoryTasks').get((req, res) => {
             limit: parseFloat(limit)
         };
 
-        // Task
-        //     .find(findQuery)
-        //     .populate(populateQuery)
-        //     .sort({ 'info.time.startAt': -1 })
-        //     .limit(parseFloat(limit))
-        //     .select('-location -status -__v').exec((error, data) => {
-        //         if (error) {
-        //             return msg.msgReturn(res, 3);
-        //         } else {
-        //             if (validate.isNullorEmpty(data)) {
-        //                 return msg.msgReturn(res, 4);
-        //             } else {
-        //                 return msg.msgReturn(res, 0, data);
-        //             }
-        //         }
-        //     });
-
         Task.paginate(findQuery, options).then(data => {
             if (validate.isNullorEmpty(data)) {
                 return msg.msgReturn(res, 4);
@@ -539,7 +467,6 @@ router.route('/getHistoryTasks').get((req, res) => {
             }
         });
     } catch (error) {
-        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
@@ -622,7 +549,6 @@ router.route('/getAllWorkedMaid').get((req, res) => {
 router.route('/getTaskOfMaid').get((req, res) => {
     try {
         var id = req.cookies.userId;
-        // var id = '5911460ae740560cb422ac35';
         var maidId = req.query.maid;
         var process = req.query.process || '000000000000000000000005';
 
@@ -708,7 +634,6 @@ router.route('/comment').post((req, res) => {
     try {
         var comment = new Comment();
         comment.fromId = req.cookies.userId;
-        // comment.fromId = req.body.fromId;
         comment.toId = req.body.toId;
         comment.task = req.body.task;
         comment.content = req.body.content;
@@ -836,7 +761,6 @@ router.route('/report').post((req, res) => {
             }
         });
     } catch (error) {
-        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });
@@ -844,7 +768,6 @@ router.route('/report').post((req, res) => {
 router.route('/statistical').get((req, res) => {
     try {
         const id = req.cookies.userId;
-        // const id = '5911460ae740560cb422ac35';
         const startAt = req.query.startAt;
         const endAt = req.query.endAt;
 
@@ -924,9 +847,6 @@ router.route('/statistical').get((req, res) => {
                 {
                     $group: {
                         _id: '$process',
-                        // task: {
-                        //     $push: '$_id'
-                        // },
                         count: {
                             $sum: 1
                         }
@@ -941,8 +861,6 @@ router.route('/statistical').get((req, res) => {
                 });
             }
         }, (error, result) => {
-            console.log(result)
-
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -969,7 +887,6 @@ router.route('/statistical').get((req, res) => {
 router.route('/getDebt').get((req, res) => {
     try {
         var id = req.cookies.userId;
-        // var id = '5911460ae740560cb422ac35';
         const startAt = req.query.startAt;
         const endAt = req.query.endAt;
 
@@ -1046,7 +963,7 @@ router.route('/getDebt').get((req, res) => {
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
-})
+});
 
 router.route('/getWallet').get((req, res) => {
     try {
@@ -1058,6 +975,6 @@ router.route('/getWallet').get((req, res) => {
     } catch (error) {
         return msg.msgReturn(res, 3)
     }
-})
+});
 
 module.exports = router;
