@@ -1105,5 +1105,4 @@ router.route('/report').post((req, res) => {
     }
 });
 
-
 module.exports = router;

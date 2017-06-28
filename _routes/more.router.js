@@ -701,29 +701,6 @@ router.route('/ownerForgotPassword').post((req, res) => {
 //     }
 // })
 
-router.route('/getMaidInfo').get((req, res) => {
-    try {
-        var id = '5923c12f7d7da13b240e7322'
-
-        Maid
-            // .find({ status: true })
-            .findOne({ _id: id, status: true })
-            .populate({ path: 'work_info.ability', select: 'name image' })
-            .select('info work_info')
-            .exec((error, data) => {
-                if (error) return msg.msgReturn(res, 3)
-                else {
-                    // Work.populate(data, { path: 'work_info.ability', select: 'name image' }, (error, data) => {
-                    //     return validate.isNullorEmpty(data) ? msg.msgReturn(res, 4) : msg.msgReturn(res, 0, data)
-                    // })
-                    return validate.isNullorEmpty(data) ? msg.msgReturn(res, 4) : msg.msgReturn(res, 0, data)
-                }
-            })
-    } catch (error) {
-        return msg.msgReturn(res, 3)
-    }
-})
-
 router.route('/getContact').get((req, res) => {
     try {
         AppInfo.findOne({ _id: '000000000000000000000001', status: true })
