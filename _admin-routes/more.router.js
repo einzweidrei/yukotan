@@ -26,13 +26,10 @@ var Term = require('../_model/term');
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
 
-// setting limit of FILE
-router.use(bodyparser.urlencoded({
-    extended: true
-}));
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
 
-// // parse application/json
-router.use(bodyparser.json());
+router.use(multipartMiddleware)
 
 router.use(function (req, res, next) {
     console.log('package_router is connecting');

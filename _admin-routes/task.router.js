@@ -137,7 +137,7 @@ router.route('/getAll').get((req, res) => {
         sort == 'desc' ? sortQuery['history.createAt'] = -1 : sortQuery['history.createAt'] = -1
 
         var options = {
-            select: '-location -status -__v',
+            select: 'info process history',
             populate: populateQuery,
             sort: sortQuery,
             page: parseFloat(page),
@@ -149,6 +149,211 @@ router.route('/getAll').get((req, res) => {
                 return validate.isNullorEmpty(data) ?
                     msg.msgReturn(res, 4) : msg.msgReturn(res, 0, data);
             })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/getById').get((req, res) => {
+    try {
+        var id = req.query.id;
+
+        Task.findOne({ _id: id, status: true })
+            .select('-location -status -__v')
+            .exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        return msg.msgReturn(res, 0, data);
+                    }
+                }
+            })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/create').post(multipartMiddleware, (req, res) => {
+    try {
+        var username = req.body.username;
+        var title = req.body.title || "";
+        var package = req.body.package;
+        var work = req.body.work;
+        var description = req.body.description || "";
+        var price = req.body.price || 0;
+        var addressName = req.body.addressName || "";
+        var lat = req.body.lat || 0;
+        var lng = req.body.lng || 0;
+        var startAt = req.body.startAt || new Date();
+        var endAt = req.body.endAt || new Date();
+        var tools = req.body.tools || false;
+
+        Owner.findOne({ 'info.username': username, status: true })
+            .select('info')
+            .exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        var task = new Task();
+                        task.info = {
+                            title: title,
+                            package: package,
+                            work: work,
+                            description: description,
+                            price: price || 0,
+                            address: {
+                                name: addressName,
+                                coordinates: {
+                                    lat: lat,
+                                    lng: lng
+                                }
+                            },
+                            time: {
+                                startAt: startAt,
+                                endAt: endAt,
+                                hour: hour
+                            },
+                            tools: tools
+                        };
+
+                        task.stakeholders = {
+                            owner: data._id
+                        };
+
+                        task.process = new ObjectId('000000000000000000000001');
+
+                        task.location = {
+                            type: 'Point',
+                            coordinates: [
+                                lng,
+                                lat
+                            ]
+                        };
+
+                        task.history = {
+                            createAt: new Date(),
+                            updateAt: new Date()
+                        };
+
+                        task.status = true;
+
+                        task.save((error) => {
+                            if (error) return msg.msgReturn(res, 3);
+                            return msg.msgReturn(res, 0);
+                        })
+                    }
+                }
+            })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/update').post(multipartMiddleware, (req, res) => {
+    try {
+        var id = req.body.id;
+
+        var title = req.body.title || "";
+        var package = req.body.package;
+        var work = req.body.work;
+        var description = req.body.description || "";
+        var price = req.body.price || 0;
+        var addressName = req.body.addressName || "";
+        var lat = req.body.lat || 0;
+        var lng = req.body.lng || 0;
+        var startAt = req.body.startAt || new Date();
+        var endAt = req.body.endAt || new Date();
+        var tools = req.body.tools || false;
+
+        var info = {
+            title: title,
+            package: package,
+            work: work,
+            description: description,
+            price: price || 0,
+            address: {
+                name: addressName,
+                coordinates: {
+                    lat: lat,
+                    lng: lng
+                }
+            },
+            time: {
+                startAt: startAt,
+                endAt: endAt,
+                hour: hour
+            },
+            tools: tools
+        };
+
+        var location = {
+            type: 'Point',
+            coordinates: [
+                lng,
+                lat
+            ]
+        };
+
+        Task.findOneAndUpdate(
+            {
+                _id: id,
+                status: true
+            },
+            {
+                $set: {
+                    info: info,
+                    location: location,
+                    'history.updateAt': new Date()
+                }
+            },
+            (error, data) => {
+                if (error) return msg.msgReturn(res, 3);
+                else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        return msg.msgReturn(res, 0);
+                    }
+                }
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/delete').post((req, res) => {
+    try {
+        var id = req.body.id;
+
+        Task.findOneAndUpdate(
+            {
+                _id: id,
+                status: true
+            },
+            {
+                $set: {
+                    status: false
+                }
+            },
+            (error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        return msg.msgReturn(res, 0);
+                    }
+                }
+            }
+        )
     } catch (error) {
         return msg.msgReturn(res, 3);
     }

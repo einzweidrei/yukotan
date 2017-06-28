@@ -26,13 +26,10 @@ var Report = require('../_model/report');
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
 
-// setting limit of FILE
-router.use(bodyparser.urlencoded({
-    extended: true
-}));
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
 
-// // parse application/json
-router.use(bodyparser.json());
+router.use(multipartMiddleware);
 
 router.use(function (req, res, next) {
     console.log('report_router is connecting');

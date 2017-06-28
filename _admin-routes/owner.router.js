@@ -60,14 +60,16 @@ function getToken() {
 }
 
 // setting limit of FILE
-router.use(bodyparser.urlencoded({
-    // limit: '50mb',
-    // parameterLimit: 1000000,
-    extended: true
-}));
+// router.use(bodyparser.urlencoded({
+//     // limit: '50mb',
+//     // parameterLimit: 1000000,
+//     extended: true
+// }));
 
-// // parse application/json
-router.use(bodyparser.json());
+// // // parse application/json
+// router.use(bodyparser.json());
+
+router.use(multipartMiddleware);
 
 let metadata = {
     route: 'owner'
@@ -236,7 +238,7 @@ router.route('/getById').get((req, res) => {
     }
 });
 
-router.route('/create').post(multipartMiddleware, (req, res) => {
+router.route('/create').post((req, res) => {
     try {
         var owner = new Owner();
 
@@ -463,29 +465,12 @@ router.route('/getAllTasks').get((req, res) => {
                 return msg.msgReturn(res, 0, data);
             }
         });
-
-        // Task
-        //     .find(findQuery)
-        //     .populate(populateQuery)
-        //     .sort(sortQuery)
-        //     .limit(parseFloat(limit))
-        //     .select('-location -status -__v').exec((error, data) => {
-        //         if (error) {
-        //             return msg.msgReturn(res, 3);
-        //         } else {
-        //             if (validate.isNullorEmpty(data)) {
-        //                 return msg.msgReturn(res, 4);
-        //             } else {
-        //                 return msg.msgReturn(res, 0, data);
-        //             }
-        //         }
-        //     });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
 });
 
-router.route('/update').put(multipartMiddleware, (req, res) => {
+router.route('/update').post((req, res) => {
     try {
         var owner = new Owner();
         var id = req.query.id;
@@ -578,7 +563,7 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
     }
 });
 
-router.route('/delete').delete((req, res) => {
+router.route('/delete').post((req, res) => {
     try {
         var owner = new Owner();
         var id = req.query.id;

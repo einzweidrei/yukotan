@@ -59,15 +59,7 @@ function getToken() {
     return token;
 }
 
-// setting limit of FILE
-router.use(bodyparser.urlencoded({
-    // limit: '50mb',
-    // parameterLimit: 1000000,
-    extended: true
-}));
-
-// // parse application/json
-router.use(bodyparser.json());
+router.use(multipartMiddleware);
 
 let metadata = {
     route: 'maid'

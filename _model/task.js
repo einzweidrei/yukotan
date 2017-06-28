@@ -13,7 +13,7 @@ var TaskSchema = new Schema(
             work: { type: ObjectId, ref: 'Work' },
             description: { type: String },
             price: { type: Number },
-            image: { type: String },
+            // image: { type: String },
             address: {
                 name: { type: String },
                 coordinates: {

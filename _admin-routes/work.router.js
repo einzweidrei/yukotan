@@ -29,13 +29,7 @@ var multipartMiddleware = multipart();
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
 
-// setting limit of FILE
-router.use(bodyparser.urlencoded({
-    extended: true
-}));
-
-// // parse application/json
-router.use(bodyparser.json());
+router.use(multipartMiddleware);
 
 router.use(function (req, res, next) {
     console.log('package_router is connecting');
@@ -55,7 +49,7 @@ router.use(function (req, res, next) {
     }
 });
 
-router.route('/create').post(multipartMiddleware, (req, res) => {
+router.route('/create').post((req, res) => {
     try {
         var nameVi = req.body.nameVi;
         var nameEn = req.body.nameEn;
@@ -80,7 +74,7 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
     }
 });
 
-router.route('/update').post(multipartMiddleware, (req, res) => {
+router.route('/update').post((req, res) => {
     try {
         var id = req.body.id;
         var nameVi = req.body.nameVi || '';
