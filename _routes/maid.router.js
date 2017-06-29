@@ -1115,8 +1115,9 @@ router.route('/onAnnouncement').post((req, res) => {
                     'auth.device_token': device_token
                 }
             },
-            (error) => {
+            (error, data) => {
                 if (error) return msg.msgReturn(res, 3)
+                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4)
                 return msg.msgReturn(res, 0)
             }
         )
@@ -1139,8 +1140,9 @@ router.route('/offAnnouncement').post((req, res) => {
                     'auth.device_token': ''
                 }
             },
-            (error) => {
+            (error, data) => {
                 if (error) return msg.msgReturn(res, 3)
+                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4)
                 return msg.msgReturn(res, 0)
             }
         )
