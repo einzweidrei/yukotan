@@ -977,4 +977,53 @@ router.route('/getWallet').get((req, res) => {
     }
 });
 
+router.route('/onAnnouncement').post((req, res) => {
+    try {
+        var id = req.cookies.userId;
+        var device_token = req.body.device_token;
+
+        Owner.findOneAndUpdate(
+            {
+                _id: id,
+                status: true
+            },
+            {
+                $set: {
+                    'auth.device_token': device_token
+                }
+            },
+            (error) => {
+                if (error) return msg.msgReturn(res, 3)
+                return msg.msgReturn(res, 0)
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3)
+    }
+});
+
+router.route('/offAnnouncement').post((req, res) => {
+    try {
+        var id = req.cookies.userId;
+
+        Owner.findOneAndUpdate(
+            {
+                _id: id,
+                status: true
+            },
+            {
+                $set: {
+                    'auth.device_token': ''
+                }
+            },
+            (error) => {
+                if (error) return msg.msgReturn(res, 3)
+                return msg.msgReturn(res, 0)
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3)
+    }
+});
+
 module.exports = router;
