@@ -9,52 +9,63 @@ var bodyEn = ' has sent the request directly to you.'
 var FCMService = (function () {
     function FCMService() { }
 
-    FCMService.prototype.pushNotification = (res, user, language, status, data) => {
+    FCMService.prototype.pushNotification = (res, user, language, status, data, billId) => {
         try {
-            // This registration token comes from the client FCM SDKs.
-            registrationToken = user.auth.device_token || ''
-
+            var registrationToken = user.auth.device_token || ''
             var data = data || []
-            // data = []
-            // if (data) data = data
-            // console.log(device_token)
+            var body = user.info.name
+            language == 'vi' ? body += bodyVi : body += bodyEn
+            var d = new Date()
+            var payload = {}
 
-            body = user.info.name
-            if (language == 'vi') {
-                body += bodyVi
-            } else {
-                body += bodyEn
-            }
+            if (registrationToken != '') {
+                var mToken = registrationToken.split('@//@')
+                var sendToken = mToken[0]
 
-            d = new Date()
-            var payload = {
-                // content_available: true,
-                notification: {
-                    title: title,
-                    body: body
-                },
-                data: {
-                    title: title,
-                    body: body,
-                    status: status.toString(),
-                    time: d.toString()
-                }
-            };
-
-            admin.messaging().sendToDevice(registrationToken, payload)
-                .then(function (response) {
-                    // See the MessagingDevicesResponse reference documentation for
-                    // the contents of response.
-                    if (!response || response.results.error) {
-                        return msg.msgReturn(res, 17, data);
+                if (mToken.length > 1) {
+                    if (mToken[1] == 'android') {
+                        payload = {
+                            data: {
+                                title: title,
+                                body: body,
+                                status: status.toString(),
+                                time: d.toString()
+                            }
+                        };
                     } else {
-                        return msg.msgReturn(res, 0, data);
+                        payload = {
+                            notification: {
+                                title: title,
+                                body: body
+                            },
+                            data: {
+                                title: title,
+                                body: body,
+                                status: status.toString(),
+                                time: d.toString()
+                            }
+                        };
                     }
-                })
-                .catch(function (error) {
-                    console.log(error)
-                    return msg.msgReturn(res, 17, data);
-                });
+
+                    if (billId != '') {
+                        payload.data.billId = billId;
+                    }
+
+                    admin.messaging().sendToDevice(registrationToken, payload)
+                        .then(function (response) {
+                            if (!response || response.results.error) {
+                                return msg.msgReturn(res, 17, data);
+                            } else {
+                                return msg.msgReturn(res, 0, data);
+                            }
+                        })
+                        .catch(function (error) {
+                            return msg.msgReturn(res, 17, data);
+                        });
+                }
+            } else {
+                return msg.msgReturn(res, 17, data);
+            }
         } catch (error) {
             return msg.msgReturn(res, 17, data);
         }
@@ -87,7 +98,7 @@ var FCMService = (function () {
                 }
             };
 
-            admin.messaging().sendToDevice(registrationToken, payload)
+            admin.messaging().sendToDevice(sendToken, payload)
                 .then(function (response) {
                     // See the MessagingDevicesResponse reference documentation for
                     // the contents of response.

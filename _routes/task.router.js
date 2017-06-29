@@ -750,7 +750,7 @@ router.route('/delete').delete((req, res) => {
                             Maid.findOne({ _id: maidId, status: true })
                                 .exec((error, maid) => {
                                     if (error || validate.isNullorEmpty(maid)) return msg.msgReturn(res, 0);
-                                    return FCMService.pushNotification(res, maid, req.cookies.language, 1, [])
+                                    return FCMService.pushNotification(res, maid, req.cookies.language, 1, [], '')
                                 })
                         }
                     }
@@ -847,9 +847,8 @@ router.route('/cancel').delete((req, res) => {
                                     else {
                                         return owner.auth.device_token == '' ?
                                             msg.msgReturn(res, 17) :
-                                            FCMService.pushNotification(res, owner, req.cookies.language, 0, [])
+                                            FCMService.pushNotification(res, owner, req.cookies.language, 0, [], '')
                                     }
-                                    // return msg.msgReturn(res, 0);
                                 }
                             )
                         })
@@ -1413,7 +1412,7 @@ router.route('/checkout').post((req, res) => {
             }
         }, (error, result) => {
             if (error) {
-                return msg.msgReturn(res, 3);
+                return msg.msgReturn(res, 3, {});
             } else {
                 if (result.task == 0) {
                     var checkOut = new Date();
@@ -1434,7 +1433,7 @@ router.route('/checkout').post((req, res) => {
                             upsert: true
                         },
                         (error, task) => {
-                            if (error) return msg.msgReturn(res, 3);
+                            if (error) return msg.msgReturn(res, 3, {});
                             else {
                                 var bill = new Bill();
                                 bill.owner = task.stakeholders.owner;
@@ -1447,8 +1446,8 @@ router.route('/checkout').post((req, res) => {
                                 bill.status = true;
 
                                 Maid.findOne({ _id: task.stakeholders.received, status: true }).exec((error, maid) => {
-                                    if (error) return msg.msgReturn(res, 3);
-                                    else if (validate.isNullorEmpty(maid)) return msg.msgReturn(res, 4);
+                                    if (error) return msg.msgReturn(res, 3, {});
+                                    else if (validate.isNullorEmpty(maid)) return msg.msgReturn(res, 4, {});
                                     else {
                                         if (task.info.package == '000000000000000000000001') {
                                             bill.price = task.info.price;
@@ -1469,16 +1468,16 @@ router.route('/checkout').post((req, res) => {
                                             bill.save((error) => {
                                                 if (error) return msg.msgReturn(res, 3);
                                                 return maid.auth.device_token == '' ?
-                                                    msg.msgReturn(res, 17) :
-                                                    FCMService.pushNotification(res, maid, req.cookies.language, 5, dt)
+                                                    msg.msgReturn(res, 17, dt) :
+                                                    FCMService.pushNotification(res, maid, req.cookies.language, 5, dt, '')
                                             });
                                         }
                                         else if (task.info.package == '000000000000000000000002') {
                                             if (error) {
-                                                return msg.msgReturn(res, 0);
+                                                return msg.msgReturn(res, 0, {});
                                             } else {
                                                 if (validate.isNullorEmpty(maid)) {
-                                                    return msg.msgReturn(res, 4);
+                                                    return msg.msgReturn(res, 4, {});
                                                 } else {
                                                     var timeIn = new Date(task.check.check_in);
                                                     var timeOut = new Date(checkOut);
@@ -1516,14 +1515,14 @@ router.route('/checkout').post((req, res) => {
                                                         if (error) return msg.msgReturn(res, 3);
                                                         else {
                                                             return maid.auth.device_token == '' ?
-                                                                msg.msgReturn(res, 17) :
-                                                                FCMService.pushNotification(res, maid, req.cookies.language, 5, dt)
+                                                                msg.msgReturn(res, 17, dt) :
+                                                                FCMService.pushNotification(res, maid, req.cookies.language, 5, dt, '')
                                                         }
                                                     });
                                                 }
                                             }
                                         } else {
-                                            return msg.msgReturn(res, 4);
+                                            return msg.msgReturn(res, 4, {});
                                         }
                                     }
                                 })
@@ -1532,22 +1531,22 @@ router.route('/checkout').post((req, res) => {
                     );
                 } else {
                     if (result.task == 1) {
-                        return msg.msgReturn(res, 4);
+                        return msg.msgReturn(res, 4, {});
                     }
                     else if (result.task == 3) {
-                        return msg.msgReturn(res, 12);
+                        return msg.msgReturn(res, 12, {});
                     }
                     else if (result.task == 4) {
-                        return msg.msgReturn(res, 13);
+                        return msg.msgReturn(res, 13, {});
                     }
                     else {
-                        return msg.msgReturn(res, 3);
+                        return msg.msgReturn(res, 3, {});
                     }
                 }
             }
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, 3, {});
     }
 });
 
@@ -1652,10 +1651,9 @@ router.route('/sendRequest').post((req, res) => {
                                         return msg.msgReturn(res, 3);
                                     }
                                     else {
-                                        // result.maid.data.auth.device_token = 'd97ocXsgXC4:APA91bGQcYODiUMjGG9ysByxG_v8J_B9Ce4rVznRXGb3ArAMv-7Q-CCyEYvoIQ-i4hVl9Yl7tdNzRF9zfxh75iS4El6w7GDuzAKYELw9XG9L5RgAJUmVysxs7s7o_20QQXNhyCJnShj0'
                                         return result.maid.data.auth.device_token == '' ?
                                             msg.msgReturn(res, 17) :
-                                            FCMService.pushNotification(res, result.maid.data, req.cookies.language, 6)
+                                            FCMService.pushNotification(res, result.maid.data, req.cookies.language, 6, [], '')
                                     }
                                 });
                             } else {
@@ -1805,7 +1803,7 @@ router.route('/acceptRequest').post((req, res) => {
                             else {
                                 return result.owner.data.auth.device_token == '' ?
                                     msg.msgReturn(res, 17) :
-                                    FCMService.pushNotification(res, result.owner.data, req.cookies.language, 2, [])
+                                    FCMService.pushNotification(res, result.owner.data, req.cookies.language, 2, [], '')
                             }
                         }
                     );
