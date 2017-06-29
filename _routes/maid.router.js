@@ -714,7 +714,6 @@ router.route('/getComment').get((req, res) => {
 router.route('/getHistoryTasks').get((req, res) => {
     try {
         var id = req.cookies.userId;
-        // var id = '5911460ae740560cb422ac35';
         var process = req.query.process || '000000000000000000000005';
 
         var startAt = req.query.startAt;
@@ -786,7 +785,6 @@ router.route('/getHistoryTasks').get((req, res) => {
             }
         });
     } catch (error) {
-        console.log(error);
         return msg.msgReturn(res, 3);
     }
 });

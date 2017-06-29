@@ -28,11 +28,11 @@ var FCMService = (function () {
 
             d = new Date()
             var payload = {
-                content_available: true,
-                // notification: {
-                //     title: title,
-                //     body: body
-                // },
+                // content_available: true,
+                notification: {
+                    title: title,
+                    body: body
+                },
                 data: {
                     title: title,
                     body: body,
@@ -73,11 +73,11 @@ var FCMService = (function () {
 
             d = new Date()
             var payload = {
-                content_available: true,
-                // notification: {
-                //     title: title,
-                //     body: body
-                // },
+                // content_available: true,
+                notification: {
+                    title: title,
+                    body: body
+                },
                 data: {
                     title: title,
                     body: body,
