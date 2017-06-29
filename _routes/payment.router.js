@@ -207,7 +207,7 @@ router.route('/payDirectly').post((req, res) => {
                                         else {
                                             return maid.auth.device_token == '' ?
                                                 msg.msgReturn(res, 17) :
-                                                FCMService.pushPayDirect(res, maid, req.cookies.language, 9, [], billId)
+                                                FCMService.pushNotification(res, maid, req.cookies.language, 9, [], billId)
                                         }
                                     }
                                 )
