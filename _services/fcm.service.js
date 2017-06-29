@@ -48,7 +48,7 @@ var FCMService = (function () {
                     }
 
                     if (billId != '') {
-                        payload.data.billId = billId;
+                        payload.data.bill = billId;
                     }
 
                     admin.messaging().sendToDevice(sendToken, payload)

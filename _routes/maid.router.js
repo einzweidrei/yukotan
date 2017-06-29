@@ -37,7 +37,7 @@ router.use(bodyparser.json());
 /** Middle Ware
  * 
  */
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     console.log('maid_router is connecting');
 
     try {
@@ -232,35 +232,35 @@ router.route('/getAll').get((req, res) => {
         //         }
 
         Maid.aggregate([{
-                $geoNear: {
-                    near: loc,
-                    distanceField: 'dist.calculated',
-                    minDistance: minDistance,
-                    maxDistance: maxDistance,
-                    num: limit,
-                    spherical: true
-                }
-            },
-            {
-                $match: matchQuery
-            },
-            {
-                // $sort: {
-                //     'dist.calculated': 1
-                // }
-                $sort: sortQuery
-            },
-            {
-                $skip: skip
-            },
-            {
-                $project: {
-                    info: 1,
-                    work_info: 1
-                        // history: 1,
-                        // __v: 0
-                }
+            $geoNear: {
+                near: loc,
+                distanceField: 'dist.calculated',
+                minDistance: minDistance,
+                maxDistance: maxDistance,
+                num: limit,
+                spherical: true
             }
+        },
+        {
+            $match: matchQuery
+        },
+        {
+            // $sort: {
+            //     'dist.calculated': 1
+            // }
+            $sort: sortQuery
+        },
+        {
+            $skip: skip
+        },
+        {
+            $project: {
+                info: 1,
+                work_info: 1
+                // history: 1,
+                // __v: 0
+            }
+        }
         ], (error, places) => {
             if (error) {
                 return msg.msgReturn(res, 3);
@@ -295,21 +295,21 @@ router.route('/getAllDeniedTasks').get((req, res) => {
         var maidId = req.cookies.userId;
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.owner',
-                select: 'info'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'stakeholders.owner',
+            select: 'info'
+        },
+        {
+            path: 'process',
+            select: 'name'
+        }
         ];
 
         Task.find({
@@ -436,30 +436,30 @@ router.route('/getAllRequest').post((req, res) => {
         }
 
         Task.aggregate([{
-                $geoNear: {
-                    near: loc,
-                    distanceField: 'dist.calculated',
-                    minDistance: minDistance,
-                    maxDistance: maxDistance,
-                    num: limit,
-                    spherical: true
-                }
-            },
-            {
-                $match: matchQuery
-            },
-            {
-                $sort: sortQuery
-            },
-            {
-                $skip: skip
-            },
-            {
-                $project: {
-                    location: 0,
-                    __v: 0
-                }
+            $geoNear: {
+                near: loc,
+                distanceField: 'dist.calculated',
+                minDistance: minDistance,
+                maxDistance: maxDistance,
+                num: limit,
+                spherical: true
             }
+        },
+        {
+            $match: matchQuery
+        },
+        {
+            $sort: sortQuery
+        },
+        {
+            $skip: skip
+        },
+        {
+            $project: {
+                location: 0,
+                __v: 0
+            }
+        }
         ], (error, places) => {
             if (error) {
                 return msg.msgReturn(res, 3);
@@ -539,21 +539,21 @@ router.route('/getAllTasks').get((req, res) => {
         }
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            },
-            {
-                path: 'stakeholders.owner',
-                select: 'info evaluation_point'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'process',
+            select: 'name'
+        },
+        {
+            path: 'stakeholders.owner',
+            select: 'info evaluation_point'
+        }
         ]
 
         if (startAt || endAt) {
@@ -638,9 +638,9 @@ router.route('/comment').post((req, res) => {
                                 }
 
                                 Owner.findOneAndUpdate({
-                                        _id: comment.toId,
-                                        status: true
-                                    }, {
+                                    _id: comment.toId,
+                                    status: true
+                                }, {
                                         $set: {
                                             evaluation_point: new_ep
                                         }
@@ -750,21 +750,21 @@ router.route('/getHistoryTasks').get((req, res) => {
         }
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.owner',
-                select: 'info evaluation_point'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'stakeholders.owner',
+            select: 'info evaluation_point'
+        },
+        {
+            path: 'process',
+            select: 'name'
+        }
         ];
 
         var options = {
@@ -821,23 +821,23 @@ router.route('/getAllWorkedOwner').get((req, res) => {
         };
 
         Task.aggregate([{
-                    $match: matchQuery
-                },
-                {
-                    $sort: {
-                        'info.time.startAt': -1
-                    },
-                },
-                {
-                    $group: {
-                        _id: '$stakeholders.owner',
-                        times: {
-                            $push: '$info.time.startAt'
-                        }
-                        // time: '$info.time.startAt'
-                    }
+            $match: matchQuery
+        },
+        {
+            $sort: {
+                'info.time.startAt': -1
+            },
+        },
+        {
+            $group: {
+                _id: '$stakeholders.owner',
+                times: {
+                    $push: '$info.time.startAt'
                 }
-            ],
+                // time: '$info.time.startAt'
+            }
+        }
+        ],
             // {
             //     allowDiskUse: true
             // },
@@ -892,7 +892,6 @@ router.route('/getTaskComment').get((req, res) => {
 router.route('/getTaskOfOwner').get((req, res) => {
     try {
         var id = req.cookies.userId;
-        // var id = '5911460ae740560cb422ac35';
         var ownerId = req.query.owner;
         var process = req.query.process || '000000000000000000000005';
 
@@ -931,21 +930,21 @@ router.route('/getTaskOfOwner').get((req, res) => {
         }
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.owner',
-                select: 'info evaluation_point'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'stakeholders.owner',
+            select: 'info evaluation_point'
+        },
+        {
+            path: 'process',
+            select: 'name'
+        }
         ];
 
         var options = {
@@ -957,8 +956,6 @@ router.route('/getTaskOfOwner').get((req, res) => {
             page: parseFloat(page),
             limit: parseFloat(limit)
         };
-
-        console.log(findQuery)
 
         Task.paginate(findQuery, options).then(data => {
             if (validate.isNullorEmpty(data)) {
@@ -1008,18 +1005,18 @@ router.route('/statistical').get((req, res) => {
         };
 
         async.parallel({
-            bill: function(callback) {
+            bill: function (callback) {
                 Bill.aggregate([{
-                        $match: billQuery
-                    },
-                    {
-                        $group: {
-                            _id: null,
-                            totalPrice: {
-                                $sum: '$price'
-                            }
+                    $match: billQuery
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalPrice: {
+                            $sum: '$price'
                         }
-                    },
+                    }
+                },
                 ], (error, data) => {
                     if (error) {
                         return msg.msgReturn(res, 3);
@@ -1036,18 +1033,18 @@ router.route('/statistical').get((req, res) => {
                     }
                 });
             },
-            task: function(callback) {
+            task: function (callback) {
                 Task.aggregate([{
-                        $match: taskQuery
-                    },
-                    {
-                        $group: {
-                            _id: '$process',
-                            count: {
-                                $sum: 1
-                            }
+                    $match: taskQuery
+                },
+                {
+                    $group: {
+                        _id: '$process',
+                        count: {
+                            $sum: 1
                         }
                     }
+                }
                 ], (error, data) => {
                     if (error) {
                         return msg.msgReturn(res, 3);

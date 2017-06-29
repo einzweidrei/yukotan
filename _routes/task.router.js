@@ -471,7 +471,7 @@ router.route('/create').post((req, res) => {
                             Task.find(
                                 {
                                     'stakeholders.owner': req.cookies.userId,
-                                    process: '000000000000000000000001',
+                                    process: { $in: ['000000000000000000000001', '000000000000000000000006'] },
                                     status: true
                                 }).exec((error, data) => {
                                     if (error) {
@@ -1640,12 +1640,32 @@ router.route('/sendRequest').post((req, res) => {
                                     }
                                 }
                             });
+                        },
+                        task: function (callback) {
+                            Task.find(
+                                {
+                                    'stakeholders.owner': ownerId,
+                                    process: { $in: ['000000000000000000000001', '000000000000000000000006'] },
+                                    status: true
+                                }).exec((error, data) => {
+                                    if (error) {
+                                        callback(null, 2);
+                                    }
+                                    else {
+                                        if (validate.isNullorEmpty(data) || !data || data.length <= 10) {
+                                            callback(null, 0);
+                                        }
+                                        else {
+                                            callback(null, 4);
+                                        }
+                                    }
+                                });
                         }
                     }, (error, result) => {
                         if (error) {
                             return msg.msgReturn(res, 3);
                         } else {
-                            if (result.work == 0 && result.maid.value == 0) {
+                            if (result.work == 0 && result.maid.value == 0 && result.task == 0) {
                                 task.save((error) => {
                                     if (error) {
                                         return msg.msgReturn(res, 3);
@@ -1659,6 +1679,8 @@ router.route('/sendRequest').post((req, res) => {
                             } else {
                                 if (result.work == 1) {
                                     return msg.msgReturn(res, 4);
+                                } else if (result.task == 4) {
+                                    return msg.msgReturn(res, 8);
                                 } else {
                                     return msg.msgReturn(res, 3);
                                 }

@@ -497,7 +497,6 @@ router.route('/getTaskByWork').get((req, res) => {
             }
         }
         ], (error, places) => {
-            console.log(places)
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -532,29 +531,6 @@ router.route('/getTaskByWork').get((req, res) => {
                             });
                         });
                     });
-                }
-            }
-        });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
-
-router.route('/getTerm').get((req, res) => {
-    try {
-        var language = req.cookies.language;
-        Term.setDefaultLanguage(language);
-
-        var id = req.query.id;
-
-        Term.find({ _id: id }).select('name content').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    return msg.msgReturn(res, 0, data[0]);
                 }
             }
         });
