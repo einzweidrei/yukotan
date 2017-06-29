@@ -62,6 +62,8 @@ var FCMService = (function () {
                         .catch(function (error) {
                             return msg.msgReturn(res, 17, data);
                         });
+                } else {
+                    return msg.msgReturn(res, 17, data);
                 }
             } else {
                 return msg.msgReturn(res, 17, data);
