@@ -292,7 +292,10 @@ router.route('/getAllTasks').get((req, res) => {
             if (validate.isNullorEmpty(data)) {
                 return msg.msgReturn(res, 4);
             } else {
-                return msg.msgReturn(res, 0, data);
+                Work.populate(data, { path: 'docs.stakeholders.received.work_info.ability', select: 'name image' }, (error, result) => {
+                    if (error) return msg.msgReturn(res, 3)
+                    return msg.msgReturn(res, 0, result)
+                })
             }
         });
     } catch (error) {
