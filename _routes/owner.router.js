@@ -798,9 +798,9 @@ router.route('/statistical').get((req, res) => {
             }
 
             billQuery['createAt'] = timeQuery;
-            taskQuery['info.time.startAt'] = timeQuery;
+            // taskQuery['info.time.startAt'] = timeQuery;
+            taskQuery['history.createAt'] = timeQuery;
         };
-
 
         async.parallel({
             owner: function (callback) {
