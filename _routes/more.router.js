@@ -136,7 +136,7 @@ router.route('/resetPassword').post((req, res) => {
  */
 router.route('/getAllMaids').get((req, res) => {
     try {
-        var minDistance = req.query.minDistance || 1;
+        var minDistance = req.query.minDistance || 0;
         var maxDistance = req.query.maxDistance || 2;
         var limit = req.query.limit || 20;
         var page = req.query.page || 1;

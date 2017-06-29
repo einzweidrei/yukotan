@@ -162,124 +162,124 @@ router.route('/getById').get((req, res) => {
  *      sortType: "asc" | "desc"
  * }
  */
-router.route('/getAll').get((req, res) => {
-    try {
-        // var language = req.cookies.language;
-        // Package.setDefaultLanguage(language);
-        // Work.setDefaultLanguage(language);
-        // Process.setDefaultLanguage(language);
+// router.route('/getAll').get((req, res) => {
+//     try {
+//         // var language = req.cookies.language;
+//         // Package.setDefaultLanguage(language);
+//         // Work.setDefaultLanguage(language);
+//         // Process.setDefaultLanguage(language);
 
-        var minDistance = req.query.minDistance || 1;
-        var maxDistance = req.query.maxDistance || 2000;
-        var limit = req.query.limit || 20;
-        var page = req.query.page || 1;
-        var skip = (page - 1) * limit;
+//         var minDistance = req.query.minDistance || 0;
+//         var maxDistance = req.query.maxDistance || 2000;
+//         var limit = req.query.limit || 20;
+//         var page = req.query.page || 1;
+//         var skip = (page - 1) * limit;
 
-        //         var name = req.body.name;
-        //         var work = req.body.work;
+//         //         var name = req.body.name;
+//         //         var work = req.body.work;
 
-        var sortBy = req.query.sortBy || "distance"; //distance & price
-        var sortType = req.query.sortType || "asc"; //asc & desc
+//         var sortBy = req.query.sortBy || "distance"; //distance & price
+//         var sortType = req.query.sortType || "asc"; //asc & desc
 
-        var sortQuery = {};
+//         var sortQuery = {};
 
-        if (sortType == "desc") {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'work_info.price': -1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': -1
-                }
-            }
-        } else {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'work_info.price': 1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': 1
-                }
-            }
-        };
+//         if (sortType == "desc") {
+//             if (sortBy == "price") {
+//                 sortQuery = {
+//                     'work_info.price': -1
+//                 }
+//             } else {
+//                 sortQuery = {
+//                     'dist.calculated': -1
+//                 }
+//             }
+//         } else {
+//             if (sortBy == "price") {
+//                 sortQuery = {
+//                     'work_info.price': 1
+//                 }
+//             } else {
+//                 sortQuery = {
+//                     'dist.calculated': 1
+//                 }
+//             }
+//         };
 
-        var loc = {
-            type: 'Point',
-            coordinates: [
-                parseFloat(req.query.lng) || 0,
-                parseFloat(req.query.lat) || 0
-            ]
-        };
+//         var loc = {
+//             type: 'Point',
+//             coordinates: [
+//                 parseFloat(req.query.lng) || 0,
+//                 parseFloat(req.query.lat) || 0
+//             ]
+//         };
 
-        var matchQuery = { status: true };
+//         var matchQuery = { status: true };
 
-        //         if (work) {
-        //             var arr = new Array();
-        //             if (work instanceof Array) {
-        //                 for (var i = 0; i < work.length; i++) {
-        //                     arr.push(new ObjectId(work[i]));
-        //                 }
-        //                 matchQuery['work_info.ability.work'] = {
-        //                     $in: arr
-        //                 }
-        //             }
-        //         }
+//         //         if (work) {
+//         //             var arr = new Array();
+//         //             if (work instanceof Array) {
+//         //                 for (var i = 0; i < work.length; i++) {
+//         //                     arr.push(new ObjectId(work[i]));
+//         //                 }
+//         //                 matchQuery['work_info.ability.work'] = {
+//         //                     $in: arr
+//         //                 }
+//         //             }
+//         //         }
 
-        //         if (name) {
-        //             matchQuery['info.name'] = new RegExp(name, 'i');
-        //         }
+//         //         if (name) {
+//         //             matchQuery['info.name'] = new RegExp(name, 'i');
+//         //         }
 
-        Maid.aggregate([{
-            $geoNear: {
-                near: loc,
-                distanceField: 'dist.calculated',
-                minDistance: minDistance,
-                maxDistance: maxDistance,
-                num: limit,
-                spherical: true
-            }
-        },
-        {
-            $match: matchQuery
-        },
-        {
-            // $sort: {
-            //     'dist.calculated': 1
-            // }
-            $sort: sortQuery
-        },
-        {
-            $skip: skip
-        },
-        {
-            $project: {
-                info: 1,
-                work_info: 1
-                // history: 1,
-                // __v: 0
-            }
-        }
-        ], (error, places) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(places)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Work.populate(places, { path: 'work_info.ability.work', select: 'name' }, (error, data) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        return msg.msgReturn(res, 0, places);
-                    });
-                }
-            }
-        });
-    } catch (error) {
-        console.log(error);
-        return msg.msgReturn(res, 3);
-    }
-});
+//         Maid.aggregate([{
+//             $geoNear: {
+//                 near: loc,
+//                 distanceField: 'dist.calculated',
+//                 minDistance: minDistance,
+//                 maxDistance: maxDistance,
+//                 num: limit,
+//                 spherical: true
+//             }
+//         },
+//         {
+//             $match: matchQuery
+//         },
+//         {
+//             // $sort: {
+//             //     'dist.calculated': 1
+//             // }
+//             $sort: sortQuery
+//         },
+//         {
+//             $skip: skip
+//         },
+//         {
+//             $project: {
+//                 info: 1,
+//                 work_info: 1
+//                 // history: 1,
+//                 // __v: 0
+//             }
+//         }
+//         ], (error, places) => {
+//             if (error) {
+//                 return msg.msgReturn(res, 3);
+//             } else {
+//                 if (validate.isNullorEmpty(places)) {
+//                     return msg.msgReturn(res, 4);
+//                 } else {
+//                     Work.populate(places, { path: 'work_info.ability.work', select: 'name' }, (error, data) => {
+//                         if (error) return msg.msgReturn(res, 3);
+//                         return msg.msgReturn(res, 0, places);
+//                     });
+//                 }
+//             }
+//         });
+//     } catch (error) {
+//         console.log(error);
+//         return msg.msgReturn(res, 3);
+//     }
+// });
 
 /** GET - Get All Denied Tasks
  * info {

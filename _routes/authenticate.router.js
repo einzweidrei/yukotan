@@ -23,7 +23,7 @@ var multipartMiddleware = multipart();
 
 router.use(multipartMiddleware);
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     try {
         // console.log(mess.msg_success);
         // console.log(req.cookies);
@@ -82,75 +82,75 @@ router.route('/login').post((req, res) => {
                             _id: data._id,
                             status: true
                         }, {
-                            $set: {
-                                'auth.device_token': device_token
-                            }
-                        }, {
-                            upsert: true
-                        }, (error) => {
-                            if (error) return msg.msgReturn(res, 3, {});
-                            else {
-                                Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
-                                    if (error) {
-                                        return msg.msgReturn(res, 3, {});
-                                    } else {
-                                        var newToken = getToken();
-
-                                        if (validate.isNullorEmpty(result)) {
-                                            var session = new Session();
-                                            session.auth.userId = data._id;
-                                            session.auth.token = newToken;
-                                            session.loginAt = new Date();
-                                            session.auth.device_token = device_token;
-                                            session.status = true;
-
-                                            session.save((error) => {
-                                                if (error) {
-                                                    return msg.msgReturn(res, 3, {});
-                                                } else {
-                                                    var dt = {
-                                                        token: newToken,
-                                                        user: {
-                                                            _id: data._id,
-                                                            info: data.info,
-                                                            evaluation_point: data.evaluation_point,
-                                                            wallet: data.wallet
-                                                        }
-                                                    }
-                                                    return msg.msgReturn(res, 0, dt);
-                                                }
-                                            });
+                                $set: {
+                                    'auth.device_token': device_token
+                                }
+                            }, {
+                                upsert: true
+                            }, (error) => {
+                                if (error) return msg.msgReturn(res, 3, {});
+                                else {
+                                    Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
+                                        if (error) {
+                                            return msg.msgReturn(res, 3, {});
                                         } else {
-                                            Session.findOneAndUpdate({
+                                            var newToken = getToken();
+
+                                            if (validate.isNullorEmpty(result)) {
+                                                var session = new Session();
+                                                session.auth.userId = data._id;
+                                                session.auth.token = newToken;
+                                                session.loginAt = new Date();
+                                                session.auth.device_token = device_token;
+                                                session.status = true;
+
+                                                session.save((error) => {
+                                                    if (error) {
+                                                        return msg.msgReturn(res, 3, {});
+                                                    } else {
+                                                        var dt = {
+                                                            token: newToken,
+                                                            user: {
+                                                                _id: data._id,
+                                                                info: data.info,
+                                                                evaluation_point: data.evaluation_point,
+                                                                wallet: data.wallet
+                                                            }
+                                                        }
+                                                        return msg.msgReturn(res, 0, dt);
+                                                    }
+                                                });
+                                            } else {
+                                                Session.findOneAndUpdate({
                                                     'auth.userId': data._id,
                                                     status: true
                                                 }, {
-                                                    $set: {
-                                                        'auth.token': newToken,
-                                                        'auth.device_token': device_token,
-                                                        loginAt: new Date()
-                                                    }
-                                                }, {
-                                                    upsert: true
-                                                },
-                                                (error, result) => {
-                                                    var dt = {
-                                                        token: newToken,
-                                                        user: {
-                                                            _id: data._id,
-                                                            info: data.info,
-                                                            evaluation_point: data.evaluation_point,
-                                                            wallet: data.wallet
+                                                        $set: {
+                                                            'auth.token': newToken,
+                                                            'auth.device_token': device_token,
+                                                            loginAt: new Date()
                                                         }
+                                                    }, {
+                                                        upsert: true
+                                                    },
+                                                    (error, result) => {
+                                                        var dt = {
+                                                            token: newToken,
+                                                            user: {
+                                                                _id: data._id,
+                                                                info: data.info,
+                                                                evaluation_point: data.evaluation_point,
+                                                                wallet: data.wallet
+                                                            }
+                                                        }
+                                                        return msg.msgReturn(res, 0, dt);
                                                     }
-                                                    return msg.msgReturn(res, 0, dt);
-                                                }
-                                            )
+                                                )
+                                            }
                                         }
-                                    }
-                                });
-                            }
-                        })
+                                    });
+                                }
+                            })
                     }
                 }
             }
@@ -236,7 +236,7 @@ router.route('/register').post((req, res) => {
                 } else {
                     cloudinary.uploader.upload(
                         req.files.image.path,
-                        function(result) {
+                        function (result) {
                             owner.info.image = result.url;
                             owner.save((error, data) => {
                                 if (error) {
@@ -307,10 +307,10 @@ router.route('/maid/login').post((req, res) => {
             .populate({ path: 'work_info.ability', select: 'name image' })
             .select('_id info work_info auth').exec((error, data) => {
                 if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 3, {});
+                    return msg.msgReturn(res, 4, {});
                 } else {
                     if (error) {
-                        return msg.msgReturn(res, 3);
+                        return msg.msgReturn(res, 3, {});
                     } else {
                         if (data.auth.password != password) {
                             return msg.msgReturn(res, 5, {});
@@ -319,69 +319,38 @@ router.route('/maid/login').post((req, res) => {
                                 _id: data._id,
                                 status: true
                             }, {
-                                $set: {
-                                    'auth.device_token': device_token
-                                }
-                            }, {
-                                upsert: true
-                            }, (error) => {
-                                if (error) return msg.msgReturn(res, 3, {});
-                                else {
-                                    Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
-                                        if (error) {
-                                            return msg.msgReturn(res, 3, {});
-                                        } else {
-                                            var newToken = getToken();
-
-                                            var d = {
-                                                token: newToken,
-                                                user: {
-                                                    _id: data._id,
-                                                    info: data.info,
-                                                    work_info: data.work_info
-                                                }
-                                            }
-
-                                            if (validate.isNullorEmpty(result)) {
-                                                var session = new Session();
-                                                session.auth.userId = data._id;
-                                                session.auth.token = newToken;
-                                                session.loginAt = new Date();
-                                                session.auth.device_token = device_token;
-                                                session.status = true;
-                                                session.save((error) => {
-                                                    if (error) return msg.msgReturn(res, 3);
-                                                    return msg.msgReturn(res, 0, d);
-
-                                                    // return res.status(200).json({
-                                                    //     status: true,
-                                                    //     message: msg.msg_success,
-                                                    //     data: {
-                                                    //         token: newToken,
-                                                    //         user: {
-                                                    //             _id: data._id,
-                                                    //             info: data.info,
-                                                    //             work_info: data.work_info
-                                                    //         }
-                                                    //     }
-                                                    // });
-
-                                                });
+                                    $set: {
+                                        'auth.device_token': device_token
+                                    }
+                                }, {
+                                    upsert: true
+                                }, (error) => {
+                                    if (error) return msg.msgReturn(res, 3, {});
+                                    else {
+                                        Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
+                                            if (error) {
+                                                return msg.msgReturn(res, 3, {});
                                             } else {
-                                                Session.findOneAndUpdate({
-                                                        'auth.userId': data._id,
-                                                        status: true
-                                                    }, {
-                                                        $set: {
-                                                            'auth.token': newToken,
-                                                            'auth.device_token': device_token,
-                                                            loginAt: new Date()
-                                                        }
-                                                    }, {
-                                                        upsert: true
-                                                    },
-                                                    (error) => {
-                                                        if (error) return msg.msgReturn(res, 3);
+                                                var newToken = getToken();
+
+                                                var d = {
+                                                    token: newToken,
+                                                    user: {
+                                                        _id: data._id,
+                                                        info: data.info,
+                                                        work_info: data.work_info
+                                                    }
+                                                }
+
+                                                if (validate.isNullorEmpty(result)) {
+                                                    var session = new Session();
+                                                    session.auth.userId = data._id;
+                                                    session.auth.token = newToken;
+                                                    session.loginAt = new Date();
+                                                    session.auth.device_token = device_token;
+                                                    session.status = true;
+                                                    session.save((error) => {
+                                                        if (error) return msg.msgReturn(res, 3, {});
                                                         return msg.msgReturn(res, 0, d);
 
                                                         // return res.status(200).json({
@@ -396,13 +365,44 @@ router.route('/maid/login').post((req, res) => {
                                                         //         }
                                                         //     }
                                                         // });
-                                                    }
-                                                )
+
+                                                    });
+                                                } else {
+                                                    Session.findOneAndUpdate({
+                                                        'auth.userId': data._id,
+                                                        status: true
+                                                    }, {
+                                                            $set: {
+                                                                'auth.token': newToken,
+                                                                'auth.device_token': device_token,
+                                                                loginAt: new Date()
+                                                            }
+                                                        }, {
+                                                            upsert: true
+                                                        },
+                                                        (error) => {
+                                                            if (error) return msg.msgReturn(res, 3, {});
+                                                            return msg.msgReturn(res, 0, d);
+
+                                                            // return res.status(200).json({
+                                                            //     status: true,
+                                                            //     message: msg.msg_success,
+                                                            //     data: {
+                                                            //         token: newToken,
+                                                            //         user: {
+                                                            //             _id: data._id,
+                                                            //             info: data.info,
+                                                            //             work_info: data.work_info
+                                                            //         }
+                                                            //     }
+                                                            // });
+                                                        }
+                                                    )
+                                                }
                                             }
-                                        }
-                                    });
-                                }
-                            })
+                                        });
+                                    }
+                                })
                         }
                     }
                 }
@@ -436,75 +436,75 @@ router.route('/thirdLogin').post((req, res) => {
                         _id: data._id,
                         status: true
                     }, {
-                        $set: {
-                            'auth.device_token': device_token
-                        }
-                    }, {
-                        upsert: true
-                    }, (error) => {
-                        Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
-                            if (error) {
-                                return msg.msgReturn(res, 3, {});
-                            } else {
-                                console.log('here')
-                                if (validate.isNullorEmpty(result)) {
-                                    var session = new Session();
-                                    session.auth.userId = data._id;
-                                    session.auth.token = token;
-                                    session.loginAt = new Date();
-                                    session.status = true;
-
-                                    // console.log(session)
-
-                                    session.save((error) => {
-                                        if (error) {
-                                            return msg.msgReturn(res, 3, {});
-                                        } else {
-                                            var dt = {
-                                                token: token,
-                                                user: {
-                                                    _id: data._id,
-                                                    info: data.info,
-                                                    evaluation_point: data.evaluation_point,
-                                                    wallet: data.wallet
-                                                }
-                                            };
-
-                                            return msg.msgReturn(res, 0, dt);
-                                        }
-                                    });
+                            $set: {
+                                'auth.device_token': device_token
+                            }
+                        }, {
+                            upsert: true
+                        }, (error) => {
+                            Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
+                                if (error) {
+                                    return msg.msgReturn(res, 3, {});
                                 } else {
-                                    Session.findOneAndUpdate({
+                                    console.log('here')
+                                    if (validate.isNullorEmpty(result)) {
+                                        var session = new Session();
+                                        session.auth.userId = data._id;
+                                        session.auth.token = token;
+                                        session.loginAt = new Date();
+                                        session.status = true;
+
+                                        // console.log(session)
+
+                                        session.save((error) => {
+                                            if (error) {
+                                                return msg.msgReturn(res, 3, {});
+                                            } else {
+                                                var dt = {
+                                                    token: token,
+                                                    user: {
+                                                        _id: data._id,
+                                                        info: data.info,
+                                                        evaluation_point: data.evaluation_point,
+                                                        wallet: data.wallet
+                                                    }
+                                                };
+
+                                                return msg.msgReturn(res, 0, dt);
+                                            }
+                                        });
+                                    } else {
+                                        Session.findOneAndUpdate({
                                             'auth.userId': data._id,
                                             status: true
                                         }, {
-                                            $set: {
-                                                'auth.token': token,
-                                                // 'auth.device_token': device_token,
-                                                loginAt: new Date()
-                                            }
-                                        }, {
-                                            upsert: true
-                                        },
-                                        (error, result) => {
-                                            if (error) return msg.msgReturn(res, 3, {});
-                                            var dt = {
-                                                token: token,
-                                                user: {
-                                                    _id: data._id,
-                                                    info: data.info,
-                                                    evaluation_point: data.evaluation_point,
-                                                    wallet: data.wallet
+                                                $set: {
+                                                    'auth.token': token,
+                                                    // 'auth.device_token': device_token,
+                                                    loginAt: new Date()
                                                 }
-                                            };
+                                            }, {
+                                                upsert: true
+                                            },
+                                            (error, result) => {
+                                                if (error) return msg.msgReturn(res, 3, {});
+                                                var dt = {
+                                                    token: token,
+                                                    user: {
+                                                        _id: data._id,
+                                                        info: data.info,
+                                                        evaluation_point: data.evaluation_point,
+                                                        wallet: data.wallet
+                                                    }
+                                                };
 
-                                            return msg.msgReturn(res, 0, dt);
-                                        }
-                                    )
+                                                return msg.msgReturn(res, 0, dt);
+                                            }
+                                        )
+                                    }
                                 }
-                            }
-                        });
-                    })
+                            });
+                        })
                 }
             }
         })
@@ -687,7 +687,7 @@ router.route('/maid/register').post((req, res) => {
                     } else {
                         cloudinary.uploader.upload(
                             req.files.image.path,
-                            function(result) {
+                            function (result) {
                                 maid.info['image'] = result.url;
                                 maid.save((error) => {
                                     if (error) return msg.msgReturn(res, 3);
@@ -771,9 +771,9 @@ router.route('/maid/update').put((req, res) => {
                     if (!req.files.image) {
                         maid.info['image'] = req.body.image || "";
                         Maid.findOneAndUpdate({
-                                _id: id,
-                                status: true
-                            }, {
+                            _id: id,
+                            status: true
+                        }, {
                                 $set: {
                                     info: maid.info,
                                     work_info: maid.work_info,
@@ -791,12 +791,12 @@ router.route('/maid/update').put((req, res) => {
                     } else {
                         cloudinary.uploader.upload(
                             req.files.image.path,
-                            function(result) {
+                            function (result) {
                                 maid.info['image'] = result.url;
                                 Maid.findOneAndUpdate({
-                                        _id: id,
-                                        status: true
-                                    }, {
+                                    _id: id,
+                                    status: true
+                                }, {
                                         $set: {
                                             info: maid.info,
                                             work_info: maid.work_info,
