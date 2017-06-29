@@ -98,6 +98,20 @@ router.use(function (req, res, next) {
     }
 });
 
+router.route('/check').get((req, res) => {
+    try {
+        var username = req.query.username;
+
+        Owner.findOne({ 'info.username': username, status: true }).exec((error, data) => {
+            if (error) return msg.msgReturn(res, 3);
+            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+            return msg.msgReturn(res, 0);
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 router.route('/getAll').get((req, res) => {
     try {
         var startAt = req.query.startAt;
