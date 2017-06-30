@@ -25,29 +25,12 @@ var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
 var Report = require('../_model/report');
 var Bill = require('../_model/bill');
-var randomstring = require("randomstring");
 
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 
 var ObjectId = require('mongoose').Types.ObjectId;
-
 var cloudinary = require('cloudinary');
-var bodyparser = require('body-parser');
-
-router.use(bodyparser.json({
-    limit: '50mb',
-}));
-
-// setting limit of FILE
-// router.use(bodyparser.urlencoded({
-//     // limit: '50mb',
-//     // parameterLimit: 1000000,
-//     extended: true
-// }));
-
-// // parse application/json
-// router.use(bodyparser.json());
 
 /** Middle Ware
  * 

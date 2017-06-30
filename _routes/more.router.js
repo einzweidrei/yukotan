@@ -16,6 +16,9 @@ var lnService = new languageService.Language();
 var mail = require('../_services/mail.service');
 var mailService = new mail.MailService();
 
+var as = require('../_services/app.service');
+var AppService = new as.App();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
@@ -26,28 +29,8 @@ var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
 var AppInfo = require('../_model/app-info');
-
 var cloudinary = require('cloudinary');
-var bodyparser = require('body-parser');
-var randomstring = require("randomstring");
-
 var ObjectId = require('mongoose').Types.ObjectId;
-
-// router.use(bodyparser.urlencoded({
-//     extended: true
-// }));
-// router.use(bodyparser.json());
-
-const hash_key = 'LULULUL';
-// const hash_key = 'HBBSolution';
-
-function hash(content) {
-    const crypto = require('crypto');
-    const hash = crypto.createHmac('sha256', hash_key)
-        .update(content)
-        .digest('hex');
-    return hash;
-}
 
 router.use(function (req, res, next) {
     console.log('more_router is connecting');
@@ -69,8 +52,8 @@ router.use(function (req, res, next) {
 
 router.route('/resetPassword').post((req, res) => {
     try {
-        var newPw = randomstring.generate(7);
-        var hashPw = hash(newPw);
+        var newPw = AppService.randomString(7);
+        var hashPw = AppService.hashString(newPw);
 
         var username = req.body.username;
         var email = req.body.email;
@@ -114,26 +97,6 @@ router.route('/resetPassword').post((req, res) => {
     }
 });
 
-/** GET - Get All Maids
- * info {
- *      type: GET
- *      url: /getAllMaids
- *      role: Owner
- *      name: Get All Maids
- *      description: Get all maids which is around [input location]
- * }
- * 
- * params {
- *      lat: Number
- *      lng: Number
- *      minDistance: Number
- *      maxDistance: Number
- *      limit: Number
- *      page: Number
- *      sortBy: "distance" | "price"
- *      sortType: "asc" | "desc"
- * }
- */
 router.route('/getAllMaids').get((req, res) => {
     try {
         var minDistance = req.query.minDistance || 0;
@@ -269,26 +232,6 @@ router.route('/getAllMaids').get((req, res) => {
     }
 });
 
-/** POST - Get All Tasks
- * info {
- *      type: POST
- *      url: /getAll
- *      role: Owner
- *      name: Get All Tasks
- *      description: Get all tasks which is around [input location]
- * }
- * 
- * params {
- *      lat: Number
- *      lng: Number
- *      minDistance: Number
- *      maxDistance: Number
- *      limit: Number
- *      page: Number
- *      sortBy: "distance" | "price"
- *      sortType: "asc" | "desc"
- * }
- */
 router.route('/getTaskAround').get((req, res) => {
     try {
         var minDistance = req.query.minDistance || 0;
@@ -379,33 +322,6 @@ router.route('/getTaskAround').get((req, res) => {
     }
 });
 
-/** POST - Get All Tasks
- * info {
- *      type: POST
- *      url: /getAll
- *      role: Owner
- *      name: Get All Tasks
- *      description: Get all tasks which is around [input location]
- * }
- * 
- * params {
- *      lat: Number
- *      lng: Number
- *      minDistance: Number
- *      maxDistance: Number
- *      limit: Number
- *      page: Number
- *      sortBy: "distance" | "price"
- *      sortType: "asc" | "desc"
- * }
- * 
- * body {
- *      title: String
- *      process: process_ID
- *      package: [ package_ID ]
- *      work: [ work_ID ]
- * }
- */
 router.route('/getTaskByWork').get((req, res) => {
     try {
         var minDistance = req.query.minDistance || 0;
@@ -567,7 +483,7 @@ router.route('/maidForgotPassword').post((req, res) => {
     try {
         var username = req.body.username;
         var email = req.body.email;
-        var verifyToken = randomstring.generate(5) + ':' + randomstring.generate(20);
+        var verifyToken = AppService.getVerifyToken();
 
         Maid.findOne({ 'info.username': username, 'info.email': email, status: true }).exec((error, data) => {
             if (error) {
@@ -608,7 +524,7 @@ router.route('/ownerForgotPassword').post((req, res) => {
     try {
         var username = req.body.username;
         var email = req.body.email;
-        var verifyToken = randomstring.generate(5) + ':' + randomstring.generate(20);
+        var verifyToken = AppService.getVerifyToken();
 
         Owner.findOne({ 'info.username': username, 'info.email': email, status: true }).exec((error, data) => {
             if (error) {

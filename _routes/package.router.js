@@ -13,26 +13,9 @@ var validate = new validationService.Validation();
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
 
-var FCM = require('../_services/fcm.service');
-var FCMService = new FCM.FCMService();
-
-var Mail = require('../_services/mail.service');
-var MailService = new Mail.MailService();
-
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
-
-var cloudinary = require('cloudinary');
-var bodyparser = require('body-parser');
-
-// setting limit of FILE
-// router.use(bodyparser.urlencoded({
-//     extended: true
-// }));
-
-// // parse application/json
-// router.use(bodyparser.json());
 
 router.use(function (req, res, next) {
     console.log('package_router is connecting');

@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const randomString = require("randomstring");
 
 const hash_key = 'LULULUL';
 const token_length = 64;
@@ -6,6 +7,11 @@ const subs_key = 'b1726597dcc74171abf38be836846977'
 
 var App = (function () {
     function App() { }
+
+    App.prototype.randomString = (number) => {
+        const string = randomstring.generate(number);
+        return string;
+    }
 
     App.prototype.hashString = (content) => {
         if (!content) content = ''
@@ -17,6 +23,11 @@ var App = (function () {
 
     App.prototype.getToken = () => {
         const token = crypto.randomBytes(token_length).toString('hex');
+        return token;
+    }
+
+    App.prototype.getVerifyToken = () => {
+        const token = randomstring.generate(5) + ':' + randomstring.generate(20);
         return token;
     }
 

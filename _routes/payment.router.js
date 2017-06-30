@@ -31,30 +31,9 @@ var Maid = require('../_model/maid');
 var Bill = require('../_model/bill');
 var Comment = require('../_model/comment');
 var BillCharge = require('../_model/bill_charge');
-
 var cloudinary = require('cloudinary');
-
-var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart();
-
 var ObjectId = require('mongoose').Types.ObjectId;
-var bodyparser = require('body-parser');
 
-// router.use(bodyparser.urlencoded({
-//     extended: true
-// }));
-// router.use(bodyparser.json());
-
-// function getToken() {
-//     const token_length = 64;
-//     var crypto = require('crypto');
-//     var token = crypto.randomBytes(token_length).toString('hex');
-//     return token;
-// }
-
-/** Middle Ware
- * 
- */
 router.use(function (req, res, next) {
     console.log('task_router is connecting');
 

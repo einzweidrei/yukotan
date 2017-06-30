@@ -17,14 +17,6 @@ var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Work = require('../_model/work');
 
-var bodyparser = require('body-parser');
-
-// router.use(bodyparser.urlencoded({
-//     extended: true
-// }));
-
-// router.use(bodyparser.json());
-
 router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;

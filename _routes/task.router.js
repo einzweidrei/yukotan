@@ -30,20 +30,10 @@ var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Bill = require('../_model/bill');
 var Comment = require('../_model/comment');
-
 var cloudinary = require('cloudinary');
-
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
-
 var ObjectId = require('mongoose').Types.ObjectId;
-
-var bodyparser = require('body-parser');
-
-// router.use(bodyparser.urlencoded({
-//     extended: true
-// }));
-// router.use(bodyparser.json());
 
 /** Middle Ware
  * 
@@ -1484,25 +1474,28 @@ router.route('/checkout').post((req, res) => {
                                                 } else {
                                                     var timeIn = new Date(task.check.check_in);
                                                     var timeOut = new Date(checkOut);
-                                                    var t = new Date(timeOut.getTime() - timeIn.getTime());
-                                                    var price = 0;
-                                                    var maidPrice = maid.work_info.price;
-                                                    var hours = t.getUTCHours();
-                                                    var minutes = t.getUTCMinutes();
+                                                    var diff = new Date(timeOut.getTime() - timeIn.getTime());
 
-                                                    if (hours == 0) {
-                                                        price = maidPrice;
-                                                    } else {
-                                                        if (minutes >= 0 && minutes < 15) {
-                                                            price = maidPrice * hours + maidPrice / 4;
-                                                        } else if (minutes >= 15 && minutes < 30) {
-                                                            price = maidPrice * hours + maidPrice / 2;
-                                                        } else if (minutes >= 30 && minutes < 45) {
-                                                            price = maidPrice * hours + maidPrice * (3 / 4);
-                                                        } else {
-                                                            price = maidPrice * (hours + 1);
-                                                        }
-                                                    }
+                                                    var price = AppService.countPrice(diff, maid.work_info.price);
+
+                                                    // var price = 0;
+                                                    // var maidPrice = maid.work_info.price;
+                                                    // var hours = t.getUTCHours();
+                                                    // var minutes = t.getUTCMinutes();
+
+                                                    // if (hours == 0) {
+                                                    //     price = maidPrice;
+                                                    // } else {
+                                                    //     if (minutes >= 0 && minutes < 15) {
+                                                    //         price = maidPrice * hours + maidPrice / 4;
+                                                    //     } else if (minutes >= 15 && minutes < 30) {
+                                                    //         price = maidPrice * hours + maidPrice / 2;
+                                                    //     } else if (minutes >= 30 && minutes < 45) {
+                                                    //         price = maidPrice * hours + maidPrice * (3 / 4);
+                                                    //     } else {
+                                                    //         price = maidPrice * (hours + 1);
+                                                    //     }
+                                                    // }
 
                                                     bill.period = t;
                                                     bill.price = price;
