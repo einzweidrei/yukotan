@@ -1623,7 +1623,7 @@ router.route('/sendRequest').post((req, res) => {
                 } else {
                     async.parallel({
                         maid: function (callback) {
-                            Maid.findOne({ _id: req.body.maidId }).exec((error, data) => {
+                            Maid.findOne({ _id: maidId }).exec((error, data) => {
                                 if (error) {
                                     callback(null, { value: 2 });
                                 }
@@ -1669,12 +1669,74 @@ router.route('/sendRequest').post((req, res) => {
                                         }
                                     }
                                 });
+                        },
+                        task2: function (callback) {
+                            Task.findOne(
+                                {
+                                    'stakeholders.received': maidId,
+                                    process: '000000000000000000000003',
+                                    status: true,
+                                    $or: [
+                                        //x >= s & y <= e
+                                        {
+                                            'info.time.startAt': {
+                                                $gte: data.info.time.startAt
+                                            },
+                                            'info.time.endAt': {
+                                                $lte: data.info.time.endAt
+                                            }
+                                        },
+
+                                        //x <= s & y >= e
+                                        {
+                                            'info.time.startAt': {
+                                                $lte: data.info.time.startAt
+                                            },
+                                            'info.time.endAt': {
+                                                $gte: data.info.time.endAt
+                                            }
+                                        },
+
+                                        //x [>= s & <= e] & y >= e
+                                        {
+                                            'info.time.startAt': {
+                                                $gte: data.info.time.startAt,
+                                                $lte: data.info.time.endAt
+                                            },
+                                            'info.time.endAt': {
+                                                $gte: data.info.time.endAt
+                                            }
+                                        },
+
+                                        //x <= s & y [>= s & <= e]
+                                        {
+                                            'info.time.startAt': {
+                                                $lte: data.info.time.startAt
+                                            },
+                                            'info.time.endAt': {
+                                                $gte: data.info.time.startAt,
+                                                $lte: data.info.time.endAt
+                                            }
+                                        },
+                                    ]
+                                }
+                            ).exec((error, result) => {
+                                if (error) {
+                                    callback(null, 2);
+                                } else {
+                                    if (validate.isNullorEmpty(result)) {
+                                        callback(null, 0);
+                                    } else {
+                                        callback(null, 3);
+                                    }
+                                }
+                            });
                         }
                     }, (error, result) => {
                         if (error) {
                             return msg.msgReturn(res, 3);
                         } else {
-                            if (result.work == 0 && result.maid.value == 0 && result.task == 0) {
+                            if (result.work == 0 && result.maid.value == 0 && result.task == 0 && result.task2 == 0) {
                                 task.save((error) => {
                                     if (error) {
                                         return msg.msgReturn(res, 3);
@@ -1690,6 +1752,8 @@ router.route('/sendRequest').post((req, res) => {
                                     return msg.msgReturn(res, 4);
                                 } else if (result.task == 4) {
                                     return msg.msgReturn(res, 8);
+                                } else if (result.task2 == 3) {
+                                    return msg.msgReturn(res, 10);
                                 } else {
                                     return msg.msgReturn(res, 3);
                                 }
