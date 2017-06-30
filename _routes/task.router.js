@@ -1289,7 +1289,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                 (error, t) => {
                                                     if (error) callback(null, 2)
                                                     else if (validate.isNullorEmpty(t)) callback(null, 0)
-                                                    callback(null, 1)
+                                                    else callback(null, 1)
                                                 });
                                         }
                                     }, (error, data) => {
