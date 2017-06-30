@@ -18,6 +18,9 @@ var lnService = new languageService.Language();
 var FCM = require('../_services/fcm.service');
 var FCMService = new FCM.FCMService();
 
+var as = require('../_services/app.service');
+var AppService = new as.App();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
@@ -322,7 +325,7 @@ router.route('/chargeOnlineFiConfirm').post((req, res) => {
     try {
         var price = req.body.price || 0;
         var owner = req.cookies.userId;
-        var newKey = getToken();
+        var newKey = AppService.getToken();
 
         var billCharge = new BillCharge();
         billCharge.price = price;
@@ -356,7 +359,7 @@ router.route('/chargeOnlineSecConfirm').post((req, res) => {
             var key = req.headers.hbbgv_accesskey;
             var owner = req.cookies.userId;
             var billId = req.body.billId;
-            var newKey = getToken();
+            var newKey = AppService.getToken();
 
             var d = {
                 key: newKey
