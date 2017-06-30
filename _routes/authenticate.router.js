@@ -12,6 +12,9 @@ var validate = new validationService.Validation();
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
 
+var as = require('../_services/app.service');
+var AppService = new as.App();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Maid = require('../_model/maid');
@@ -25,10 +28,6 @@ router.use(multipartMiddleware);
 
 router.use(function (req, res, next) {
     try {
-        // console.log(mess.msg_success);
-        // console.log(req.cookies);
-        // console.log(hash('123123'))
-
         var baseUrl = req.baseUrl;
         var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
 
@@ -65,7 +64,7 @@ function getToken() {
 router.route('/login').post((req, res) => {
     try {
         var username = req.body.username || "";
-        var password = hash(req.body.password) || "";
+        var password = AppService.hashString(req.body.password) || "";
         var device_token = req.body.device_token || "";
 
         Owner.findOne({ 'info.username': username }).select('_id info evaluation_point wallet auth').exec((error, data) => {
@@ -94,7 +93,7 @@ router.route('/login').post((req, res) => {
                                         if (error) {
                                             return msg.msgReturn(res, 3, {});
                                         } else {
-                                            var newToken = getToken();
+                                            var newToken = AppService.getToken();
 
                                             if (validate.isNullorEmpty(result)) {
                                                 var session = new Session();
@@ -185,7 +184,7 @@ router.route('/register').post((req, res) => {
         owner.wallet = 0;
 
         owner.auth = {
-            password: hash(req.body.password),
+            password: AppService.hashString(req.body.password),
             device_token: req.body.device_token
         };
 
@@ -211,7 +210,7 @@ router.route('/register').post((req, res) => {
                         } else {
                             var session = new Session();
                             session.auth.userId = data._id;
-                            session.auth.token = getToken();
+                            session.auth.token = AppService.getToken();
                             session.loginAt = new Date();
                             session.status = true;
 
@@ -244,7 +243,7 @@ router.route('/register').post((req, res) => {
                                 } else {
                                     var session = new Session();
                                     session.auth.userId = data._id;
-                                    session.auth.token = getToken();
+                                    session.auth.token = AppService.getToken();
                                     session.loginAt = new Date();
                                     session.status = true;
 
@@ -300,7 +299,7 @@ router.route('/check').get((req, res) => {
 router.route('/maid/login').post((req, res) => {
     try {
         var username = req.body.username || "";
-        var password = hash(req.body.password) || "";
+        var password = AppService.hashString(req.body.password) || "";
         var device_token = req.body.device_token || "";
 
         Maid.findOne({ 'info.username': username })
@@ -331,7 +330,7 @@ router.route('/maid/login').post((req, res) => {
                                             if (error) {
                                                 return msg.msgReturn(res, 3, {});
                                             } else {
-                                                var newToken = getToken();
+                                                var newToken = AppService.getToken();
 
                                                 var d = {
                                                     token: newToken,
@@ -657,7 +656,7 @@ router.route('/maid/register').post((req, res) => {
         };
 
         maid.auth = {
-            password: hash(req.body.password),
+            password: AppService.hashString(req.body.password),
             device_token: req.body.device_token
         };
 
