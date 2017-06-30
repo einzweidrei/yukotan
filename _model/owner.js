@@ -2,7 +2,6 @@ var mongoose = require('mongoose');
 var mongoosePaginate = require('mongoose-paginate');
 var Schema = mongoose.Schema;
 
-//create type ObjectId
 var ObjectId = Schema.ObjectId;
 
 var OwnerSchema = new Schema(
@@ -47,9 +46,6 @@ var OwnerSchema = new Schema(
     }
 );
 
-// OwnerSchema.index({ 'info.address.location': '2dsphere' });
-
-//plugin Pagination
 OwnerSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Owner', OwnerSchema);		

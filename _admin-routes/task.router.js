@@ -158,8 +158,36 @@ router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
 
+        var populateQuery = [
+            {
+                path: 'info.package',
+                select: 'name'
+            },
+            {
+                path: 'info.work',
+                select: 'name image'
+            },
+            {
+                path: 'stakeholders.owner',
+                select: 'info'
+            },
+            {
+                path: 'stakeholders.received',
+                select: 'info'
+            },
+            {
+                path: 'stakeholders.request.maid',
+                select: 'info'
+            },
+            {
+                path: 'process',
+                select: 'name'
+            }
+        ]
+
         Task.findOne({ _id: id, status: true })
             .select('-location -status -__v')
+            .populate(populateQuery)
             .exec((error, data) => {
                 if (error) {
                     return msg.msgReturn(res, 3);
@@ -171,7 +199,6 @@ router.route('/getById').get((req, res) => {
                             if (error) return msg.msgReturn(res, 3)
                             return msg.msgReturn(res, 0, result)
                         })
-                        // return msg.msgReturn(res, 0, data);
                     }
                 }
             })
@@ -362,5 +389,97 @@ router.route('/delete').post((req, res) => {
         return msg.msgReturn(res, 3);
     }
 })
+
+router.route('/getAllDeletedTasks').get((req, res) => {
+    try {
+        var page = req.query.page || 1;
+        var limit = req.query.limit || 10;
+        var title = req.query.title;
+        var process = req.query.process;
+        var package = req.query.package;
+        var work = req.query.work;
+        var sort = req.query.sort || 'asc';
+
+        var populateQuery = [
+            {
+                path: 'info.package',
+                select: 'name'
+            },
+            {
+                path: 'info.work',
+                select: 'name image'
+            },
+            {
+                path: 'stakeholders.owner',
+                select: 'info'
+            },
+            {
+                path: 'stakeholders.received',
+                select: 'info'
+            },
+            {
+                path: 'stakeholders.request.maid',
+                select: 'info'
+            },
+            {
+                path: 'process',
+                select: 'name'
+            }
+        ]
+
+        var searchQuery = {
+            status: false
+        }
+
+        if (title) searchQuery['info.title'] = new RegExp(title, 'i');
+        if (process) searchQuery['process'] = process;
+        if (package) searchQuery['info.package'] = package;
+        if (work) searchQuery['info.work'] = work;
+
+        var sortQuery = {}
+        sort == 'desc' ? sortQuery['history.createAt'] = -1 : sortQuery['history.createAt'] = -1
+
+        var options = {
+            select: 'info process history',
+            populate: populateQuery,
+            sort: sortQuery,
+            page: parseFloat(page),
+            limit: parseFloat(limit)
+        };
+
+        Task.paginate(searchQuery, options)
+            .then((data) => {
+                return validate.isNullorEmpty(data) ?
+                    msg.msgReturn(res, 4) : msg.msgReturn(res, 0, data);
+            })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/removeById').post((req, res) => {
+    try {
+        var id = req.body.id;
+
+        Task.findByIdAndRemove({ _id: id, status: false }, (error, data) => {
+            if (error) return msg.msgReturn(res, 3);
+            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+            return msg.msgReturn(res, 0);
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/removeAll').post((req, res) => {
+    try {
+        Task.remove({ status: false }, (error) => {
+            if (error) return msg.msgReturn(res, 3);
+            return msg.msgReturn(res, 0);
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
 
 module.exports = router;

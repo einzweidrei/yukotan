@@ -3,7 +3,7 @@ const randomString = require("randomstring");
 
 const hash_key = 'LULULUL';
 const token_length = 64;
-const subs_key = 'b1726597dcc74171abf38be836846977'
+const azure_key = 'b1726597dcc74171abf38be836846977'
 
 var App = (function () {
     function App() { }
@@ -32,7 +32,7 @@ var App = (function () {
     }
 
     App.prototype.getAzureKey = () => {
-        return subs_key;
+        return azure_key;
     }
 
     App.prototype.countPrice = (time, maidPrice) => {

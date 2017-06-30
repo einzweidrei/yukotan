@@ -1,27 +1,24 @@
 var Message = (function () {
-    //[<>]
-    Message.msg_success = "SUCCESS";
-    Message.msg_failed = "FAILED";
-    Message.msg_duplicated = "DUPLICATED";
+    Message.SUCCESS = "SUCCESS";
+    Message.FAILED = "FAILED";
+    Message.DUPLICATED = "DUPLICATED";
     Message.msg_required = "REQUIRED";
-    Message.msg_data_exist = "DATA_EXIST";
     Message.DATA_NOT_EXIST = "DATA_NOT_EXIST";
-    Message.msg_language_not_support = "LANGUAGE_NOT_SUPPORT";
-    Message.INVALID_PASSWORD = "Sorry! Your password is not match";
-    Message.TASK_UPDATE_FAILED = "Sorry! Your task is picking up by some maid, your request was denied."
-    Message.TASK_OUT_OF_LIMIT = "TASK_OUT_OF_LIMIT";
-    Message.TIME_NOT_VALID = "Sorry! Your time or hour is not valid, your request was denied.";
-    Message.SCHEDULE_DUPLICATED = "Sorry! You had reserved some task in this time, your request was denied.";
-    Message.CHECK_IN_EXIST = "Sorry! You had checked in this task, your request was denied.";
-    Message.CHECK_OUT_EXIST = "Sorry! You had checked in this task, your request was denied.";
-    Message.NOT_CHECK_IN = "Sorry! You need to check in this task first, your request was denied.";
-    Message.UNAUTHORIZED = "Unauthorized";
-    Message.DELETE_DENY = "Sorry! You can't delete this task";
-    Message.RESERVE_EXIST = "Sorry! You had reserved in this task, your request was denied.";
-    Message.PUSH_NOTIFY_FAILED = "Sorry! Failed to push notification."
-    Message.PAYMENT_FAILED = "WALLET_NOT_ENOUGH"
-    Message.FACE_IDENTICAL_FAILED = "FACE_IDENTICAL_FAILED"
-    // Message.FORGOTPW_NOT_EXIST = 'FORGOTPW_NOT_EXIST'
+    Message.LANGUAGE_NOT_SUPPORT = "LANGUAGE_NOT_SUPPORT";
+    Message.INVALID_PASSWORD = "INVALID_PASSWORD ";
+    Message.TASK_UPDATE_FAILED = "TASK_UPDATE_FAILED"; //Task had picked by maid, can't update
+    Message.TASK_OUT_OF_LIMIT = "TASK_OUT_OF_LIMIT"; //Out of limit tasks
+    Message.TIME_NOT_VALID = "TIME_NOT_VALID";
+    Message.SCHEDULE_DUPLICATED = "SCHEDULE_DUPLICATED "; //User had task in same time
+    Message.CHECK_IN_EXIST = "CHECK_IN_EXIST"; //User had checked in
+    Message.CHECK_OUT_EXIST = "CHECK_OUT_EXIST"; //User had checked out 
+    Message.NOT_CHECK_IN = "NOT_CHECK_IN"; //User need check in first 
+    Message.UNAUTHORIZED = "UNAUTHORIZED";
+    Message.DELETE_DENY = "DELETE_DENY";
+    Message.RESERVE_EXIST = "RESERVE_EXIST"; //User had reserved in this task
+    Message.PUSH_NOTIFY_FAILED = "PUSH_NOTIFY_FAILED";
+    Message.PAYMENT_FAILED = "WALLET_NOT_ENOUGH";
+    Message.FACE_IDENTICAL_FAILED = "FACE_IDENTICAL_FAILED";
 
     function Message() { }
 
@@ -37,19 +34,19 @@ var Message = (function () {
         if (!data) data = [];
         switch (status) {
             case 0:
-                return res.status(200).send(Message.prototype.msgData(true, Message.msg_success, data));
+                return res.status(200).send(Message.prototype.msgData(true, Message.SUCCESS, data));
             case 1:
-                return res.status(200).send(Message.prototype.msgData(false, Message.msg_failed, data));
+                return res.status(200).send(Message.prototype.msgData(false, Message.FAILED, data));
             case 2:
-                return res.status(200).send(Message.prototype.msgData(false, Message.msg_duplicated, data));
+                return res.status(200).send(Message.prototype.msgData(false, Message.DUPLICATED, data));
             case 3:
-                return res.status(500).send(Message.prototype.msgData(false, Message.msg_failed, data));
+                return res.status(500).send(Message.prototype.msgData(false, Message.FAILED, data));
             case 4:
                 return res.status(200).send(Message.prototype.msgData(false, Message.DATA_NOT_EXIST, data));
             case 5:
                 return res.status(200).send(Message.prototype.msgData(false, Message.INVALID_PASSWORD, data));
             case 6:
-                return res.status(200).send(Message.prototype.msgData(false, Message.msg_language_not_support, data));
+                return res.status(200).send(Message.prototype.msgData(false, Message.LANGUAGE_NOT_SUPPORT, data));
             case 7:
                 return res.status(200).send(Message.prototype.msgData(false, Message.TASK_UPDATE_FAILED, data));
             case 8:
