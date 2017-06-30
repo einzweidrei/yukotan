@@ -1674,7 +1674,7 @@ router.route('/sendRequest').post((req, res) => {
                             Task.findOne(
                                 {
                                     'stakeholders.received': maidId,
-                                    process: '000000000000000000000003',
+                                    process: { $in: ['000000000000000000000003', '000000000000000000000004'] },
                                     status: true,
                                     $or: [
                                         //x >= s & y <= e
