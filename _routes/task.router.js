@@ -1278,12 +1278,25 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                     }
                                                 }
                                             })
+                                        },
+                                        task: function (callback) {
+                                            Task.findOne(
+                                                {
+                                                    process: '000000000000000000000004',
+                                                    'stakeholders.received': data.stakeholders.received,
+                                                    status: true
+                                                },
+                                                (error, t) => {
+                                                    if (error) callback(null, 2)
+                                                    else if (validate.isNullorEmpty(t)) callback(null, 0)
+                                                    callback(null, 1)
+                                                });
                                         }
                                     }, (error, data) => {
                                         if (error) {
                                             return msg.msgReturn(res, 3);
                                         } else {
-                                            if (data.faceId1 != '' && data.faceId2 != '') {
+                                            if (data.faceId1 != '' && data.faceId2 != '' && data.task == 0) {
                                                 request({
                                                     method: 'POST',
                                                     preambleCRLF: true,
@@ -1333,7 +1346,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                                                         }
                                                     });
                                             } else {
-                                                return msg.msgReturn(res, 19);
+                                                return data.task == 1 ? msg.msgReturn(res, 11) : msg.msgReturn(res, 19);
                                             }
                                         }
                                     });
