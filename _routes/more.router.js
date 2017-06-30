@@ -423,7 +423,7 @@ router.route('/getTaskByWork').get((req, res) => {
 
         var sortQuery = {};
 
-        if (maxDistance == 0) { maxDistance = 0.001 }
+        // if (maxDistance == 0) { maxDistance = 0.001 }
 
         if (sortType == "desc") {
             if (sortBy == "price") {
