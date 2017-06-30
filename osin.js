@@ -39,6 +39,12 @@ app.use(function (req, res, next) {
 
 app.use(cookieParser());
 
+app.use(bodyparser.urlencoded({
+    extended: true
+}));
+
+app.use(bodyparser.json());
+
 // API
 app.use('/:language/auth', require('./_routes/authenticate.router'));
 app.use('/:language/owner', require('./_routes/owner.router'));

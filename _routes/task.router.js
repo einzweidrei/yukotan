@@ -18,6 +18,9 @@ var lnService = new languageService.Language();
 var FCM = require('../_services/fcm.service');
 var FCMService = new FCM.FCMService();
 
+var as = require('../_services/app.service');
+var AppService = new as.App();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
@@ -37,10 +40,10 @@ var ObjectId = require('mongoose').Types.ObjectId;
 
 var bodyparser = require('body-parser');
 
-router.use(bodyparser.urlencoded({
-    extended: true
-}));
-router.use(bodyparser.json());
+// router.use(bodyparser.urlencoded({
+//     extended: true
+// }));
+// router.use(bodyparser.json());
 
 /** Middle Ware
  * 
@@ -1188,7 +1191,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
     try {
         var id = req.body.id;
         var ownerId = req.cookies.userId;
-        var subs_key = 'b1726597dcc74171abf38be836846977'
+        var subs_key = AppService.getAzureKey();
 
         if (!req.files.image) return msg.msgReturn(res, 3);
 

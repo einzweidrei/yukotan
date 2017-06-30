@@ -27,12 +27,12 @@ var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
 
 // setting limit of FILE
-router.use(bodyparser.urlencoded({
-    extended: true
-}));
+// router.use(bodyparser.urlencoded({
+//     extended: true
+// }));
 
 // // parse application/json
-router.use(bodyparser.json());
+// router.use(bodyparser.json());
 
 router.use(function (req, res, next) {
     console.log('package_router is connecting');

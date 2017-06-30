@@ -42,24 +42,24 @@ router.use(function (req, res, next) {
     }
 });
 
-const hash_key = 'LULULUL';
-// const hash_key = 'HBBSolution';
-const token_length = 64;
+// const hash_key = 'LULULUL';
+// // const hash_key = 'HBBSolution';
+// const token_length = 64;
 
-function hash(content) {
-    const crypto = require('crypto');
-    const hash = crypto.createHmac('sha256', hash_key)
-        .update(content)
-        .digest('hex');
-    return hash;
-}
+// function hash(content) {
+//     const crypto = require('crypto');
+//     const hash = crypto.createHmac('sha256', hash_key)
+//         .update(content)
+//         .digest('hex');
+//     return hash;
+// }
 
-function getToken() {
-    // const token_length = 64;
-    var crypto = require('crypto');
-    var token = crypto.randomBytes(token_length).toString('hex');
-    return token;
-}
+// function getToken() {
+//     // const token_length = 64;
+//     var crypto = require('crypto');
+//     var token = crypto.randomBytes(token_length).toString('hex');
+//     return token;
+// }
 
 router.route('/login').post((req, res) => {
     try {

@@ -29,10 +29,10 @@ var Report = require('../_model/report');
 var ObjectId = require('mongoose').Types.ObjectId;
 var bodyparser = require('body-parser');
 
-router.use(bodyparser.urlencoded({
-    extended: true
-}));
-router.use(bodyparser.json());
+// router.use(bodyparser.urlencoded({
+//     extended: true
+// }));
+// router.use(bodyparser.json());
 
 /** Middle Ware
  * 

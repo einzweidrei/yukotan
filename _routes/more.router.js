@@ -33,10 +33,10 @@ var randomstring = require("randomstring");
 
 var ObjectId = require('mongoose').Types.ObjectId;
 
-router.use(bodyparser.urlencoded({
-    extended: true
-}));
-router.use(bodyparser.json());
+// router.use(bodyparser.urlencoded({
+//     extended: true
+// }));
+// router.use(bodyparser.json());
 
 const hash_key = 'LULULUL';
 // const hash_key = 'HBBSolution';

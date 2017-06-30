@@ -22,11 +22,11 @@ var Process = require('../_model/process');
 
 var bodyparser = require('body-parser');
 
-router.use(bodyparser.urlencoded({
-    extended: true
-}));
+// router.use(bodyparser.urlencoded({
+//     extended: true
+// }));
 
-router.use(bodyparser.json());
+// router.use(bodyparser.json());
 
 router.use(function (req, res, next) {
     try {
