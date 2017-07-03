@@ -557,6 +557,7 @@ router.route('/ownerForgotPassword').post((req, res) => {
             }
         })
     } catch (error) {
+        console.log(error)
         return msg.msgReturn(res, 3)
     }
 })

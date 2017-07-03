@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const randomString = require("randomstring");
+const randomstring = require("randomstring");
 
 const hash_key = 'LULULUL';
 const token_length = 64;
