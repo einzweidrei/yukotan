@@ -19,13 +19,19 @@ var FCMService = new FCM.FCMService();
 var Mail = require('../_services/mail.service');
 var MailService = new Mail.MailService();
 
-var Owner = require('../_model/owner');
-var Session = require('../_model/session');
-var GiftCode = require('../_model/giftcode');
+var as = require('../_services/app.service');
+var AppService = new as.App();
 
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
+var Work = require('../_model/work');
+var Task = require('../_model/task');
+var Process = require('../_model/process');
+var Maid = require('../_model/maid');
+var Comment = require('../_model/comment');
+var GiftCode = require('../_model/giftcode');
+
 
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
