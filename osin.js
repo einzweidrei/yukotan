@@ -63,6 +63,7 @@ app.use('/admin/:language/work', require('./_admin-routes/work.router'));
 app.use('/admin/:language/package', require('./_admin-routes/package.router'));
 app.use('/admin/:language/report', require('./_admin-routes/report.router'));
 app.use('/admin/:language/task', require('./_admin-routes/task.router'));
+app.use('/admin/:language/giftcode', requre('./_admin-routes/giftcode.router'));
 
 app.listen(process.env.PORT || 8000, function () {
     console.log('listening on 8000 <3')

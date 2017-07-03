@@ -14,6 +14,9 @@ var lnService = new languageService.Language();
 var logsService = require('../_services/log.service');
 var logs = new logsService.Logs();
 
+var as = require('../_services/app.service');
+var AppService = new as.App();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
@@ -24,36 +27,10 @@ var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
 
 var ObjectId = require('mongoose').Types.ObjectId;
-
 var bodyparser = require('body-parser');
-
 var cloudinary = require('cloudinary');
-
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
-
-// var logger = log4js.getLogger('logs/logs-' + new Date().getUTCDate() + new Date().getUTCMonth() + new Date().getUTCFullYear() + '.log');
-// router.use(bodyparser.json({
-//     limit: '50mb',
-// }));
-
-const hash_key = 'LULULUL';
-// const hash_key = 'HBBSolution';
-const token_length = 64;
-
-function hash(content) {
-    const crypto = require('crypto');
-    const hash = crypto.createHmac('sha256', hash_key)
-        .update(content)
-        .digest('hex');
-    return hash;
-}
-
-function getToken() {
-    var crypto = require('crypto');
-    var token = crypto.randomBytes(token_length).toString('hex');
-    return token;
-}
 
 router.use(multipartMiddleware);
 
@@ -110,7 +87,7 @@ router.route('/check').get((req, res) => {
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
-})
+});
 
 router.route('/getAll').get((req, res) => {
     try {
@@ -340,7 +317,7 @@ router.route('/create').post((req, res) => {
         owner.wallet = 0;
 
         owner.auth = {
-            password: hash(req.body.password),
+            password: AppService.hashString(req.body.password),
             device_token: req.body.device_token || ''
         };
 
@@ -369,7 +346,7 @@ router.route('/create').post((req, res) => {
                         } else {
                             var session = new Session();
                             session.auth.userId = data._id;
-                            session.auth.token = getToken();
+                            session.auth.token = AppService.getToken();
                             session.loginAt = new Date();
                             session.status = true;
 

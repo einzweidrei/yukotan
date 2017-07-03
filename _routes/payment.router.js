@@ -273,9 +273,8 @@ router.route('/cancelDirectConfirm').post((req, res) => {
         var userId = req.cookies.userId;
         var billId = req.body.billId;
 
-        Bill.findOne(
-            { _id: billId, maid: userId, method: 3, isSolved: false, status: true },
-            (error, data) => {
+        Bill.findOne({ _id: billId, maid: userId, method: 3, isSolved: false, status: true })
+            .exec((error, data) => {
                 if (error) return msg.msgReturn(res, 3);
                 else {
                     if (validate.isNullorEmpty(data)) {
@@ -296,8 +295,7 @@ router.route('/cancelDirectConfirm').post((req, res) => {
                         })
                     }
                 }
-            }
-        )
+            })
     } catch (error) {
         return msg.msgReturn(res, 3);
     }

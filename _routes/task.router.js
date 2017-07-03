@@ -1017,23 +1017,21 @@ router.route('/submit').post((req, res) => {
         var maidId = req.body.maidId;
 
         async.parallel({
-            //check maid exist
             maid: function (callback) {
                 Maid.findOne({ _id: maidId, status: true }).exec((error, data) => {
                     if (error) {
-                        callback(null, 2);
+                        callback(null, { value: 2 });
                     }
                     else {
                         if (validate.isNullorEmpty(data)) {
-                            callback(null, 1);
+                            callback(null, { value: 1 });
                         } else {
-                            callback(null, 0);
+                            callback(null, { value: 0, data: data });
                         }
                     }
                 });
             },
 
-            //check task exist
             task: function (callback) {
                 Task.findOne(
                     {
@@ -1118,7 +1116,7 @@ router.route('/submit').post((req, res) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
-                if (result.maid == 0 && result.task == 0) {
+                if (result.maid.value == 0 && result.task == 0) {
                     Task.findOneAndUpdate(
                         {
                             _id: id,
@@ -1136,13 +1134,17 @@ router.route('/submit').post((req, res) => {
                             upsert: true
                         },
                         (error) => {
-                            console.log(error)
                             if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0);
+                            else {
+                                var maid = result.maid.data;
+                                return maid.auth.device_token == '' ?
+                                    msg.msgReturn(res, 17) :
+                                    FCMService.pushNotification(res, maid, req.cookies.language, 8, [], '')
+                            }
                         }
                     );
                 } else {
-                    if (result.maid == 1 || result.task == 1) {
+                    if (result.maid.value == 1 || result.task == 1) {
                         return msg.msgReturn(res, 4);
                     }
                     // else if (result.task == 3) {

@@ -2,10 +2,6 @@ var express = require('express');
 var mongoose = require('mongoose');
 var router = express.Router();
 
-// var log4js = require('log4js');
-
-// var winston = require('winston');
-
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
 
@@ -17,6 +13,9 @@ var lnService = new languageService.Language();
 
 var logsService = require('../_services/log.service');
 var logs = new logsService.Logs();
+
+var as = require('../_services/app.service');
+var AppService = new as.App();
 
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
@@ -36,34 +35,7 @@ var cloudinary = require('cloudinary');
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 
-// var logger = log4js.getLogger('logs/logs-' + new Date().getUTCDate() + new Date().getUTCMonth() + new Date().getUTCFullYear() + '.log');
-// router.use(bodyparser.json({
-//     limit: '50mb',
-// }));
-
-const hash_key = 'LULULUL';
-// const hash_key = 'HBBSolution';
-const token_length = 64;
-
-function hash(content) {
-    const crypto = require('crypto');
-    const hash = crypto.createHmac('sha256', hash_key)
-        .update(content)
-        .digest('hex');
-    return hash;
-}
-
-function getToken() {
-    var crypto = require('crypto');
-    var token = crypto.randomBytes(token_length).toString('hex');
-    return token;
-}
-
 router.use(multipartMiddleware);
-
-let metadata = {
-    route: 'maid'
-};
 
 /** Middle Ware
  * 
@@ -72,18 +44,14 @@ router.use(function (req, res, next) {
     console.log('cms-maid_router is connecting');
     try {
         var baseUrl = req.baseUrl;
-        // metadata['router'] = baseUrl;
-
         var language = baseUrl.substring(baseUrl.indexOf('/admin/') + 7, baseUrl.lastIndexOf('/'));
+
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
             Package.setDefaultLanguage(language);
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
 
-            // log4js.info('Success');
-
-            // metadata['userId'] = '';
             next();
             // if (req.headers.hbbgvauth) {
             //     let token = req.headers.hbbgvauth;
@@ -111,30 +79,44 @@ router.use(function (req, res, next) {
     }
 });
 
+router.route('/check').get((req, res) => {
+    try {
+        var username = req.query.username;
+
+        Owner.findOne({ 'info.username': username, status: true }).exec((error, data) => {
+            if (error) return msg.msgReturn(res, 3);
+            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+            return msg.msgReturn(res, 0);
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 router.route('/getAll').get((req, res) => {
     try {
-        let startAt = req.query.startAt;
-        let endAt = req.query.endAt;
-        let page = req.query.page || 1;
-        let limit = req.query.limit || 10;
-        let sortByTime = req.query.sortByTime;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
+        var page = req.query.page || 1;
+        var limit = req.query.limit || 10;
+        var sort = req.query.sort || 'asc';
 
-        let email = req.query.email;
-        let username = req.query.username;
-        let name = req.query.name;
-        let gender = req.query.gender;
+        var email = req.query.email;
+        var username = req.query.username;
+        var name = req.query.name;
+        var gender = req.query.gender;
 
         if (startAt || endAt) {
-            let timeQuery = {};
+            var timeQuery = {};
 
             if (startAt) {
-                let date = new Date(startAt);
+                var date = new Date(startAt);
                 date.setUTCHours(0, 0, 0, 0);
                 timeQuery['$gte'] = date;
             }
 
             if (endAt) {
-                let date = new Date(endAt);
+                var date = new Date(endAt);
                 date.setUTCHours(0, 0, 0, 0);
                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
                 timeQuery['$lt'] = date;
@@ -143,31 +125,18 @@ router.route('/getAll').get((req, res) => {
             findQuery['history.createAt'] = timeQuery;
         }
 
-        let sortQuery = { 'history.createAt': -1 };
+        var sortQuery = {};
+        sort == 'asc' ? sortQuery = { 'history.createAt': 1 } : sortQuery = { 'history.createAt': -1 };
 
-        if (sortByTime) {
-            switch (sortByTime) {
-                case 'asc':
-                    sortQuery = { 'history.createAt': 1 };
-                    break;
-                case 'desc':
-                    sortQuery = { 'history.createAt': -1 };
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        let query = { status: true };
+        var query = { status: true };
 
         if (email) query['info.email'] = new RegExp(email, 'i');
         if (username) query['info.username'] = new RegExp(username, 'i');
         if (name) query['info.name'] = new RegExp(name, 'i');
         if (gender) query['info.gender'] = new RegExp(gender, 'i');
 
-        let options = {
+        var options = {
             select: 'info work_info history',
-            // populate: { path: 'task', select: 'info' },
             sort: sortQuery,
             page: parseFloat(page),
             limit: parseFloat(limit)
@@ -175,16 +144,12 @@ router.route('/getAll').get((req, res) => {
 
         Maid.paginate(query, options).then((data) => {
             if (validate.isNullorEmpty(data)) {
-                // logs.info(2, metadata);
                 return msg.msgReturn(res, 4);
             } else {
-                // logs.info(0, metadata);
                 return msg.msgReturn(res, 0, data);
             }
         });
     } catch (error) {
-        console.log(error);
-        // logs.error(error, metadata);
         return msg.msgReturn(res, 3);
     }
 });
@@ -209,99 +174,19 @@ router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
 
-        Maid.findOne({ _id: id, status: true }).select('info work_info history').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
+        Maid.findOne({ _id: id, status: true })
+            .select('info work_info history')
+            .exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
                 } else {
-                    return msg.msgReturn(res, 0, data);
-                }
-            }
-        });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
-
-router.route('/create').post(multipartMiddleware, (req, res) => {
-    try {
-        var maid = new Maid();
-
-        maid.info = {
-            username: req.body.username || "",
-            email: req.body.email || "",
-            phone: req.body.phone || "",
-            name: req.body.name || "",
-            age: req.body.age || 18,
-            address: {
-                name: req.body.addressName || "",
-                coordinates: {
-                    lat: req.body.lat || 0,
-                    lng: req.body.lng || 0
-                }
-            },
-            gender: req.body.gender || 0,
-        };
-
-        maid.work_info = {
-            evaluation_point: 0,
-            price: 0
-        };
-
-        maid.auth = {
-            password: hash(req.body.password),
-            device_token: req.body.device_token
-        };
-
-        maid.history = {
-            createAt: new Date(),
-            updateAt: new Date()
-        };
-
-        maid.status = true;
-
-        maid.location = {
-            type: 'Point',
-            coordinates: [req.body.lng, req.body.lat]
-        };
-
-        Maid.findOne({ 'info.username': req.body.username }).exec((error, data) => {
-            if (validate.isNullorEmpty(data)) {
-
-                maid.info.image = result.url;
-                maid.save((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
                     } else {
-                        var session = new Session();
-                        session.auth.userId = data._id;
-                        session.auth.token = getToken();
-                        session.loginAt = new Date();
-                        session.status = true;
-
-                        session.save((error) => {
-                            if (error) {
-                                return msg.msgReturn(res, 3);
-                            } else {
-                                let dt = {
-                                    token: session.auth.token,
-                                    user: {
-                                        _id: data._id,
-                                        info: data.info,
-                                        work_info: data.work_info
-                                    }
-                                };
-                                return msg.msgReturn(res, 0, dt);
-                            }
-                        });
+                        return msg.msgReturn(res, 0, data);
                     }
-                });
-            } else {
-                return msg.msgReturn(res, 2, {});
-            }
-        });
+                }
+            });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
@@ -324,227 +209,277 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
  *      null
  * } 
  */
-// router.route('/getAllTasks').get((req, res) => {
-//     try {
-//         let id = req.query.id;
-//         let process = req.query.process;
+router.route('/getAllTasks').get((req, res) => {
+    try {
+        var id = req.query.id;
+        var process = req.query.process;
 
-//         let startAt = req.query.startAt;
-//         let endAt = req.query.endAt;
-//         let limit = req.query.limit || 10;
-//         let page = req.query.page || 1;
-//         let sortByTime = req.query.sortByTime;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
+        var limit = req.query.limit || 10;
+        var page = req.query.page || 1;
+        var sort = req.query.sort || 'asc';
 
-//         let title = req.query.title;
+        var title = req.query.title;
 
-//         let findQuery = {
-//             'stakeholders.owner': id,
-//             status: true
-//         }
+        var findQuery = {
+            'stakeholders.request.maid': id,
+            status: true
+        }
 
-//         if (process) {
-//             findQuery['process'] = process;
-//         }
+        if (process) {
+            findQuery['process'] = process;
+        }
 
-//         if (startAt || endAt) {
-//             let timeQuery = {};
+        if (startAt || endAt) {
+            var timeQuery = {};
 
-//             if (startAt) {
-//                 let date = new Date(startAt);
-//                 date.setUTCHours(0, 0, 0, 0);
-//                 timeQuery['$gte'] = date;
-//             }
+            if (startAt) {
+                var date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
 
-//             if (endAt) {
-//                 let date = new Date(endAt);
-//                 date.setUTCHours(0, 0, 0, 0);
-//                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-//                 timeQuery['$lt'] = date;
-//             }
+            if (endAt) {
+                var date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
 
-//             findQuery['info.time.startAt'] = timeQuery;
-//         }
+            findQuery['info.time.startAt'] = timeQuery;
+        }
 
-//         var populateQuery = [
-//             {
-//                 path: 'info.package',
-//                 select: 'name'
-//             },
-//             {
-//                 path: 'info.work',
-//                 select: 'name image'
-//             },
-//             {
-//                 path: 'stakeholders.owner',
-//                 select: 'info evaluation_point'
-//             },
-//             {
-//                 path: 'process',
-//                 select: 'name'
-//             }
-//         ];
+        var populateQuery = [
+            {
+                path: 'info.package',
+                select: 'name'
+            },
+            {
+                path: 'info.work',
+                select: 'name image'
+            },
+            {
+                path: 'process',
+                select: 'name'
+            }
+        ];
 
-//         let sortQuery = { 'history.createAt': -1 };
+        var sortQuery = {};
+        sort == 'asc' ? sortQuery = { 'history.createAt': 1 } : sortQuery = { 'history.createAt': -1 };
 
-//         if (sortByTime) {
-//             switch (sortByTime) {
-//                 case 'asc':
-//                     sortQuery = { 'history.createAt': 1 };
-//                     break;
-//                 case 'desc':
-//                     sortQuery = { 'history.createAt': -1 };
-//                     break;
-//                 default:
-//                     break;
-//             }
-//         }
+        if (title) findQuery['info.title'] = new RegExp(title, 'i');
 
-//         if (title) findQuery['info.title'] = new RegExp(title, 'i');
+        var options = {
+            select: '-location -status -__v',
+            populate: populateQuery,
+            sort: sortQuery,
+            page: parseFloat(page),
+            limit: parseFloat(limit)
+        };
 
-//         let options = {
-//             select: '-location -status -__v',
-//             populate: populateQuery,
-//             sort: sortQuery,
-//             page: parseFloat(page),
-//             limit: parseFloat(limit)
-//         };
+        Task.paginate(findQuery, options).then((data) => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4);
+            } else {
+                return msg.msgReturn(res, 0, data)
+            }
+        });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
 
-//         Task.paginate(findQuery, options).then((data) => {
-//             if (validate.isNullorEmpty(data)) {
-//                 return msg.msgReturn(res, 4);
-//             } else {
-//                 return msg.msgReturn(res, 0, data);
-//             }
-//         });
-//     } catch (error) {
-//         return msg.msgReturn(res, 3);
-//     }
-// });
-
-router.route('/update').put(multipartMiddleware, (req, res) => {
+router.route('/create').post((req, res) => {
     try {
         var maid = new Maid();
-        var id = req.query.id;
 
-        let phone = req.body.phone || "";
-        let name = req.body.name || "";
-        let age = req.body.age || 18;
-        let address = {
-            name: req.body.addressName || "",
+        maid.info = {
+            username: req.body.username || '',
+            email: req.body.email || '',
+            phone: req.body.phone || '',
+            name: req.body.name || '',
+            image: req.body.image || '',
+            age: req.body.age || 18,
+            address: {
+                name: req.body.addressName || '',
+                coordinates: {
+                    lat: req.body.lat || 0,
+                    lng: req.body.lng || 0
+                }
+            },
+            gender: req.body.gender || 0,
+        };
+
+        maid.work_info = {
+            ability: req.body.ability,
+            evaluation_point: 2.5,
+            price: req.body.price
+        }
+
+        maid.auth = {
+            password: AppService.hashString(req.body.password),
+            device_token: req.body.device_token || ''
+        };
+
+        maid.history = {
+            createAt: new Date(),
+            updateAt: new Date()
+        };
+
+        maid.status = true;
+
+        maid.location = {
+            type: 'Point',
+            coordinates: [req.body.lng || 0, req.body.lat || 0]
+        };
+
+        Maid.findOne({ $or: [{ 'info.username': req.body.username }, { 'info.email': req.body.email }] })
+            .exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        maid.save((error) => {
+                            if (error) return msg.msgReturn(res, 3);
+                            return msg.msgReturn(res, 0);
+                        });
+                    }
+                }
+            });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/update').post((req, res) => {
+    try {
+        var id = req.body.id;
+
+        var phone = req.body.phone || '';
+        var name = req.body.name || '';
+        var age = req.body.age || 18;
+        var image = req.body.image || '';
+        var address = {
+            name: req.body.addressName || '',
             coordinates: {
                 lat: req.body.lat || 0,
                 lng: req.body.lng || 0
             }
         };
-        let gender = req.body.gender || 0;
-
-        let location = {
+        var gender = req.body.gender || 0;
+        var ability = req.body.ability || [];
+        var price = req.body.price || 0;
+        var location = {
             type: 'Point',
             coordinates: [req.body.lng || 0, req.body.lat || 0]
         }
 
-        Maid.findOne({ _id: id, status: true }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    if (!req.files.image) {
-                        Maid.findOneAndUpdate(
-                            {
-                                _id: id,
-                                status: true
-                            },
-                            {
-                                $set: {
-                                    'info.phone': phone,
-                                    'info.name': name,
-                                    'info.age': age,
-                                    'info.address': address,
-                                    'info.gender': gender,
-                                    location: location,
-                                    'history.updateAt': new Date()
-                                }
-                            },
-                            {
-                                upsert: true
-                            },
-                            (error, result) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                return msg.msgReturn(res, 0);
-                            }
-                        );
+        Maid.findOneAndUpdate(
+            {
+                _id: id,
+                status: true
+            },
+            {
+                $set: {
+                    'info.phone': phone,
+                    'info.name': name,
+                    'info.age': age,
+                    'info.address': address,
+                    'info.gender': gender,
+                    'info.image': image,
+                    'work_info.ability': ability,
+                    'work_info.price': price,
+                    location: location,
+                    'history.updateAt': new Date()
+                }
+            },
+            (error) => {
+                if (error) return msg.msgReturn(res, 3);
+                else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
                     } else {
-                        cloudinary.uploader.upload(
-                            req.files.image.path,
-                            function (result) {
-                                Maid.findOneAndUpdate(
-                                    {
-                                        _id: id,
-                                        status: true
-                                    },
-                                    {
-                                        $set: {
-                                            'info.phone': phone,
-                                            'info.name': name,
-                                            'info.age': age,
-                                            'info.address': address,
-                                            'info.gender': gender,
-                                            'info.image': result.url,
-                                            location: location,
-                                            'history.updateAt': new Date()
-                                        }
-                                    },
-                                    {
-                                        upsert: true
-                                    },
-                                    (error, result) => {
-                                        if (error) return msg.msgReturn(res, 3);
-                                        return msg.msgReturn(res, 0);
-                                    }
-                                );
-                            });
+                        return msg.msgReturn(res, 0);
                     }
                 }
             }
-        });
+        );
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
 });
 
-router.route('/delete').delete((req, res) => {
+router.route('/delete').post((req, res) => {
+    try {
+        var id = req.body.id;
+
+        Maid.findOneAndUpdate(
+            {
+                _id: id,
+                status: true
+            },
+            {
+                $set: {
+                    'history.updateAt': new Date(),
+                    status: false
+                }
+            },
+            {
+                upsert: true
+            },
+            (error, result) => {
+                if (error) return msg.msgReturn(res, 3);
+                else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        return msg.msgReturn(res, 0);
+                    }
+                }
+
+            }
+        );
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/getComment').get((req, res) => {
     try {
         var id = req.query.id;
 
-        Maid.findOne({ _id: id, status: true }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
+        var limit = req.query.limit || 20;
+        var page = req.query.page || 1;
+
+        var query = { toId: id };
+        var options = {
+            select: 'evaluation_point content task createAt fromId',
+            populate: { path: 'task', select: 'info' },
+            sort: {
+                createAt: -1
+            },
+            page: parseFloat(page),
+            limit: parseFloat(limit)
+        };
+
+        Comment.paginate(query, options).then((data) => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4);
             } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Maid.findOneAndUpdate(
-                        {
-                            _id: id,
-                            status: true
-                        },
-                        {
-                            $set: {
-                                'history.updateAt': new Date(),
-                                status: false
-                            }
-                        },
-                        {
-                            upsert: true
-                        },
-                        (error, result) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0);
+                Owner.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            return msg.msgReturn(res, 4);
+                        } else {
+                            return msg.msgReturn(res, 0, data);
                         }
-                    );
-                }
+                    }
+                });
             }
         });
     } catch (error) {
@@ -552,278 +487,30 @@ router.route('/delete').delete((req, res) => {
     }
 });
 
-// /** GET - Get All Tasks By Owner ID
-//  * info {
-//  *      type: GET
-//  *      url: /getAllTasks
-//  *      name: Get All Tasks By Owner ID
-//  *      description: Get tasks by Owner's ID
-//  * }
-//  * 
-//  * params {
-//  *      id: owner_ID
-//  *      process: process_ID
-//  * }
-//  * 
-//  * body {
-//  *      null
-//  * } 
-//  */
-// router.route('/getHistoryTasks').get((req, res) => {
-//     try {
-//         let id = req.cookies.userId;
-//         // let id = '5911460ae740560cb422ac35';
-//         let process = req.query.process || '000000000000000000000005';
+router.route('/deleteComment').post((req, res) => {
+    try {
+        var id = req.body.id;
 
-//         let startAt = req.query.startAt;
-//         let endAt = req.query.endAt;
-//         let limit = req.query.limit || 10;
-//         let page = req.query.page || 1;
-
-//         let findQuery = {
-//             'stakeholders.owner': id,
-//             status: true
-//         }
-
-//         if (process) {
-//             findQuery['process'] = process;
-//         }
-
-//         if (startAt || endAt) {
-//             let timeQuery = {};
-
-//             if (startAt) {
-//                 let date = new Date(startAt);
-//                 date.setUTCHours(0, 0, 0, 0);
-//                 timeQuery['$gte'] = date;
-//             }
-
-//             if (endAt) {
-//                 let date = new Date(endAt);
-//                 date.setUTCHours(0, 0, 0, 0);
-//                 date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-//                 timeQuery['$lt'] = date;
-//             }
-
-//             findQuery['info.time.startAt'] = timeQuery;
-//         }
-
-//         var populateQuery = [
-//             {
-//                 path: 'info.package',
-//                 select: 'name'
-//             },
-//             {
-//                 path: 'info.work',
-//                 select: 'name image'
-//             },
-//             {
-//                 path: 'stakeholders.received',
-//                 select: 'info work_info'
-//             },
-//             {
-//                 path: 'process',
-//                 select: 'name'
-//             }
-//         ];
-
-//         let options = {
-//             select: '-location -status -__v',
-//             populate: populateQuery,
-//             sort: {
-//                 'info.time.startAt': -1
-//             },
-//             page: parseFloat(page),
-//             limit: parseFloat(limit)
-//         };
-
-//         // Task
-//         //     .find(findQuery)
-//         //     .populate(populateQuery)
-//         //     .sort({ 'info.time.startAt': -1 })
-//         //     .limit(parseFloat(limit))
-//         //     .select('-location -status -__v').exec((error, data) => {
-//         //         if (error) {
-//         //             return msg.msgReturn(res, 3);
-//         //         } else {
-//         //             if (validate.isNullorEmpty(data)) {
-//         //                 return msg.msgReturn(res, 4);
-//         //             } else {
-//         //                 return msg.msgReturn(res, 0, data);
-//         //             }
-//         //         }
-//         //     });
-
-//         Task.paginate(findQuery, options).then(data => {
-//             if (validate.isNullorEmpty(data)) {
-//                 return msg.msgReturn(res, 4);
-//             } else {
-//                 return msg.msgReturn(res, 0, data);
-//             }
-//         });
-//     } catch (error) {
-//         console.log(error);
-//         return msg.msgReturn(res, 3);
-//     }
-// });
-
-// router.route('/getAllWorkedMaid').get((req, res) => {
-//     try {
-//         let id = req.cookies.userId;
-
-//         var matchQuery = {
-//             process: new ObjectId('000000000000000000000005'),
-//             'stakeholders.owner': new ObjectId(id)
-//         };
-
-//         Task.aggregate([
-//             {
-//                 $match: matchQuery
-//             },
-//             {
-//                 $group: {
-//                     _id: '$stakeholders.received',
-//                 }
-//             }
-//         ],
-//             // {
-//             //     allowDiskUse: true
-//             // },
-//             (error, data) => {
-//                 if (error) {
-//                     return msg.msgReturn(res, 3);
-//                 } else {
-//                     if (validate.isNullorEmpty(data)) {
-//                         return msg.msgReturn(res, 4);
-//                     } else {
-//                         Maid.populate(data, { path: '_id', select: 'info' }, (error, owner) => {
-//                             if (error) {
-//                                 return msg.msgReturn(res, 3);
-//                             } else {
-//                                 if (validate.isNullorEmpty(owner)) {
-//                                     return msg.msgReturn(res, 4);
-//                                 } else {
-//                                     return msg.msgReturn(res, 0, owner);
-//                                 }
-//                             }
-//                         });
-//                     }
-//                 }
-//             }
-//         );
-//     } catch (error) {
-//         return msg.msgReturn(res, 3);
-//     }
-// });
-
-// router.route('/comment').post((req, res) => {
-//     try {
-//         let comment = new Comment();
-//         comment.fromId = req.cookies.userId;
-//         // comment.fromId = req.body.fromId;
-//         comment.toId = req.body.toId;
-//         comment.task = req.body.task;
-//         comment.content = req.body.content;
-//         comment.evaluation_point = req.body.evaluation_point;
-//         comment.createAt = new Date();
-//         comment.status = true;
-
-//         Maid.findOne({ _id: comment.toId, status: true }).select('work_info').exec((error, data) => {
-//             if (error) {
-//                 return msg.msgReturn(res, 3);
-//             } else {
-//                 if (validate.isNullorEmpty(data)) {
-//                     return msg.msgReturn(res, 4);
-//                 } else {
-//                     Comment.findOne({ fromId: comment.fromId, task: comment.task }).exec((error, cmt) => {
-//                         if (error) {
-//                             return msg.msgReturn(res, 3);
-//                         } else {
-//                             if (validate.isNullorEmpty(cmt)) {
-//                                 let ep_2 = data.work_info.evaluation_point;
-//                                 let new_ep = (comment.evaluation_point + ep_2) / 2;
-
-//                                 if ((comment.evaluation_point + ep_2) % 2 >= 5) {
-//                                     new_ep = Math.ceil(new_ep);
-//                                 } else {
-//                                     new_ep = Math.round(new_ep);
-//                                 }
-
-//                                 Maid.findOneAndUpdate(
-//                                     {
-//                                         _id: comment.toId,
-//                                         status: true
-//                                     },
-//                                     {
-//                                         $set: {
-//                                             'work_info.evaluation_point': new_ep
-//                                         }
-//                                     },
-//                                     {
-//                                         upsert: true
-//                                     },
-//                                     (error) => {
-//                                         if (error) {
-//                                             return msg.msgReturn(res, 3);
-//                                         } else {
-//                                             comment.save((error) => {
-//                                                 if (error) return msg.msgReturn(res, 3);
-//                                                 return msg.msgReturn(res, 0);
-//                                             });
-//                                         }
-//                                     }
-//                                 );
-//                             } else {
-//                                 return msg.msgReturn(res, 2);
-//                             }
-//                         }
-//                     });
-//                 }
-//             }
-//         });
-//     } catch (error) {
-//         return msg.msgReturn(res, 3);
-//     }
-// });
-
-// router.route('/getComment').get((req, res) => {
-//     try {
-//         let id = req.query.id;
-
-//         let limit = parseFloat(req.query.limit) || 20;
-//         let page = req.query.page || 1;
-
-//         let query = { toId: id };
-//         let options = {
-//             select: 'evaluation_point content task createAt fromId',
-//             populate: { path: 'task', select: 'info' },
-//             sort: {
-//                 createAt: -1
-//             },
-//             page: page,
-//             limit: limit
-//         };
-
-//         Comment.paginate(query, options).then((data) => {
-//             if (validate.isNullorEmpty(data)) {
-//                 return msg.msgReturn(res, 4);
-//             } else {
-//                 Maid.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
-//                     if (error) {
-//                         return msg.msgReturn(res, 3);
-//                     } else {
-//                         if (validate.isNullorEmpty(data)) {
-//                             return msg.msgReturn(res, 4);
-//                         } else {
-//                             return msg.msgReturn(res, 0, data);
-//                         }
-//                     }
-//                 });
-//             }
-//         });
-//     } catch (error) {
-//         return msg.msgReturn(res, 3);
-//     }
-// });
+        Comment.findByIdAndRemove(
+            {
+                _id: id,
+                status: true
+            },
+            (error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                } else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        return msg.msgReturn(res, 0);
+                    }
+                }
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
 
 module.exports = router;
