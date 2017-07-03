@@ -37,10 +37,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 
 var bodyparser = require('body-parser');
 
-router.use(bodyparser.urlencoded({
-    extended: true
-}));
-router.use(bodyparser.json());
+router.use(multipartMiddleware);
 
 /** Middle Ware
  * 
@@ -207,7 +204,7 @@ router.route('/getById').get((req, res) => {
     }
 })
 
-router.route('/create').post(multipartMiddleware, (req, res) => {
+router.route('/create').post((req, res) => {
     try {
         var username = req.body.username;
         var title = req.body.title || "";
@@ -257,8 +254,7 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
 
                         task.stakeholders = {
                             owner: data._id,
-                            request: [],
-                            received: {}
+                            request: []
                         };
 
                         task.process = new ObjectId('000000000000000000000001');
@@ -292,7 +288,7 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
     }
 })
 
-router.route('/update').post(multipartMiddleware, (req, res) => {
+router.route('/update').post((req, res) => {
     try {
         var id = req.body.id;
 
