@@ -240,13 +240,61 @@ router.route('/payDirectConfirm').post((req, res) => {
                     date: new Date()
                 }
             },
-            (error) => {
+            (error, data) => {
                 if (error) return msg.msgReturn(res, 3);
                 else {
-                    return msg.msgReturn(res, 0);
-                    // return maid.auth.device_token == '' ?
-                    //     msg.msgReturn(res, 17) :
-                    //     FCMService.pushNotification(res, maid, req.cookies.language, 10, [])
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        Owner.findOne({ _id: data.owner, status: true }, (error, owner) => {
+                            if (error) {
+                                return msg.msgReturn(res, 17);
+                            } else {
+                                if (validate.isNullorEmpty(owner)) {
+                                    return msg.msgReturn(res, 17);
+                                } else {
+                                    return owner.auth.device_token == '' ?
+                                        msg.msgReturn(res, 17) :
+                                        FCMService.pushNotification(res, owner, req.cookies.language, 10, [], '')
+                                }
+                            }
+                        })
+                    }
+                }
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/cancelDirectConfirm').post((req, res) => {
+    try {
+        var userId = req.cookies.userId;
+        var billId = req.body.billId;
+
+        Bill.findOne(
+            { _id: billId, maid: userId, method: 3, isSolved: false, status: true },
+            (error, data) => {
+                if (error) return msg.msgReturn(res, 3);
+                else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        Owner.findOne({ _id: data.owner, status: true }, (error, owner) => {
+                            if (error) {
+                                return msg.msgReturn(res, 17);
+                            } else {
+                                if (validate.isNullorEmpty(owner)) {
+                                    return msg.msgReturn(res, 17);
+                                } else {
+                                    return owner.auth.device_token == '' ?
+                                        msg.msgReturn(res, 17) :
+                                        FCMService.pushNotification(res, owner, req.cookies.language, 11, [], '')
+                                }
+                            }
+                        })
+                    }
                 }
             }
         )
