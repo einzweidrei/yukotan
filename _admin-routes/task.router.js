@@ -213,13 +213,14 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
         var title = req.body.title || "";
         var package = req.body.package;
         var work = req.body.work;
+        var hour = req.body.hour || 0;
         var description = req.body.description || "";
         var price = req.body.price || 0;
         var addressName = req.body.addressName || "";
         var lat = req.body.lat || 0;
         var lng = req.body.lng || 0;
-        var startAt = new Date(req.body.startAt) || new Date();
-        var endAt = new Date(req.body.endAt) || new Date();
+        var startAt = req.body.startAt || new Date();
+        var endAt = req.body.endAt || new Date();
         var tools = req.body.tools || false;
 
         Owner.findOne({ 'info.username': username, status: true })
@@ -232,12 +233,13 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
                         return msg.msgReturn(res, 4);
                     } else {
                         var task = new Task();
+
                         task.info = {
                             title: title,
                             package: package,
                             work: work,
                             description: description,
-                            price: price || 0,
+                            price: price,
                             address: {
                                 name: addressName,
                                 coordinates: {
@@ -246,8 +248,8 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
                                 }
                             },
                             time: {
-                                startAt: startAt,
-                                endAt: endAt,
+                                startAt: new Date(startAt),
+                                endAt: new Date(endAt),
                                 hour: hour
                             },
                             tools: tools
@@ -275,7 +277,9 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
                         task.status = true;
 
                         task.save((error) => {
-                            if (error) return msg.msgReturn(res, 3);
+                            if (error) {
+                                return msg.msgReturn(res, 3)
+                            }
                             return msg.msgReturn(res, 0);
                         })
                     }
@@ -293,13 +297,14 @@ router.route('/update').post(multipartMiddleware, (req, res) => {
         var title = req.body.title || "";
         var package = req.body.package;
         var work = req.body.work;
+        var hour = req.body.hour || 0;
         var description = req.body.description || "";
         var price = req.body.price || 0;
         var addressName = req.body.addressName || "";
         var lat = req.body.lat || 0;
         var lng = req.body.lng || 0;
-        var startAt = new Date(req.body.startAt) || new Date();
-        var endAt = new Date(req.body.endAt) || new Date();
+        var startAt = req.body.startAt || new Date();
+        var endAt = req.body.endAt || new Date();
         var tools = req.body.tools || false;
 
         var info = {
@@ -316,8 +321,8 @@ router.route('/update').post(multipartMiddleware, (req, res) => {
                 }
             },
             time: {
-                startAt: startAt,
-                endAt: endAt,
+                startAt: new Date(startAt),
+                endAt: new Date(endAt),
                 hour: hour
             },
             tools: tools
