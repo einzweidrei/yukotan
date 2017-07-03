@@ -218,8 +218,8 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
         var addressName = req.body.addressName || "";
         var lat = req.body.lat || 0;
         var lng = req.body.lng || 0;
-        var startAt = req.body.startAt || new Date();
-        var endAt = req.body.endAt || new Date();
+        var startAt = new Date(req.body.startAt) || new Date();
+        var endAt = new Date(req.body.endAt) || new Date();
         var tools = req.body.tools || false;
 
         Owner.findOne({ 'info.username': username, status: true })
@@ -298,8 +298,8 @@ router.route('/update').post(multipartMiddleware, (req, res) => {
         var addressName = req.body.addressName || "";
         var lat = req.body.lat || 0;
         var lng = req.body.lng || 0;
-        var startAt = req.body.startAt || new Date();
-        var endAt = req.body.endAt || new Date();
+        var startAt = new Date(req.body.startAt) || new Date();
+        var endAt = new Date(req.body.endAt) || new Date();
         var tools = req.body.tools || false;
 
         var info = {
