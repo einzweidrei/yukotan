@@ -256,7 +256,9 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
                         };
 
                         task.stakeholders = {
-                            owner: data._id
+                            owner: data._id,
+                            request: [],
+                            received: {}
                         };
 
                         task.process = new ObjectId('000000000000000000000001');

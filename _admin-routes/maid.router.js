@@ -269,70 +269,35 @@ router.route('/create').post(multipartMiddleware, (req, res) => {
 
         Maid.findOne({ 'info.username': req.body.username }).exec((error, data) => {
             if (validate.isNullorEmpty(data)) {
-                if (!req.files.image) {
-                    maid.info.image = "";
-                    maid.save((error, data) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            var session = new Session();
-                            session.auth.userId = data._id;
-                            session.auth.token = getToken();
-                            session.loginAt = new Date();
-                            session.status = true;
 
-                            session.save((error) => {
-                                if (error) {
-                                    return msg.msgReturn(res, 3);
-                                } else {
-                                    let dt = {
-                                        token: session.auth.token,
-                                        user: {
-                                            _id: data._id,
-                                            info: data.info,
-                                            work_info: data.work_info
-                                        }
-                                    };
-                                    return msg.msgReturn(res, 0, dt);
-                                }
-                            });
-                        }
-                    });
-                } else {
-                    cloudinary.uploader.upload(
-                        req.files.image.path,
-                        function (result) {
-                            maid.info.image = result.url;
-                            maid.save((error, data) => {
-                                if (error) {
-                                    return msg.msgReturn(res, 3);
-                                } else {
-                                    var session = new Session();
-                                    session.auth.userId = data._id;
-                                    session.auth.token = getToken();
-                                    session.loginAt = new Date();
-                                    session.status = true;
+                maid.info.image = result.url;
+                maid.save((error, data) => {
+                    if (error) {
+                        return msg.msgReturn(res, 3);
+                    } else {
+                        var session = new Session();
+                        session.auth.userId = data._id;
+                        session.auth.token = getToken();
+                        session.loginAt = new Date();
+                        session.status = true;
 
-                                    session.save((error) => {
-                                        if (error) {
-                                            return msg.msgReturn(res, 3);
-                                        } else {
-                                            let dt = {
-                                                token: session.auth.token,
-                                                user: {
-                                                    _id: data._id,
-                                                    info: data.info,
-                                                    work_info: data.work_info
-                                                }
-                                            };
-                                            return msg.msgReturn(res, 0, dt);
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    )
-                }
+                        session.save((error) => {
+                            if (error) {
+                                return msg.msgReturn(res, 3);
+                            } else {
+                                let dt = {
+                                    token: session.auth.token,
+                                    user: {
+                                        _id: data._id,
+                                        info: data.info,
+                                        work_info: data.work_info
+                                    }
+                                };
+                                return msg.msgReturn(res, 0, dt);
+                            }
+                        });
+                    }
+                });
             } else {
                 return msg.msgReturn(res, 2, {});
             }
