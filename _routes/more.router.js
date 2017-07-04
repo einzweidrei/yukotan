@@ -188,6 +188,8 @@ router.route('/getAllMaids').get((req, res) => {
             matchQuery['info.gender'] = parseFloat(gender);
         }
 
+        console.log(matchQuery)
+
         Maid.aggregate([{
             $geoNear: {
                 near: loc,

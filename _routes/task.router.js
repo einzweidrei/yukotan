@@ -1952,33 +1952,42 @@ router.route('/denyRequest').post((req, res) => {
         var ownerId = req.body.ownerId;
         var maidId = req.cookies.userId;
 
-        Task.findOne({ _id: id, process: '000000000000000000000006', 'stakeholders.owner': ownerId }).exec((error, data) => {
+        Owner.findOne({ _id: id, status: true }).exec((error, owner) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
-                if (validate.isNullorEmpty(data)) {
+                if (validate.isNullorEmpty(owner)) {
                     return msg.msgReturn(res, 4);
                 } else {
-                    Task.findOneAndUpdate(
-                        {
-                            _id: id,
-                            process: '000000000000000000000006',
-                            'stakeholders.owner': ownerId
-                        },
-                        {
-                            status: false
-                        },
-                        {
-                            upsert: true
-                        },
-                        (error) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0);
+                    Task.findOne({ _id: id, process: '000000000000000000000006', 'stakeholders.owner': ownerId }).exec((error, data) => {
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            if (validate.isNullorEmpty(data)) {
+                                return msg.msgReturn(res, 4);
+                            } else {
+                                Task.findOneAndUpdate(
+                                    {
+                                        _id: id,
+                                        process: '000000000000000000000006',
+                                        'stakeholders.owner': ownerId
+                                    },
+                                    {
+                                        status: false
+                                    },
+                                    (error) => {
+                                        if (error) return msg.msgReturn(res, 3);
+                                        return owner.auth.device_token == '' ?
+                                            msg.msgReturn(res, 17) :
+                                            FCMService.pushNotification(res, owner, req.cookies.language, 13, [], '')
+                                    }
+                                )
+                            }
                         }
-                    )
+                    });
                 }
             }
-        });
+        })
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
