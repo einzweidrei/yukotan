@@ -181,14 +181,12 @@ router.route('/getAllMaids').get((req, res) => {
         }
 
         if (workId) {
-            matchQuery['work_info.ability'] = { workId };
+            matchQuery['work_info.ability'] = new ObjectId(workId);
         }
 
         if (gender) {
             matchQuery['info.gender'] = parseFloat(gender);
         }
-
-        console.log(matchQuery)
 
         Maid.aggregate([{
             $geoNear: {
@@ -206,9 +204,9 @@ router.route('/getAllMaids').get((req, res) => {
         {
             $sort: sortQuery
         },
-        {
-            $skip: skip
-        },
+        // {
+        //     $skip: skip
+        // },
         {
             $project: {
                 info: 1,
@@ -216,7 +214,7 @@ router.route('/getAllMaids').get((req, res) => {
             }
         }
         ], (error, places) => {
-            console.log(places)
+            // console.log(places)
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -226,6 +224,22 @@ router.route('/getAllMaids').get((req, res) => {
                     Work.populate(places, { path: 'work_info.ability', select: 'name image' }, (error, data) => {
                         if (error) return msg.msgReturn(res, 3);
                         return msg.msgReturn(res, 0, data);
+                        // else {
+                        //     result = []
+                        //     for (i = skip; i < skip + parseFloat(limit); i++) {
+                        //         if (!data[i] || data[i] == null) break
+                        //         result.push(data[i])
+                        //     }
+
+                        //     var d = {
+                        //         docs: result,
+                        //         total: data.length,
+                        //         limit: limit,
+                        //         page: page,
+                        //         pages: Math.ceil(data.length / limit)
+                        //     }
+                        //     return msg.msgReturn(res, 0, d);
+                        // }
                     });
                 }
             }
