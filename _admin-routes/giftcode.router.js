@@ -66,7 +66,7 @@ router.route('/getAll').get((req, res) => {
         var page = req.query.page || 1;
         var limit = req.query.limit || 10;
 
-        var name = req.query.name;
+        var name = req.query.code;
         var valueMin = req.query.valueMin;
         var valueMax = req.query.valueMax;
 
@@ -160,7 +160,7 @@ router.route('/getById').get((req, res) => {
 
 router.route('/create').post((req, res) => {
     try {
-        var name = req.body.name || '';
+        var name = req.body.code || '';
         var value = req.body.value || 0;
         var descriptionVi = req.body.descriptionVi || '';
         var descriptionEn = req.body.descriptionEn || '';
@@ -203,7 +203,7 @@ router.route('/update').post((req, res) => {
     try {
         var id = req.body.id;
 
-        var name = req.body.name || '';
+        var name = req.body.code || '';
         var value = req.body.value || 0;
         var descriptionVi = req.body.descriptionVi || '';
         var descriptionEn = req.body.descriptionEn || '';
