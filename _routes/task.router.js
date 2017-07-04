@@ -38,7 +38,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 /** Middle Ware
  * 
  */
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     console.log('task_router is connecting');
 
     try {
@@ -71,8 +71,7 @@ router.use(function (req, res, next) {
                 return msg.msgReturn(res, 14);
             }
             // next();
-        }
-        else {
+        } else {
             return msg.msgReturn(res, 6);
         }
     } catch (error) {
@@ -188,8 +187,7 @@ router.route('/getAll').post((req, res) => {
         }
 
         // console.log(matchQuery);
-        Task.aggregate([
-            {
+        Task.aggregate([{
                 $geoNear: {
                     near: loc,
                     distanceField: 'dist.calculated',
@@ -215,7 +213,7 @@ router.route('/getAll').post((req, res) => {
                     stakeholders: 1,
                     info: 1,
                     dist: 1
-                    // status: 1
+                        // status: 1
                 }
             }
         ], (error, places) => {
@@ -277,8 +275,7 @@ router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
 
-        var populateQuery = [
-            {
+        var populateQuery = [{
                 path: 'info.package',
                 select: 'name'
             },
@@ -418,12 +415,11 @@ router.route('/create').post((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     async.parallel({
-                        work: function (callback) {
+                        work: function(callback) {
                             Work.findOne({ _id: req.body.work }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
-                                }
-                                else {
+                                } else {
                                     if (validate.isNullorEmpty(data)) {
                                         callback(null, 1);
                                     } else {
@@ -432,12 +428,11 @@ router.route('/create').post((req, res) => {
                                 }
                             });
                         },
-                        package: function (callback) {
+                        package: function(callback) {
                             Package.findOne({ _id: req.body.package }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
-                                }
-                                else {
+                                } else {
                                     if (validate.isNullorEmpty(data)) {
                                         callback(null, 1);
                                     } else {
@@ -446,12 +441,11 @@ router.route('/create').post((req, res) => {
                                 }
                             });
                         },
-                        process: function (callback) {
+                        process: function(callback) {
                             Process.findOne({ _id: task.process }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
-                                }
-                                else {
+                                } else {
                                     if (validate.isNullorEmpty(data)) {
                                         callback(null, 1);
                                     } else {
@@ -460,25 +454,22 @@ router.route('/create').post((req, res) => {
                                 }
                             });
                         },
-                        task: function (callback) {
-                            Task.find(
-                                {
-                                    'stakeholders.owner': req.cookies.userId,
-                                    process: { $in: ['000000000000000000000001', '000000000000000000000006'] },
-                                    status: true
-                                }).exec((error, data) => {
-                                    if (error) {
-                                        callback(null, 2);
+                        task: function(callback) {
+                            Task.find({
+                                'stakeholders.owner': req.cookies.userId,
+                                process: { $in: ['000000000000000000000001', '000000000000000000000006'] },
+                                status: true
+                            }).exec((error, data) => {
+                                if (error) {
+                                    callback(null, 2);
+                                } else {
+                                    if (validate.isNullorEmpty(data) || !data || data.length <= 10) {
+                                        callback(null, 0);
+                                    } else {
+                                        callback(null, 4);
                                     }
-                                    else {
-                                        if (validate.isNullorEmpty(data) || !data || data.length <= 10) {
-                                            callback(null, 0);
-                                        }
-                                        else {
-                                            callback(null, 4);
-                                        }
-                                    }
-                                });
+                                }
+                            });
                         }
                     }, (error, result) => {
                         console.log(result);
@@ -491,16 +482,13 @@ router.route('/create').post((req, res) => {
                                     task.save((error) => {
                                         if (error) {
                                             return msg.msgReturn(res, 3);
-                                        }
-                                        else {
+                                        } else {
                                             return msg.msgReturn(res, 0);
                                         }
                                     });
-                                }
-                                else if (result.task == 4) {
+                                } else if (result.task == 4) {
                                     return msg.msgReturn(res, 8);
-                                }
-                                else {
+                                } else {
                                     return msg.msgReturn(res, 3);
                                 }
                             } else {
@@ -603,12 +591,11 @@ router.route('/update').put((req, res) => {
         // }
 
         async.parallel({
-            work: function (callback) {
+            work: function(callback) {
                 Work.findOne({ _id: req.body.work, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, 2);
-                    }
-                    else {
+                    } else {
                         if (validate.isNullorEmpty(data)) {
                             callback(null, 1);
                         } else {
@@ -617,12 +604,11 @@ router.route('/update').put((req, res) => {
                     }
                 });
             },
-            package: function (callback) {
+            package: function(callback) {
                 Package.findOne({ _id: req.body.package, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, 2);
-                    }
-                    else {
+                    } else {
                         if (validate.isNullorEmpty(data)) {
                             callback(null, 1);
                         } else {
@@ -631,12 +617,11 @@ router.route('/update').put((req, res) => {
                     }
                 });
             },
-            task: function (callback) {
+            task: function(callback) {
                 Task.findOne({ _id: req.body.id, 'stakeholders.owner': req.cookies.userId, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, 2);
-                    }
-                    else {
+                    } else {
                         if (validate.isNullorEmpty(data)) {
                             callback(null, 1);
                         } else {
@@ -654,21 +639,18 @@ router.route('/update').put((req, res) => {
                 return msg.msgReturn(res, 3);
             } else {
                 if (result.work == 0 && result.package == 0 && result.task == 0) {
-                    Task.findOneAndUpdate(
-                        {
+                    Task.findOneAndUpdate({
                             _id: id,
                             'stakeholders.owner': req.cookies.userId,
                             status: true
-                        },
-                        {
+                        }, {
                             $set: {
                                 info: task.info,
                                 // process: task.process,
                                 location: task.location,
                                 'history.updateAt': new Date()
                             }
-                        },
-                        {
+                        }, {
                             upsert: true
                         },
                         (error, result) => {
@@ -718,13 +700,11 @@ router.route('/delete').delete((req, res) => {
         var id = req.body.id;
         var ownerId = req.cookies.userId;
 
-        Task.findOneAndUpdate(
-            {
+        Task.findOneAndUpdate({
                 _id: id,
                 'stakeholders.owner': ownerId,
                 status: true
-            },
-            {
+            }, {
                 $set: {
                     'history.updateAt': new Date(),
                     status: false
@@ -778,13 +758,11 @@ router.route('/cancel').delete((req, res) => {
         var id = req.body.id;
         var maidId = req.cookies.userId;
 
-        Task.findOne(
-            {
-                _id: id,
-                'stakeholders.request.maid': maidId,
-                status: true
-            }
-        ).exec((error, data) => {
+        Task.findOne({
+            _id: id,
+            'stakeholders.request.maid': maidId,
+            status: true
+        }).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -792,19 +770,16 @@ router.route('/cancel').delete((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     if (data.process == '000000000000000000000001') {
-                        Task.findOneAndUpdate(
-                            {
+                        Task.findOneAndUpdate({
                                 _id: id,
                                 'stakeholders.request.maid': maidId,
                                 process: '000000000000000000000001',
                                 status: true
-                            },
-                            {
+                            }, {
                                 $pull: {
                                     'stakeholders.request': { maid: maidId }
                                 }
-                            },
-                            {
+                            }, {
                                 safe: true
                             },
                             (error, result) => {
@@ -814,14 +789,12 @@ router.route('/cancel').delete((req, res) => {
                         )
                     } else if (data.process == '000000000000000000000003') {
                         Owner.findOne({ _id: data.stakeholders.owner, status: true }).select('auth').exec((error, owner) => {
-                            Task.findOneAndUpdate(
-                                {
+                            Task.findOneAndUpdate({
                                     _id: id,
                                     'stakeholders.received': maidId,
                                     process: '000000000000000000000003',
                                     status: true
-                                },
-                                {
+                                }, {
                                     $set: {
                                         process: new ObjectId('000000000000000000000001')
                                     },
@@ -831,8 +804,7 @@ router.route('/cancel').delete((req, res) => {
                                     $unset: {
                                         'stakeholders.received': maidId,
                                     }
-                                },
-                                {
+                                }, {
                                     safe: true
                                 },
                                 (error, result) => {
@@ -880,12 +852,11 @@ router.route('/reserve').post((req, res) => {
         var maidId = req.cookies.userId;
 
         async.parallel({
-            maid: function (callback) {
+            maid: function(callback) {
                 Maid.findOne({ _id: maidId, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, 2);
-                    }
-                    else {
+                    } else {
                         if (validate.isNullorEmpty(data)) {
                             callback(null, 1);
                         } else {
@@ -904,79 +875,74 @@ router.route('/reserve').post((req, res) => {
                         time: new Date()
                     };
 
-                    Task.findOne(
-                        {
-                            _id: id,
-                            process: '000000000000000000000001',
-                            'stakeholders.request.maid': maidId,
-                            status: true
-                        }).exec((error, data) => {
-                            console.log(data)
-                            if (error) {
-                                return msg.msgReturn(res, 3);
-                            }
-                            else {
-                                if (validate.isNullorEmpty(data)) {
-                                    Task.findOneAndUpdate(
-                                        {
-                                            _id: id,
-                                            process: '000000000000000000000001',
-                                            status: true
-                                        },
-                                        {
-                                            $push: {
-                                                'stakeholders.request': maid
-                                            }
-                                        },
-                                        {
-                                            upsert: true
-                                        },
-                                        (error) => {
-                                            if (error) return msg.msgReturn(res, 3);
-                                            else return msg.msgReturn(res, 0);
+                    Task.findOne({
+                        _id: id,
+                        process: '000000000000000000000001',
+                        'stakeholders.request.maid': maidId,
+                        status: true
+                    }).exec((error, data) => {
+                        console.log(data)
+                        if (error) {
+                            return msg.msgReturn(res, 3);
+                        } else {
+                            if (validate.isNullorEmpty(data)) {
+                                Task.findOneAndUpdate({
+                                        _id: id,
+                                        process: '000000000000000000000001',
+                                        status: true
+                                    }, {
+                                        $push: {
+                                            'stakeholders.request': maid
                                         }
-                                    );
-                                    // return msg.msgReturn(res, 4);
-                                } else {
-                                    return msg.msgReturn(res, 16);
-                                    // var check = false
-                                    // var lstMaid = data.stakeholders.request;
+                                    }, {
+                                        upsert: true
+                                    },
+                                    (error) => {
+                                        if (error) return msg.msgReturn(res, 3);
+                                        else return msg.msgReturn(res, 0);
+                                    }
+                                );
+                                // return msg.msgReturn(res, 4);
+                            } else {
+                                return msg.msgReturn(res, 16);
+                                // var check = false
+                                // var lstMaid = data.stakeholders.request;
 
-                                    // if (!validate.isNullorEmpty(lstMaid)) {
-                                    //     for (i = 0; i < lstMaid.length; i++) {
-                                    //         if (lstMaid[i].maid == maidId) {
-                                    //             check = true
-                                    //             break
-                                    //         }
-                                    //     }
-                                    // }
+                                // if (!validate.isNullorEmpty(lstMaid)) {
+                                //     for (i = 0; i < lstMaid.length; i++) {
+                                //         if (lstMaid[i].maid == maidId) {
+                                //             check = true
+                                //             break
+                                //         }
+                                //     }
+                                // }
 
-                                    // if (check) {
-                                    //     return msg.msgReturn(res, 16);
-                                    // } else {
-                                    //     Task.findOneAndUpdate(
-                                    //         {
-                                    //             _id: id,
-                                    //             process: '000000000000000000000001',
-                                    //             status: true
-                                    //         },
-                                    //         {
-                                    //             $push: {
-                                    //                 'stakeholders.request': maid
-                                    //             }
-                                    //         },
-                                    //         {
-                                    //             upsert: true
-                                    //         },
-                                    //         (error) => {
-                                    //             if (error) return msg.msgReturn(res, 3);
-                                    //             else return msg.msgReturn(res, 0);
-                                    //         }
-                                    //     );
-                                    // }
-                                }
+                                // if (check) {
+                                //     return msg.msgReturn(res, 16);
+                                // } else {
+                                //     Task.findOneAndUpdate(
+                                //         {
+                                //             _id: id,
+                                //             process: '000000000000000000000001',
+                                //             status: true
+                                //         },
+                                //         {
+                                //             $push: {
+                                //                 'stakeholders.request': maid
+                                //             }
+                                //         },
+                                //         {
+                                //             upsert: true
+                                //         },
+                                //         (error) => {
+                                //             if (error) return msg.msgReturn(res, 3);
+                                //             else return msg.msgReturn(res, 0);
+                                //         }
+                                //     );
+                                // }
                             }
-                        });
+                        }
+                    });
                 } else {
                     if (result.maid == 1) {
                         return msg.msgReturn(res, 4);
@@ -1017,12 +983,11 @@ router.route('/submit').post((req, res) => {
         var maidId = req.body.maidId;
 
         async.parallel({
-            maid: function (callback) {
+            maid: function(callback) {
                 Maid.findOne({ _id: maidId, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, { value: 2 });
-                    }
-                    else {
+                    } else {
                         if (validate.isNullorEmpty(data)) {
                             callback(null, { value: 1 });
                         } else {
@@ -1032,105 +997,100 @@ router.route('/submit').post((req, res) => {
                 });
             },
 
-            task: function (callback) {
-                Task.findOne(
-                    {
-                        _id: id,
-                        'stakeholders.owner': ownerId,
-                        process: new ObjectId('000000000000000000000001'),
-                        status: true
-                    }).exec((error, data) => {
-                        if (error) {
-                            callback(null, 2);
+            task: function(callback) {
+                Task.findOne({
+                    _id: id,
+                    'stakeholders.owner': ownerId,
+                    process: new ObjectId('000000000000000000000001'),
+                    status: true
+                }).exec((error, data) => {
+                    if (error) {
+                        callback(null, 2);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            callback(null, 1);
+                        } else {
+                            //check no-duplicated time of task
+                            // Task.findOne(
+                            //     {
+                            //         'stakeholders.received': maidId,
+                            //         $or: [
+                            //             //x >= s & y <= e
+                            //             {
+                            //                 'info.time.startAt': {
+                            //                     $gte: data.info.time.startAt
+                            //                 },
+                            //                 'info.time.endAt': {
+                            //                     $lte: data.info.time.endAt
+                            //                 }
+                            //             },
+
+                            //             //x <= s & y >= e
+                            //             {
+                            //                 'info.time.startAt': {
+                            //                     $lte: data.info.time.startAt
+                            //                 },
+                            //                 'info.time.endAt': {
+                            //                     $gte: data.info.time.endAt
+                            //                 }
+                            //             },
+
+                            //             //x [>= s & <= e] & y >= e
+                            //             {
+                            //                 'info.time.startAt': {
+                            //                     $gte: data.info.time.startAt,
+                            //                     $lte: data.info.time.endAt
+                            //                 },
+                            //                 'info.time.endAt': {
+                            //                     $gte: data.info.time.endAt
+                            //                 }
+                            //             },
+
+                            //             //x <= s & y [>= s & <= e]
+                            //             {
+                            //                 'info.time.startAt': {
+                            //                     $lte: data.info.time.startAt
+                            //                 },
+                            //                 'info.time.endAt': {
+                            //                     $gte: data.info.time.startAt,
+                            //                     $lte: data.info.time.endAt
+                            //                 }
+                            //             },
+                            //         ]
+                            //     }
+                            // ).exec((error, result) => {
+                            //     if (error) {
+                            //         console.log(error)
+                            //         callback(null, 2);
+                            //     } else {
+                            //         if (validate.isNullorEmpty(result)) {
+                            //             callback(null, 0);
+                            //         } else {
+                            //             callback(null, 3);
+                            //         }
+                            //     }
+                            // });
+                            callback(null, 0);
                         }
-                        else {
-                            if (validate.isNullorEmpty(data)) {
-                                callback(null, 1);
-                            } else {
-                                //check no-duplicated time of task
-                                // Task.findOne(
-                                //     {
-                                //         'stakeholders.received': maidId,
-                                //         $or: [
-                                //             //x >= s & y <= e
-                                //             {
-                                //                 'info.time.startAt': {
-                                //                     $gte: data.info.time.startAt
-                                //                 },
-                                //                 'info.time.endAt': {
-                                //                     $lte: data.info.time.endAt
-                                //                 }
-                                //             },
-
-                                //             //x <= s & y >= e
-                                //             {
-                                //                 'info.time.startAt': {
-                                //                     $lte: data.info.time.startAt
-                                //                 },
-                                //                 'info.time.endAt': {
-                                //                     $gte: data.info.time.endAt
-                                //                 }
-                                //             },
-
-                                //             //x [>= s & <= e] & y >= e
-                                //             {
-                                //                 'info.time.startAt': {
-                                //                     $gte: data.info.time.startAt,
-                                //                     $lte: data.info.time.endAt
-                                //                 },
-                                //                 'info.time.endAt': {
-                                //                     $gte: data.info.time.endAt
-                                //                 }
-                                //             },
-
-                                //             //x <= s & y [>= s & <= e]
-                                //             {
-                                //                 'info.time.startAt': {
-                                //                     $lte: data.info.time.startAt
-                                //                 },
-                                //                 'info.time.endAt': {
-                                //                     $gte: data.info.time.startAt,
-                                //                     $lte: data.info.time.endAt
-                                //                 }
-                                //             },
-                                //         ]
-                                //     }
-                                // ).exec((error, result) => {
-                                //     if (error) {
-                                //         console.log(error)
-                                //         callback(null, 2);
-                                //     } else {
-                                //         if (validate.isNullorEmpty(result)) {
-                                //             callback(null, 0);
-                                //         } else {
-                                //             callback(null, 3);
-                                //         }
-                                //     }
-                                // });
-                                callback(null, 0);
-                            }
-                        }
-                    });
+                    }
+                });
             }
         }, (error, result) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
                 if (result.maid.value == 0 && result.task == 0) {
-                    Task.findOneAndUpdate(
-                        {
+                    Task.findOneAndUpdate({
                             _id: id,
                             'stakeholders.owner': ownerId,
                             process: new ObjectId('000000000000000000000001'),
                             status: true
-                        },
-                        {
+                        }, {
                             $set: {
                                 'stakeholders.received': maidId,
                                 process: new ObjectId('000000000000000000000003')
                             }
-                        },
-                        {
+                        }, {
                             upsert: true
                         },
                         (error) => {
@@ -1187,8 +1147,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
 
         if (!req.files.image) return msg.msgReturn(res, 3);
 
-        Task.findOne(
-            {
+        Task.findOne({
                 _id: id,
                 'stakeholders.owner': ownerId,
                 process: '000000000000000000000003',
@@ -1198,8 +1157,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
             .exec((error, data) => {
                 if (error) {
                     return msg.msgReturn(res, 3);
-                }
-                else {
+                } else {
                     if (validate.isNullorEmpty(data)) {
                         return msg.msgReturn(res, 4);
                     } else {
@@ -1359,27 +1317,23 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                         //     return msg.msgReturn(res, 11);
                         // }
 
-                        Task.findOneAndUpdate(
-                            {
-                                _id: id,
-                                'stakeholders.owner': ownerId,
-                                process: '000000000000000000000003',
-                                status: true
-                            },
-                            {
-                                $set: {
-                                    process: new ObjectId('000000000000000000000004'),
-                                    'check.check_in': new Date()
-                                }
-                            },
-                            {
-                                upsert: true
-                            }, (error, data) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
-                                return msg.msgReturn(res, 0);
+                        Task.findOneAndUpdate({
+                            _id: id,
+                            'stakeholders.owner': ownerId,
+                            process: '000000000000000000000003',
+                            status: true
+                        }, {
+                            $set: {
+                                process: new ObjectId('000000000000000000000004'),
+                                'check.check_in': new Date()
                             }
-                        )
+                        }, {
+                            upsert: true
+                        }, (error, data) => {
+                            if (error) return msg.msgReturn(res, 3);
+                            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+                            return msg.msgReturn(res, 0);
+                        })
                     }
                 }
             });
@@ -1412,33 +1366,29 @@ router.route('/checkout').post((req, res) => {
         var ownerId = req.cookies.userId;
 
         async.parallel({
-            task: function (callback) {
-                Task.findOne(
-                    {
-                        _id: id,
-                        'stakeholders.owner': ownerId,
-                        process: '000000000000000000000004',
-                        status: true
-                    }).exec((error, data) => {
-                        if (error) {
-                            callback(null, 2);
-                        }
-                        else {
-                            if (validate.isNullorEmpty(data)) {
-                                callback(null, 1);
+            task: function(callback) {
+                Task.findOne({
+                    _id: id,
+                    'stakeholders.owner': ownerId,
+                    process: '000000000000000000000004',
+                    status: true
+                }).exec((error, data) => {
+                    if (error) {
+                        callback(null, 2);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            callback(null, 1);
+                        } else {
+                            if (validate.isNullorEmpty(data.check.check_in)) {
+                                callback(null, 4);
+                            } else if (validate.isNullorEmpty(data.check.check_out)) {
+                                callback(null, 0);
                             } else {
-                                if (validate.isNullorEmpty(data.check.check_in)) {
-                                    callback(null, 4);
-                                }
-                                else if (validate.isNullorEmpty(data.check.check_out)) {
-                                    callback(null, 0);
-                                }
-                                else {
-                                    callback(null, 3);
-                                }
+                                callback(null, 3);
                             }
                         }
-                    });
+                    }
+                });
             }
         }, (error, result) => {
             if (error) {
@@ -1446,20 +1396,17 @@ router.route('/checkout').post((req, res) => {
             } else {
                 if (result.task == 0) {
                     var checkOut = new Date();
-                    Task.findOneAndUpdate(
-                        {
+                    Task.findOneAndUpdate({
                             _id: id,
                             'stakeholders.owner': ownerId,
                             process: '000000000000000000000004',
                             status: true
-                        },
-                        {
+                        }, {
                             $set: {
                                 process: new ObjectId('000000000000000000000005'),
                                 'check.check_out': checkOut
                             }
-                        },
-                        {
+                        }, {
                             upsert: true
                         },
                         (error, task) => {
@@ -1501,8 +1448,7 @@ router.route('/checkout').post((req, res) => {
                                                     msg.msgReturn(res, 17, dt) :
                                                     FCMService.pushNotification(res, maid, req.cookies.language, 5, dt, '')
                                             });
-                                        }
-                                        else if (task.info.package == '000000000000000000000002') {
+                                        } else if (task.info.package == '000000000000000000000002') {
                                             if (error) {
                                                 return msg.msgReturn(res, 0, {});
                                             } else {
@@ -1565,14 +1511,11 @@ router.route('/checkout').post((req, res) => {
                 } else {
                     if (result.task == 1) {
                         return msg.msgReturn(res, 4, {});
-                    }
-                    else if (result.task == 3) {
+                    } else if (result.task == 3) {
                         return msg.msgReturn(res, 12, {});
-                    }
-                    else if (result.task == 4) {
+                    } else if (result.task == 4) {
                         return msg.msgReturn(res, 13, {});
-                    }
-                    else {
+                    } else {
                         return msg.msgReturn(res, 3, {});
                     }
                 }
@@ -1612,12 +1555,10 @@ router.route('/sendRequest').post((req, res) => {
 
         task.stakeholders = {
             owner: ownerId,
-            request: [
-                {
-                    maid: maidId,
-                    time: new Date()
-                }
-            ],
+            request: [{
+                maid: maidId,
+                time: new Date()
+            }],
             received: maidId
         };
 
@@ -1646,12 +1587,11 @@ router.route('/sendRequest').post((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     async.parallel({
-                        maid: function (callback) {
+                        maid: function(callback) {
                             Maid.findOne({ _id: maidId }).exec((error, data) => {
                                 if (error) {
                                     callback(null, { value: 2 });
-                                }
-                                else {
+                                } else {
                                     if (validate.isNullorEmpty(data)) {
                                         callback(null, { value: 1 });
                                     } else {
@@ -1660,12 +1600,11 @@ router.route('/sendRequest').post((req, res) => {
                                 }
                             });
                         },
-                        work: function (callback) {
+                        work: function(callback) {
                             Work.findOne({ _id: req.body.work }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
-                                }
-                                else {
+                                } else {
                                     if (validate.isNullorEmpty(data)) {
                                         callback(null, 1);
                                     } else {
@@ -1674,25 +1613,22 @@ router.route('/sendRequest').post((req, res) => {
                                 }
                             });
                         },
-                        task: function (callback) {
-                            Task.find(
-                                {
-                                    'stakeholders.owner': ownerId,
-                                    process: { $in: ['000000000000000000000001', '000000000000000000000006'] },
-                                    status: true
-                                }).exec((error, data) => {
-                                    if (error) {
-                                        callback(null, 2);
+                        task: function(callback) {
+                            Task.find({
+                                'stakeholders.owner': ownerId,
+                                process: { $in: ['000000000000000000000001', '000000000000000000000006'] },
+                                status: true
+                            }).exec((error, data) => {
+                                if (error) {
+                                    callback(null, 2);
+                                } else {
+                                    if (validate.isNullorEmpty(data) || !data || data.length <= 10) {
+                                        callback(null, 0);
+                                    } else {
+                                        callback(null, 4);
                                     }
-                                    else {
-                                        if (validate.isNullorEmpty(data) || !data || data.length <= 10) {
-                                            callback(null, 0);
-                                        }
-                                        else {
-                                            callback(null, 4);
-                                        }
-                                    }
-                                });
+                                }
+                            });
                         },
                         // task2: function (callback) {
                         //     Task.findOne(
@@ -1764,8 +1700,7 @@ router.route('/sendRequest').post((req, res) => {
                                 task.save((error) => {
                                     if (error) {
                                         return msg.msgReturn(res, 3);
-                                    }
-                                    else {
+                                    } else {
                                         return result.maid.data.auth.device_token == '' ?
                                             msg.msgReturn(res, 17) :
                                             FCMService.pushNotification(res, result.maid.data, req.cookies.language, 6, [], '')
@@ -1802,12 +1737,11 @@ router.route('/acceptRequest').post((req, res) => {
 
         async.parallel({
             //check maid exist
-            owner: function (callback) {
+            owner: function(callback) {
                 Owner.findOne({ _id: ownerId, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, { value: 2 });
-                    }
-                    else {
+                    } else {
                         if (validate.isNullorEmpty(data)) {
                             callback(null, { value: 1 });
                         } else {
@@ -1818,105 +1752,98 @@ router.route('/acceptRequest').post((req, res) => {
             },
 
             //check task exist
-            task: function (callback) {
-                Task.findOne(
-                    {
-                        _id: id,
-                        'stakeholders.owner': ownerId,
-                        process: '000000000000000000000006',
-                        status: true
-                    }).exec((error, data) => {
-                        if (error) {
-                            callback(null, 2);
-                        }
-                        else {
-                            if (validate.isNullorEmpty(data)) {
-                                callback(null, 1);
-                            } else {
-                                //check no-duplicated time of task
-                                Task.findOne(
+            task: function(callback) {
+                Task.findOne({
+                    _id: id,
+                    'stakeholders.owner': ownerId,
+                    process: '000000000000000000000006',
+                    status: true
+                }).exec((error, data) => {
+                    if (error) {
+                        callback(null, 2);
+                    } else {
+                        if (validate.isNullorEmpty(data)) {
+                            callback(null, 1);
+                        } else {
+                            //check no-duplicated time of task
+                            Task.findOne({
+                                'stakeholders.received': maidId,
+                                process: '000000000000000000000003',
+                                status: true,
+                                $or: [
+                                    //x >= s & y <= e
                                     {
-                                        'stakeholders.received': maidId,
-                                        process: '000000000000000000000003',
-                                        status: true,
-                                        $or: [
-                                            //x >= s & y <= e
-                                            {
-                                                'info.time.startAt': {
-                                                    $gte: data.info.time.startAt
-                                                },
-                                                'info.time.endAt': {
-                                                    $lte: data.info.time.endAt
-                                                }
-                                            },
-
-                                            //x <= s & y >= e
-                                            {
-                                                'info.time.startAt': {
-                                                    $lte: data.info.time.startAt
-                                                },
-                                                'info.time.endAt': {
-                                                    $gte: data.info.time.endAt
-                                                }
-                                            },
-
-                                            //x [>= s & <= e] & y >= e
-                                            {
-                                                'info.time.startAt': {
-                                                    $gte: data.info.time.startAt,
-                                                    $lte: data.info.time.endAt
-                                                },
-                                                'info.time.endAt': {
-                                                    $gte: data.info.time.endAt
-                                                }
-                                            },
-
-                                            //x <= s & y [>= s & <= e]
-                                            {
-                                                'info.time.startAt': {
-                                                    $lte: data.info.time.startAt
-                                                },
-                                                'info.time.endAt': {
-                                                    $gte: data.info.time.startAt,
-                                                    $lte: data.info.time.endAt
-                                                }
-                                            },
-                                        ]
-                                    }
-                                ).exec((error, result) => {
-                                    if (error) {
-                                        callback(null, 2);
-                                    } else {
-                                        if (validate.isNullorEmpty(result)) {
-                                            callback(null, 0);
-                                        } else {
-                                            callback(null, 3);
+                                        'info.time.startAt': {
+                                            $gte: data.info.time.startAt
+                                        },
+                                        'info.time.endAt': {
+                                            $lte: data.info.time.endAt
                                         }
+                                    },
+
+                                    //x <= s & y >= e
+                                    {
+                                        'info.time.startAt': {
+                                            $lte: data.info.time.startAt
+                                        },
+                                        'info.time.endAt': {
+                                            $gte: data.info.time.endAt
+                                        }
+                                    },
+
+                                    //x [>= s & <= e] & y >= e
+                                    {
+                                        'info.time.startAt': {
+                                            $gte: data.info.time.startAt,
+                                            $lte: data.info.time.endAt
+                                        },
+                                        'info.time.endAt': {
+                                            $gte: data.info.time.endAt
+                                        }
+                                    },
+
+                                    //x <= s & y [>= s & <= e]
+                                    {
+                                        'info.time.startAt': {
+                                            $lte: data.info.time.startAt
+                                        },
+                                        'info.time.endAt': {
+                                            $gte: data.info.time.startAt,
+                                            $lte: data.info.time.endAt
+                                        }
+                                    },
+                                ]
+                            }).exec((error, result) => {
+                                if (error) {
+                                    callback(null, 2);
+                                } else {
+                                    if (validate.isNullorEmpty(result)) {
+                                        callback(null, 0);
+                                    } else {
+                                        callback(null, 3);
                                     }
-                                });
-                            }
+                                }
+                            });
                         }
-                    });
+                    }
+                });
             }
         }, (error, result) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
                 if (result.owner.value == 0 && result.task == 0) {
-                    Task.findOneAndUpdate(
-                        {
+                    Task.findOneAndUpdate({
                             _id: id,
                             'stakeholders.owner': ownerId,
                             process: '000000000000000000000006',
                             status: true
-                        },
-                        {
+                        }, {
                             $set: {
                                 'stakeholders.received': maidId,
                                 process: new ObjectId('000000000000000000000003')
                             }
-                        },
-                        {
+                        }, {
                             upsert: true
                         },
                         (error) => {
@@ -1931,11 +1858,9 @@ router.route('/acceptRequest').post((req, res) => {
                 } else {
                     if (result.owner.value == 1 || result.task == 1) {
                         return msg.msgReturn(res, 4);
-                    }
-                    else if (result.task == 3) {
+                    } else if (result.task == 3) {
                         return msg.msgReturn(res, 10);
-                    }
-                    else {
+                    } else {
                         return msg.msgReturn(res, 3);
                     }
                 }
@@ -1966,13 +1891,11 @@ router.route('/denyRequest').post((req, res) => {
                             if (validate.isNullorEmpty(data)) {
                                 return msg.msgReturn(res, 4);
                             } else {
-                                Task.findOneAndUpdate(
-                                    {
+                                Task.findOneAndUpdate({
                                         _id: id,
                                         process: '000000000000000000000006',
                                         'stakeholders.owner': ownerId
-                                    },
-                                    {
+                                    }, {
                                         status: false
                                     },
                                     (error) => {
@@ -1998,8 +1921,7 @@ router.route('/getRequest').get((req, res) => {
         var id = req.query.id;
         var matchQuery = { _id: new ObjectId(id), status: true };
 
-        Task.aggregate([
-            {
+        Task.aggregate([{
                 $match: matchQuery
             },
             {

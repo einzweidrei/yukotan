@@ -41,6 +41,10 @@ router.use(function(req, res, next) {
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
+            Package.setDefaultLanguage(language);
+            Work.setDefaultLanguage(language);
+            Process.setDefaultLanguage(language);
+
             next();
         } else {
             return msg.msgReturn(res, 6);
