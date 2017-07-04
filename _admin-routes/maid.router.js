@@ -311,8 +311,12 @@ router.route('/create').post((req, res) => {
             gender: req.body.gender || 0,
         };
 
+        var temp = []
+        var ability = req.body.ability || [];
+        temp = ability.split(',')
+
         maid.work_info = {
-            ability: req.body.ability,
+            ability: temp,
             evaluation_point: 2.5,
             price: req.body.price
         }
@@ -334,22 +338,30 @@ router.route('/create').post((req, res) => {
             coordinates: [req.body.lng || 0, req.body.lat || 0]
         };
 
+        console.log(maid)
+
         Maid.findOne({ $or: [{ 'info.username': req.body.username }, { 'info.email': req.body.email }] })
             .exec((error, data) => {
                 if (error) {
                     return msg.msgReturn(res, 3);
                 } else {
                     if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
                         maid.save((error) => {
-                            if (error) return msg.msgReturn(res, 3);
+                            if (error) {
+                                // console.log(error)
+                                return msg.msgReturn(res, 3);
+                            }
+
+
                             return msg.msgReturn(res, 0);
                         });
+                    } else {
+                        return msg.msgReturn(res, 2);
                     }
                 }
             });
     } catch (error) {
+        console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
@@ -370,7 +382,11 @@ router.route('/update').post((req, res) => {
             }
         };
         var gender = req.body.gender || 0;
+
+        var temp = []
         var ability = req.body.ability || [];
+        temp = ability.split(',')
+
         var price = req.body.price || 0;
         var location = {
             type: 'Point',
@@ -390,7 +406,7 @@ router.route('/update').post((req, res) => {
                     'info.address': address,
                     'info.gender': gender,
                     'info.image': image,
-                    'work_info.ability': ability,
+                    'work_info.ability': temp,
                     'work_info.price': price,
                     location: location,
                     'history.updateAt': new Date()
