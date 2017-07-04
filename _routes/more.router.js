@@ -181,7 +181,7 @@ router.route('/getAllMaids').get((req, res) => {
         }
 
         if (workId) {
-            matchQuery['work_info.ability.work'] = workId;
+            matchQuery['work_info.ability'] = workId;
         }
 
         if (gender) {
