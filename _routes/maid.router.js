@@ -85,6 +85,7 @@ router.route('/getAbility').get((req, res) => {
                 if (error) {
                     return msg.msgReturn(res, 3);
                 } else {
+                    console.log(data)
                     if (validate.isNullorEmpty(data)) {
                         return msg.msgReturn(res, 4);
                     } else {
