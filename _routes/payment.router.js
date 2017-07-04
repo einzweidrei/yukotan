@@ -209,8 +209,8 @@ router.route('/getDirectlyBill').get((req, res) => {
         var id = req.query.id;
         var userId = req.cookies.userId;
 
-        Bill.findOne({ task: id, owner: userId, method: 3, isSolved: false, status: true })
-            .select('task price')
+        Bill.findOne({ task: id, maid: userId, method: 3, isSolved: false, status: true })
+            .select('_id')
             .exec((error, data) => {
                 if (error) {
                     return msg.msgReturn(res, 3, {});
