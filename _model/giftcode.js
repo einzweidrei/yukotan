@@ -7,11 +7,9 @@ var ObjectId = Schema.ObjectId;
 
 var GiftCodeSchema = new Schema(
     {
-        info: {
-            name: { type: String },
-            value: { type: Number },
-            description: { type: String, intl: true }
-        },
+        name: { type: String },
+        value: { type: Number },
+        description: { type: String, intl: true },
         limit: {
             startAt: { type: Date },
             endAt: { type: Date },

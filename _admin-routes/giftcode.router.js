@@ -156,18 +156,17 @@ router.route('/create').post((req, res) => {
         var count = req.body.count || 0;
 
         var giftcode = new GiftCode();
-        giftcode.info = {
-            name: name,
-            value: value,
-            description: {
-                vi: descriptionVi,
-                en: descriptionEn
-            }
-        };
+        giftcode.name = name;
+        giftcode.value = value;
+
+        giftcode.set('description.all', {
+            en: descriptionEn,
+            vi: descriptionVi
+        });
 
         giftcode.limit = {
-            startAt: startAt,
-            endAt: endAt,
+            startAt: new Date(startAt),
+            endAt: new Date(endAt),
             count: count
         };
 
@@ -206,9 +205,9 @@ router.route('/update').post((req, res) => {
             },
             {
                 $set: {
-                    'info.name': name,
-                    'info.value': value,
-                    'info.description': {
+                    name: name,
+                    value: value,
+                    description: {
                         vi: descriptionVi,
                         en: descriptionEn
                     },
