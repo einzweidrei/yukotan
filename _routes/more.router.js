@@ -392,8 +392,12 @@ router.route('/getTaskByWork').get((req, res) => {
             ]
         };
 
+        var now = new Date()
         var matchQuery = {
             process: new ObjectId('000000000000000000000001'),
+            'info.time.startAt': {
+                $gt: now
+            },
             status: true
         };
 
