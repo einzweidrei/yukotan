@@ -209,7 +209,7 @@ router.route('/getDirectlyBill').get((req, res) => {
         var id = req.query.id;
         var userId = req.cookies.userId;
 
-        Bill.findOne({ _id: id, owner: userId, method: 3, isSolved: false, status: true })
+        Bill.findOne({ task: id, owner: userId, method: 3, isSolved: false, status: true })
             .select('task price')
             .exec((error, data) => {
                 if (error) {
