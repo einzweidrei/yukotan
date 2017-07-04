@@ -32,7 +32,7 @@ var AppInfo = require('../_model/app-info');
 var cloudinary = require('cloudinary');
 var ObjectId = require('mongoose').Types.ObjectId;
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     console.log('more_router is connecting');
 
     try {
@@ -67,9 +67,9 @@ router.route('/resetPassword').post((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     Owner.findOneAndUpdate({
-                        'info.username': username,
-                        'info.email': email
-                    }, {
+                            'info.username': username,
+                            'info.email': email
+                        }, {
                             $set: {
                                 'auth.password': hashPw
                             }
@@ -189,30 +189,30 @@ router.route('/getAllMaids').get((req, res) => {
         }
 
         Maid.aggregate([{
-            $geoNear: {
-                near: loc,
-                distanceField: 'dist.calculated',
-                minDistance: parseFloat(minDistance),
-                maxDistance: parseFloat(maxDistance) * 1000,
-                // num: limit,
-                spherical: true
+                $geoNear: {
+                    near: loc,
+                    distanceField: 'dist.calculated',
+                    minDistance: parseFloat(minDistance),
+                    maxDistance: parseFloat(maxDistance) * 1000,
+                    // num: limit,
+                    spherical: true
+                }
+            },
+            {
+                $match: matchQuery
+            },
+            {
+                $sort: sortQuery
+            },
+            // {
+            //     $skip: skip
+            // },
+            {
+                $project: {
+                    info: 1,
+                    work_info: 1
+                }
             }
-        },
-        {
-            $match: matchQuery
-        },
-        {
-            $sort: sortQuery
-        },
-        // {
-        //     $skip: skip
-        // },
-        {
-            $project: {
-                info: 1,
-                work_info: 1
-            }
-        }
         ], (error, places) => {
             // console.log(places)
             if (error) {
@@ -290,37 +290,41 @@ router.route('/getTaskAround').get((req, res) => {
             ]
         };
 
+        var now = new Date();
         var matchQuery = {
             process: new ObjectId('000000000000000000000001'),
+            'info.time.startAt': {
+                $gt: now
+            },
             status: true
         };
 
         Task.aggregate([{
-            $geoNear: {
-                near: loc,
-                distanceField: 'dist.calculated',
-                minDistance: parseFloat(minDistance),
-                maxDistance: parseFloat(maxDistance) * 1000,
-                // maxDistance: (maxDistance / 111.12),
-                // num: limit,
-                // distanceMultiplier: 0.001,
-                spherical: true
-            }
-        },
-        {
-            $match: matchQuery
-        },
-        {
-            $group: {
-                _id: '$info.work',
-                count: {
-                    $sum: 1
+                $geoNear: {
+                    near: loc,
+                    distanceField: 'dist.calculated',
+                    minDistance: parseFloat(minDistance),
+                    maxDistance: parseFloat(maxDistance) * 1000,
+                    // maxDistance: (maxDistance / 111.12),
+                    // num: limit,
+                    // distanceMultiplier: 0.001,
+                    spherical: true
                 }
+            },
+            {
+                $match: matchQuery
+            },
+            {
+                $group: {
+                    _id: '$info.work',
+                    count: {
+                        $sum: 1
+                    }
+                }
+            },
+            {
+                $sort: sortQuery
             }
-        },
-        {
-            $sort: sortQuery
-        }
         ], (error, places) => {
             if (error) {
                 return msg.msgReturn(res, 3);
@@ -406,29 +410,29 @@ router.route('/getTaskByWork').get((req, res) => {
         }
 
         Task.aggregate([{
-            $geoNear: {
-                near: loc,
-                distanceField: 'dist.calculated',
-                minDistance: parseFloat(minDistance),
-                maxDistance: parseFloat(maxDistance) * 1000,
-                spherical: true
+                $geoNear: {
+                    near: loc,
+                    distanceField: 'dist.calculated',
+                    minDistance: parseFloat(minDistance),
+                    maxDistance: parseFloat(maxDistance) * 1000,
+                    spherical: true
+                }
+            },
+            {
+                $match: matchQuery
+            },
+            {
+                $sort: sortQuery
+            },
+            {
+                $project: {
+                    process: 1,
+                    history: 1,
+                    stakeholders: 1,
+                    info: 1,
+                    dist: 1
+                }
             }
-        },
-        {
-            $match: matchQuery
-        },
-        {
-            $sort: sortQuery
-        },
-        {
-            $project: {
-                process: 1,
-                history: 1,
-                stakeholders: 1,
-                info: 1,
-                dist: 1
-            }
-        }
         ], (error, places) => {
             if (error) {
                 return msg.msgReturn(res, 3);
@@ -510,9 +514,9 @@ router.route('/maidForgotPassword').post((req, res) => {
                     return msg.msgReturn(res, 4)
                 } else {
                     Session.findOneAndUpdate({
-                        'auth.userId': data._id,
-                        status: true
-                    }, {
+                            'auth.userId': data._id,
+                            status: true
+                        }, {
                             $set: {
                                 verification: {
                                     password: {
@@ -551,9 +555,9 @@ router.route('/ownerForgotPassword').post((req, res) => {
                     return msg.msgReturn(res, 4)
                 } else {
                     Session.findOneAndUpdate({
-                        'auth.userId': data._id,
-                        status: true
-                    }, {
+                            'auth.userId': data._id,
+                            status: true
+                        }, {
                             $set: {
                                 verification: {
                                     password: {
