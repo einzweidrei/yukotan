@@ -144,6 +144,20 @@ router.route('/getAll').get((req, res) => {
     }
 })
 
+router.route('/getById').get((req, res) => {
+    try {
+        var id = req.query.id;
+
+        GiftCode.findOne({ _id: id, status: true }, (error, data) => {
+            if (error) return msg.msgReturn(res, 3);
+            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+            return msg.msgReturn(res, 0, data);
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 router.route('/create').post((req, res) => {
     try {
         var name = req.body.name || '';
