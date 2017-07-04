@@ -181,7 +181,7 @@ router.route('/getAllMaids').get((req, res) => {
         }
 
         if (workId) {
-            matchQuery['work_info.ability'] = workId;
+            matchQuery['work_info.ability'] = { workId };
         }
 
         if (gender) {
@@ -196,7 +196,7 @@ router.route('/getAllMaids').get((req, res) => {
                 distanceField: 'dist.calculated',
                 minDistance: parseFloat(minDistance),
                 maxDistance: parseFloat(maxDistance) * 1000,
-                num: limit,
+                // num: limit,
                 spherical: true
             }
         },
@@ -216,6 +216,7 @@ router.route('/getAllMaids').get((req, res) => {
             }
         }
         ], (error, places) => {
+            console.log(places)
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {

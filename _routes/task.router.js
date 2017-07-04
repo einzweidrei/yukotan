@@ -1952,7 +1952,7 @@ router.route('/denyRequest').post((req, res) => {
         var ownerId = req.body.ownerId;
         var maidId = req.cookies.userId;
 
-        Owner.findOne({ _id: id, status: true }).exec((error, owner) => {
+        Owner.findOne({ _id: ownerId, status: true }).exec((error, owner) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
