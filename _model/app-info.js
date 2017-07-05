@@ -19,6 +19,7 @@ var AppInfoSchema = new Schema(
             createAt: { type: Date },
             updateAt: { type: Date }
         },
+        bank: { type: String, intl: true }
     },
     {
         toJSON: {
