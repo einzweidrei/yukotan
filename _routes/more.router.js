@@ -44,6 +44,7 @@ router.use(function (req, res, next) {
             Package.setDefaultLanguage(language);
             Work.setDefaultLanguage(language);
             Process.setDefaultLanguage(language);
+            AppInfo.setDefaultLanguage(language);
 
             next();
         } else {
