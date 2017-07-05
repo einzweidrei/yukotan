@@ -370,6 +370,7 @@ router.route('/update').post((req, res) => {
     try {
         var id = req.body.id;
 
+        var email = req.body.email || '';
         var phone = req.body.phone || '';
         var name = req.body.name || '';
         var age = req.body.age || 18;
@@ -393,38 +394,81 @@ router.route('/update').post((req, res) => {
             coordinates: [req.body.lng || 0, req.body.lat || 0]
         }
 
-        console.log('here')
-
-        Maid.findOneAndUpdate(
-            {
-                _id: id,
-                status: true
-            },
-            {
-                $set: {
-                    'info.phone': phone,
-                    'info.name': name,
-                    'info.age': age,
-                    'info.address': address,
-                    'info.gender': gender,
-                    'info.image': image,
-                    'work_info.ability': temp,
-                    'work_info.price': price,
-                    location: location,
-                    'history.updateAt': new Date()
-                }
-            },
-            (error, data) => {
-                if (error) return msg.msgReturn(res, 3);
-                else {
-                    if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
+        Maid.findOne({ 'info.email': email, status: true }, (error, maid) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else {
+                if (validate.isNullorEmpty(maid)) {
+                    Maid.findOneAndUpdate(
+                        {
+                            _id: id,
+                            status: true
+                        },
+                        {
+                            $set: {
+                                'info.email': email,
+                                'info.phone': phone,
+                                'info.name': name,
+                                'info.age': age,
+                                'info.address': address,
+                                'info.gender': gender,
+                                'info.image': image,
+                                'work_info.ability': temp,
+                                'work_info.price': price,
+                                location: location,
+                                'history.updateAt': new Date()
+                            }
+                        },
+                        (error, data) => {
+                            if (error) return msg.msgReturn(res, 3);
+                            else {
+                                if (validate.isNullorEmpty(data)) {
+                                    return msg.msgReturn(res, 4);
+                                } else {
+                                    return msg.msgReturn(res, 0);
+                                }
+                            }
+                        }
+                    );
+                } else {
+                    var m = maid._id;
+                    if (m == id) {
+                        Maid.findOneAndUpdate(
+                            {
+                                _id: id,
+                                status: true
+                            },
+                            {
+                                $set: {
+                                    'info.phone': phone,
+                                    'info.name': name,
+                                    'info.age': age,
+                                    'info.address': address,
+                                    'info.gender': gender,
+                                    'info.image': image,
+                                    'work_info.ability': temp,
+                                    'work_info.price': price,
+                                    location: location,
+                                    'history.updateAt': new Date()
+                                }
+                            },
+                            (error, data) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                else {
+                                    if (validate.isNullorEmpty(data)) {
+                                        return msg.msgReturn(res, 4);
+                                    } else {
+                                        return msg.msgReturn(res, 0);
+                                    }
+                                }
+                            }
+                        );
                     } else {
-                        return msg.msgReturn(res, 0);
+                        return msg.msgReturn(res, 2);
                     }
                 }
             }
-        );
+        })
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
