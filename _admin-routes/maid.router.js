@@ -393,6 +393,8 @@ router.route('/update').post((req, res) => {
             coordinates: [req.body.lng || 0, req.body.lat || 0]
         }
 
+        console.log('here')
+
         Maid.findOneAndUpdate(
             {
                 _id: id,
@@ -412,7 +414,7 @@ router.route('/update').post((req, res) => {
                     'history.updateAt': new Date()
                 }
             },
-            (error) => {
+            (error, data) => {
                 if (error) return msg.msgReturn(res, 3);
                 else {
                     if (validate.isNullorEmpty(data)) {
