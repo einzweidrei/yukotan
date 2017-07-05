@@ -78,7 +78,7 @@ router.route('/getAll').get((req, res) => {
             status: true
         }
 
-        if (count) findQuery['isSolved'] = isSolved;
+        if (isSolved) findQuery['isSolved'] = isSolved;
 
         if (startAt || endAt) {
             var timeQuery = {};
@@ -117,6 +117,7 @@ router.route('/getAll').get((req, res) => {
             }
         })
     } catch (error) {
+        console.log(error)
         return msg.msgReturn(res, 3);
     }
 })
@@ -125,11 +126,24 @@ router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
 
-        Bill.findOne({ _id: id, status: true }).select('-status -__v').exec((error, data) => {
-            if (error) return msg.msgReturn(res, 3);
-            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
-            return msg.msgReturn(res, 0, data);
-        })
+        Bill.findOne({ _id: id, status: true })
+            .populate(
+            [
+                {
+                    path: 'task', select: 'info'
+                },
+                {
+                    path: 'owner', select: 'info'
+                },
+                {
+                    path: 'maid', select: 'info'
+                }
+            ])
+            .select('-status -__v').exec((error, data) => {
+                if (error) return msg.msgReturn(res, 3);
+                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+                return msg.msgReturn(res, 0, data);
+            })
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
@@ -166,7 +180,7 @@ router.route('/update').post((req, res) => {
 
 router.route('/delete').post((req, res) => {
     try {
-        var id = req.body.id;
+        var id = req.query.id;
 
         Bill.findOneAndUpdate(
             {
