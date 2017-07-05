@@ -178,7 +178,7 @@ router.route('/register').post((req, res) => {
             gender: req.body.gender || 0,
         };
 
-        owner.evaluation_point = 2.5;
+        owner.evaluation_point = 3;
 
         owner.wallet = 0;
 
@@ -541,7 +541,7 @@ router.route('/thirdRegister').post((req, res) => {
             image: req.body.image || ""
         };
 
-        owner.evaluation_point = 2.5;
+        owner.evaluation_point = 3;
 
         owner.wallet = 0;
 

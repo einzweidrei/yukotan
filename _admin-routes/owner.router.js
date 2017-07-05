@@ -312,7 +312,7 @@ router.route('/create').post((req, res) => {
             gender: req.body.gender || 0,
         };
 
-        owner.evaluation_point = 2.5;
+        owner.evaluation_point = 3;
 
         owner.wallet = 0;
 

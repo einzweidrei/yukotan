@@ -317,7 +317,7 @@ router.route('/create').post((req, res) => {
 
         maid.work_info = {
             ability: temp,
-            evaluation_point: 2.5,
+            evaluation_point: 3,
             price: req.body.price
         }
 
