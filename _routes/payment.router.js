@@ -109,7 +109,6 @@ router.route('/payBillGV').post((req, res) => {
                 });
             },
         }, (error, result) => {
-            console.log(result)
             if (error) return msg.msgReturn(res, 3);
             else {
                 if (result.bill.value == 0 && result.owner.value == 0) {
@@ -130,9 +129,6 @@ router.route('/payBillGV').post((req, res) => {
                                     date: new Date()
                                 }
                             },
-                            {
-                                upsert: true
-                            },
                             (error) => {
                                 if (error) return msg.msgReturn(res, 3);
                                 else {
@@ -140,7 +136,7 @@ router.route('/payBillGV').post((req, res) => {
                                     Owner.findOneAndUpdate(
                                         { _id: userId2, status: true },
                                         { $set: { wallet: newWallet } },
-                                        (error, m) => {
+                                        (error) => {
                                             if (error) return msg.msgReturn(res, 3);
                                             return msg.msgReturn(res, 0);
                                         }

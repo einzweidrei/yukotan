@@ -31,6 +31,7 @@ var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
 var GiftCode = require('../_model/giftcode');
+var Bill = require('../_model/bill');
 
 
 var cloudinary = require('cloudinary');
@@ -66,16 +67,10 @@ router.route('/getAll').get((req, res) => {
         var page = req.query.page || 1;
         var limit = req.query.limit || 10;
 
-        var name = req.query.code;
-        var valueMin = req.query.valueMin;
-        var valueMax = req.query.valueMax;
-
-        var limitStartAt = req.query.limitStartAt;
-        var limitEndAt = req.query.limitEndAt;
+        var isSolved = req.query.isSolved;
 
         var startAt = req.query.startAt;
         var endAt = req.query.endAt;
-        var count = req.query.count;
 
         var sort = req.query.sort || 'asc'; // asc | desc
 
@@ -83,25 +78,7 @@ router.route('/getAll').get((req, res) => {
             status: true
         }
 
-        if (name) findQuery['info.name'] = new RegExp(name, 'i');
-        if (valueMin || valueMax) {
-            var valueQuery = {};
-
-            if (valueMin) {
-                valueQuery['$gte'] = valueMin;
-            }
-
-            if (valueMax) {
-                valueQuery['$lte'] = valueMax;
-            }
-
-            findQuery['info.value'] = valueQuery;
-        }
-
-        if (limitStartAt) findQuery['limit.startAt'] = { $gte: new Date(startAt) }
-        if (limitEndAt) findQuery['limit.endAt'] = { $lte: new Date(endAt) }
-
-        if (count) findQuery['limit.count'] = count;
+        if (count) findQuery['isSolved'] = isSolved;
 
         if (startAt || endAt) {
             var timeQuery = {};
@@ -123,7 +100,7 @@ router.route('/getAll').get((req, res) => {
         }
 
         var sortQuery = {}
-        sort == 'asc' ? sortQuery['history.createAt'] = 1 : sortQuery['history.createAt'] = -1
+        sort == 'asc' ? sortQuery['createAt'] = 1 : sortQuery['createAt'] = -1
 
         var options = {
             select: '-status -__v',
@@ -132,7 +109,7 @@ router.route('/getAll').get((req, res) => {
             limit: parseFloat(limit)
         };
 
-        GiftCode.paginate(findQuery, options).then((data) => {
+        Bill.paginate(findQuery, options).then((data) => {
             if (validate.isNullorEmpty(data)) {
                 return msg.msgReturn(res, 4);
             } else {
@@ -148,7 +125,7 @@ router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
 
-        GiftCode.findOne({ _id: id, status: true }, (error, data) => {
+        Bill.findOne({ _id: id, status: true }).select('-status -__v').exec((error, data) => {
             if (error) return msg.msgReturn(res, 3);
             else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
             return msg.msgReturn(res, 0, data);
@@ -158,123 +135,47 @@ router.route('/getById').get((req, res) => {
     }
 })
 
-router.route('/create').post((req, res) => {
-    try {
-        var name = req.body.code || '';
-        var value = req.body.value || 0;
-        var descriptionVi = req.body.descriptionVi || '';
-        var descriptionEn = req.body.descriptionEn || '';
-
-        var startAt = req.body.startAt || new Date();
-        var endAt = req.body.endAt || new Date();
-        var count = req.body.count || 0;
-
-        var giftcode = new GiftCode();
-        giftcode.name = name;
-        giftcode.value = value;
-
-        giftcode.set('description.all', {
-            en: descriptionEn,
-            vi: descriptionVi
-        });
-
-        giftcode.limit = {
-            startAt: new Date(startAt),
-            endAt: new Date(endAt),
-            count: count
-        };
-
-        giftcode.history = {
-            createAt: new Date(),
-            updateAt: new Date()
-        }
-
-        giftcode.status = true
-
-        GiftCode.findOne({ name: name, status: true }, (error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    giftcode.save((error) => {
-                        return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0);
-                    })
-                } else {
-                    return msg.msgReturn(res, 2);
-                }
-            }
-        })
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-})
-
 router.route('/update').post((req, res) => {
     try {
         var id = req.body.id;
+        var isSolved = req.body.isSolved;
+        var method = req.body.method || 1;
 
-        var name = req.body.code || '';
-        var value = req.body.value || 0;
-        var descriptionVi = req.body.descriptionVi || '';
-        var descriptionEn = req.body.descriptionEn || '';
-
-        var startAt = req.body.startAt || new Date();
-        var endAt = req.body.endAt || new Date();
-        var count = req.body.count || 0;
-
-        GiftCode.findOne({ name: name, status: true }, (error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    GiftCode.findOneAndUpdate(
-                        {
-                            _id: id,
-                            status: true
-                        },
-                        {
-                            $set: {
-                                name: name,
-                                value: value,
-                                description: {
-                                    vi: descriptionVi,
-                                    en: descriptionEn
-                                },
-                                'limit.startAt': new Date(startAt),
-                                'limit.endAt': new Date(endAt),
-                                'limit.count': count,
-                                'history.updateAt': new Date()
-                            }
-                        },
-                        (error, data) => {
-                            if (error) return msg.msgReturn(res, 3)
-                            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4)
-                            return msg.msgReturn(res, 0)
-                        }
-                    )
-                } else {
-                    return msg.msgReturn(res, 2);
-                }
-            }
-        })
-    } catch (error) {
-        return msg.msgReturn(res, 3)
-    }
-})
-
-router.route('/delete').post((req, res) => {
-    try {
-        var id = req.body.id;
-
-        GiftCode.findOneAndUpdate(
+        Bill.findOneAndUpdate(
             {
                 _id: id,
                 status: true
             },
             {
                 $set: {
-                    status: false,
-                    'history.updateAt': new Date()
+                    isSolved: isSolved,
+                    method: method,
+                    date: new Date()
+                }
+            },
+            (error, data) => {
+                if (error) return msg.msgReturn(res, 3);
+                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+                return msg.msgReturn(res, 0);
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3)
+    }
+});
+
+router.route('/delete').post((req, res) => {
+    try {
+        var id = req.body.id;
+
+        Bill.findOneAndUpdate(
+            {
+                _id: id,
+                status: true
+            },
+            {
+                $set: {
+                    status: false
                 }
             },
             (error, data) => {
