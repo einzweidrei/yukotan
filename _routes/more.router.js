@@ -534,11 +534,11 @@ router.route('/maidForgotPassword').post((req, res) => {
                                     }
                                 }
                             }
-                        }, {
-                            upsert: true
                         },
                         (error) => {
-                            if (error) return msg.msgReturn(res, 3)
+                            if (error) {
+                                return msg.msgReturn(res, 3)
+                            }
                             return mailService.sendMail(res, data, verifyToken);
                         }
                     )
@@ -575,11 +575,11 @@ router.route('/ownerForgotPassword').post((req, res) => {
                                     }
                                 }
                             }
-                        }, {
-                            upsert: true
                         },
                         (error) => {
-                            if (error) return msg.msgReturn(res, 3)
+                            if (error) {
+                                return msg.msgReturn(res, 3)
+                            }
                             return mailService.sendMail(res, data, verifyToken);
                         }
                     )
@@ -587,7 +587,6 @@ router.route('/ownerForgotPassword').post((req, res) => {
             }
         })
     } catch (error) {
-        console.log(error)
         return msg.msgReturn(res, 3)
     }
 })

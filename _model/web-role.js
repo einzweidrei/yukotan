@@ -7,7 +7,16 @@ var ObjectId = Schema.ObjectId;
 var RoleSchema = new Schema(
     {
         name: { type: String },
-        
+        perm: [
+            {
+                func: { type: ObjectId, ref: 'Function' },
+                isActivated: { type: Boolean }
+            }
+        ],
+        history: {
+            createAt: { type: Date },
+            updateAt: { type: Date }
+        },
         status: { type: Boolean }
     }
 );
