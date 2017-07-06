@@ -476,7 +476,7 @@ router.route('/update').post((req, res) => {
 
 router.route('/delete').post((req, res) => {
     try {
-        var id = req.body.id;
+        var id = req.query.id;
 
         Maid.findOneAndUpdate(
             {

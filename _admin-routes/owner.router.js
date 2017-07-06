@@ -333,7 +333,7 @@ router.route('/create').post((req, res) => {
             coordinates: [req.body.lng || 0, req.body.lat || 0]
         };
 
-        Owner.findOne({ 'info.username': req.body.username }).exec((error, data) => {
+        Owner.findOne({ $or: [{ 'info.username': req.body.username }, { 'info.email': req.body.email }] }).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else {
@@ -523,6 +523,46 @@ router.route('/deleteComment').post((req, res) => {
                         return msg.msgReturn(res, 4);
                     } else {
                         return msg.msgReturn(res, 0);
+                    }
+                }
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/chargeWallet').post((req, res) => {
+    try {
+        var id = req.body.id;
+        var price = req.body.price || 0;
+
+        Owner.findOne(
+            {
+                _id: id,
+                status: true
+            },
+            (error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                }
+                else {
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        var wallet = data.wallet;
+                        wallet += price;
+
+                        Owner.findOneAndUpdate(
+                            {
+                                _id: id,
+                                status: true
+                            },
+                            {
+                                $set: {
+                                    wallet: wallet
+                                }
+                            })
                     }
                 }
             }
