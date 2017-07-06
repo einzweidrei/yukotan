@@ -489,10 +489,7 @@ router.route('/delete').post((req, res) => {
                     status: false
                 }
             },
-            {
-                upsert: true
-            },
-            (error, result) => {
+            (error, data) => {
                 if (error) return msg.msgReturn(res, 3);
                 else {
                     if (validate.isNullorEmpty(data)) {
