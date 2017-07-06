@@ -83,7 +83,7 @@ router.route('/get').get((req, res) => {
                         }
                     }
                 }
-                return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0, data)
+                return error ? msg.msgReturn(res, 3) : msg.msgReturn(res, 0, g)
             })
     } catch (error) {
         return msg.msgReturn(res, 3);
