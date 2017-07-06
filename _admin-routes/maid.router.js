@@ -548,7 +548,7 @@ router.route('/getComment').get((req, res) => {
 
 router.route('/deleteComment').post((req, res) => {
     try {
-        var id = req.body.id;
+        var id = req.query.id;
 
         Comment.findByIdAndRemove(
             {

@@ -562,6 +562,10 @@ router.route('/chargeWallet').post((req, res) => {
                                 $set: {
                                     wallet: wallet
                                 }
+                            },
+                            (error) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                return msg.msgReturn(res, 0);
                             })
                     }
                 }
