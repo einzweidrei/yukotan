@@ -46,7 +46,7 @@ router.use(function (req, res, next) {
 
 router.route('/getAll').get((req, res) => {
     try {
-        webRole
+        WebRole
             .find({ _id: '000000000000000000000001', status: true })
             .exec((error, data) => {
                 if (error) {
