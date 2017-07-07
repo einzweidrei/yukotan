@@ -59,6 +59,22 @@ var App = (function () {
         return price;
     }
 
+    App.prototype.getPerm = (account, owner, maid, task, bill, giftcode, work, aboutus, report, contact) => {
+        var perm = [];
+        perm.push({ name: 'Account', isActivated: account });
+        perm.push({ name: 'Owner', isActivated: owner });
+        perm.push({ name: 'Maid', isActivated: maid });
+        perm.push({ name: 'Task', isActivated: task });
+        perm.push({ name: 'Bill', isActivated: bill });
+        perm.push({ name: 'GiftCode', isActivated: giftcode });
+        perm.push({ name: 'Work', isActivated: work });
+        perm.push({ name: 'AboutUs', isActivated: aboutus });
+        perm.push({ name: 'Report', isActivated: report });
+        perm.push({ name: 'Contact', isActivated: contact });
+
+        return perm;
+    }
+
     return App;
 }());
 

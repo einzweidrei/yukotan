@@ -18,6 +18,12 @@ var AccountSchema = new Schema(
         auth: {
             password: { type: String }
         },
+        permission: [
+            {
+                name: { type: String },
+                isActivated: { type: Boolean }
+            }
+        ],
         history: {
             createAt: { type: Date },
             updateAt: { type: Date }

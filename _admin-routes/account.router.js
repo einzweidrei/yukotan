@@ -170,6 +170,23 @@ router.route('/create').post((req, res) => {
 
         account.status = true
 
+        var acc = req.body.account || false;
+        var owner = req.body.owner || false;
+        var maid = req.body.maid || false;
+        var task = req.body.task || false;
+        var bill = req.body.bill || false;
+        var giftcode = req.body.giftcode || false;
+        var work = req.body.work || false;
+        var aboutus = req.body.aboutus || false;
+        var report = req.body.report || false;
+        var contact = req.body.contact || false;
+
+        var perm = []
+        perm = AppService.getPerm(acc, owner, maid, task, bill,
+            giftcode, work, aboutus, report, contact);
+
+        account.permission = perm;
+
         Account
             .findOne({ $or: [{ 'info.username': req.body.username }, { 'info.email': req.body.email }] })
             .exec((error, data) => {
@@ -200,6 +217,21 @@ router.route('/update').post((req, res) => {
         var address = req.body.address || '';
         var gender = req.body.gender || 0;
 
+        var acc = req.body.account || false;
+        var owner = req.body.owner || false;
+        var maid = req.body.maid || false;
+        var task = req.body.task || false;
+        var bill = req.body.bill || false;
+        var giftcode = req.body.giftcode || false;
+        var work = req.body.work || false;
+        var aboutus = req.body.aboutus || false;
+        var report = req.body.report || false;
+        var contact = req.body.contact || false;
+
+        var perm = []
+        perm = AppService.getPerm(acc, owner, maid, task, bill,
+            giftcode, work, aboutus, report, contact);
+
         Account.findOne({ 'info.email': email, status: true }, (error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
@@ -217,6 +249,7 @@ router.route('/update').post((req, res) => {
                             'info.image': image,
                             'info.address': address,
                             'info.gender': gender,
+                            permission: perm,
                             'history.updateAt': new Date()
                         }
                     }, (error) => {
@@ -239,6 +272,7 @@ router.route('/update').post((req, res) => {
                                 'info.image': image,
                                 'info.address': address,
                                 'info.gender': gender,
+                                permission: perm,
                                 'history.updateAt': new Date()
                             }
                         }, (error) => {
