@@ -38,7 +38,7 @@ var ObjectId = require('mongoose').Types.ObjectId;
 /** Middle Ware
  * 
  */
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     console.log('task_router is connecting');
 
     try {
@@ -188,34 +188,34 @@ router.route('/getAll').post((req, res) => {
 
         // console.log(matchQuery);
         Task.aggregate([{
-                $geoNear: {
-                    near: loc,
-                    distanceField: 'dist.calculated',
-                    minDistance: minDistance,
-                    maxDistance: maxDistance,
-                    num: limit,
-                    spherical: true
-                }
-            },
-            {
-                $match: matchQuery
-            },
-            {
-                $sort: sortQuery
-            },
-            {
-                $skip: skip
-            },
-            {
-                $project: {
-                    process: 1,
-                    history: 1,
-                    stakeholders: 1,
-                    info: 1,
-                    dist: 1
-                        // status: 1
-                }
+            $geoNear: {
+                near: loc,
+                distanceField: 'dist.calculated',
+                minDistance: minDistance,
+                maxDistance: maxDistance,
+                num: limit,
+                spherical: true
             }
+        },
+        {
+            $match: matchQuery
+        },
+        {
+            $sort: sortQuery
+        },
+        {
+            $skip: skip
+        },
+        {
+            $project: {
+                process: 1,
+                history: 1,
+                stakeholders: 1,
+                info: 1,
+                dist: 1
+                // status: 1
+            }
+        }
         ], (error, places) => {
             // console.log(places);
             if (error) {
@@ -276,29 +276,29 @@ router.route('/getById').get((req, res) => {
         var id = req.query.id;
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.owner',
-                select: 'info'
-            },
-            {
-                path: 'stakeholders.received',
-                select: 'info'
-            },
-            {
-                path: 'stakeholders.request.maid',
-                select: 'info'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'stakeholders.owner',
+            select: 'info'
+        },
+        {
+            path: 'stakeholders.received',
+            select: 'info'
+        },
+        {
+            path: 'stakeholders.request.maid',
+            select: 'info'
+        },
+        {
+            path: 'process',
+            select: 'name'
+        }
         ]
 
         Task.findOne({ _id: id, status: true }).populate(populateQuery).select('-location -status -__v').exec((error, data) => {
@@ -415,7 +415,7 @@ router.route('/create').post((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     async.parallel({
-                        work: function(callback) {
+                        work: function (callback) {
                             Work.findOne({ _id: req.body.work }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
@@ -428,7 +428,7 @@ router.route('/create').post((req, res) => {
                                 }
                             });
                         },
-                        package: function(callback) {
+                        package: function (callback) {
                             Package.findOne({ _id: req.body.package }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
@@ -441,7 +441,7 @@ router.route('/create').post((req, res) => {
                                 }
                             });
                         },
-                        process: function(callback) {
+                        process: function (callback) {
                             Process.findOne({ _id: task.process }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
@@ -454,7 +454,7 @@ router.route('/create').post((req, res) => {
                                 }
                             });
                         },
-                        task: function(callback) {
+                        task: function (callback) {
                             Task.find({
                                 'stakeholders.owner': req.cookies.userId,
                                 process: { $in: ['000000000000000000000001', '000000000000000000000006'] },
@@ -591,7 +591,7 @@ router.route('/update').put((req, res) => {
         // }
 
         async.parallel({
-            work: function(callback) {
+            work: function (callback) {
                 Work.findOne({ _id: req.body.work, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, 2);
@@ -604,7 +604,7 @@ router.route('/update').put((req, res) => {
                     }
                 });
             },
-            package: function(callback) {
+            package: function (callback) {
                 Package.findOne({ _id: req.body.package, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, 2);
@@ -617,7 +617,7 @@ router.route('/update').put((req, res) => {
                     }
                 });
             },
-            task: function(callback) {
+            task: function (callback) {
                 Task.findOne({ _id: req.body.id, 'stakeholders.owner': req.cookies.userId, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, 2);
@@ -640,10 +640,10 @@ router.route('/update').put((req, res) => {
             } else {
                 if (result.work == 0 && result.package == 0 && result.task == 0) {
                     Task.findOneAndUpdate({
-                            _id: id,
-                            'stakeholders.owner': req.cookies.userId,
-                            status: true
-                        }, {
+                        _id: id,
+                        'stakeholders.owner': req.cookies.userId,
+                        status: true
+                    }, {
                             $set: {
                                 info: task.info,
                                 // process: task.process,
@@ -701,10 +701,10 @@ router.route('/delete').delete((req, res) => {
         var ownerId = req.cookies.userId;
 
         Task.findOneAndUpdate({
-                _id: id,
-                'stakeholders.owner': ownerId,
-                status: true
-            }, {
+            _id: id,
+            'stakeholders.owner': ownerId,
+            status: true
+        }, {
                 $set: {
                     'history.updateAt': new Date(),
                     status: false
@@ -771,11 +771,11 @@ router.route('/cancel').delete((req, res) => {
                 } else {
                     if (data.process == '000000000000000000000001') {
                         Task.findOneAndUpdate({
-                                _id: id,
-                                'stakeholders.request.maid': maidId,
-                                process: '000000000000000000000001',
-                                status: true
-                            }, {
+                            _id: id,
+                            'stakeholders.request.maid': maidId,
+                            process: '000000000000000000000001',
+                            status: true
+                        }, {
                                 $pull: {
                                     'stakeholders.request': { maid: maidId }
                                 }
@@ -790,11 +790,11 @@ router.route('/cancel').delete((req, res) => {
                     } else if (data.process == '000000000000000000000003') {
                         Owner.findOne({ _id: data.stakeholders.owner, status: true }).select('auth').exec((error, owner) => {
                             Task.findOneAndUpdate({
-                                    _id: id,
-                                    'stakeholders.received': maidId,
-                                    process: '000000000000000000000003',
-                                    status: true
-                                }, {
+                                _id: id,
+                                'stakeholders.received': maidId,
+                                process: '000000000000000000000003',
+                                status: true
+                            }, {
                                     $set: {
                                         process: new ObjectId('000000000000000000000001')
                                     },
@@ -852,7 +852,7 @@ router.route('/reserve').post((req, res) => {
         var maidId = req.cookies.userId;
 
         async.parallel({
-            maid: function(callback) {
+            maid: function (callback) {
                 Maid.findOne({ _id: maidId, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, 2);
@@ -887,10 +887,10 @@ router.route('/reserve').post((req, res) => {
                         } else {
                             if (validate.isNullorEmpty(data)) {
                                 Task.findOneAndUpdate({
-                                        _id: id,
-                                        process: '000000000000000000000001',
-                                        status: true
-                                    }, {
+                                    _id: id,
+                                    process: '000000000000000000000001',
+                                    status: true
+                                }, {
                                         $push: {
                                             'stakeholders.request': maid
                                         }
@@ -983,7 +983,7 @@ router.route('/submit').post((req, res) => {
         var maidId = req.body.maidId;
 
         async.parallel({
-            maid: function(callback) {
+            maid: function (callback) {
                 Maid.findOne({ _id: maidId, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, { value: 2 });
@@ -997,7 +997,7 @@ router.route('/submit').post((req, res) => {
                 });
             },
 
-            task: function(callback) {
+            task: function (callback) {
                 Task.findOne({
                     _id: id,
                     'stakeholders.owner': ownerId,
@@ -1011,66 +1011,66 @@ router.route('/submit').post((req, res) => {
                             callback(null, 1);
                         } else {
                             //check no-duplicated time of task
-                            // Task.findOne(
-                            //     {
-                            //         'stakeholders.received': maidId,
-                            //         $or: [
-                            //             //x >= s & y <= e
-                            //             {
-                            //                 'info.time.startAt': {
-                            //                     $gte: data.info.time.startAt
-                            //                 },
-                            //                 'info.time.endAt': {
-                            //                     $lte: data.info.time.endAt
-                            //                 }
-                            //             },
+                            Task.findOne(
+                                {
+                                    'stakeholders.received': maidId,
+                                    $or: [
+                                        //x >= s & y <= e
+                                        {
+                                            'info.time.startAt': {
+                                                $gte: data.info.time.startAt
+                                            },
+                                            'info.time.endAt': {
+                                                $lte: data.info.time.endAt
+                                            }
+                                        },
 
-                            //             //x <= s & y >= e
-                            //             {
-                            //                 'info.time.startAt': {
-                            //                     $lte: data.info.time.startAt
-                            //                 },
-                            //                 'info.time.endAt': {
-                            //                     $gte: data.info.time.endAt
-                            //                 }
-                            //             },
+                                        //x <= s & y >= e
+                                        {
+                                            'info.time.startAt': {
+                                                $lte: data.info.time.startAt
+                                            },
+                                            'info.time.endAt': {
+                                                $gte: data.info.time.endAt
+                                            }
+                                        },
 
-                            //             //x [>= s & <= e] & y >= e
-                            //             {
-                            //                 'info.time.startAt': {
-                            //                     $gte: data.info.time.startAt,
-                            //                     $lte: data.info.time.endAt
-                            //                 },
-                            //                 'info.time.endAt': {
-                            //                     $gte: data.info.time.endAt
-                            //                 }
-                            //             },
+                                        //x [>= s & <= e] & y >= e
+                                        {
+                                            'info.time.startAt': {
+                                                $gte: data.info.time.startAt,
+                                                $lte: data.info.time.endAt
+                                            },
+                                            'info.time.endAt': {
+                                                $gte: data.info.time.endAt
+                                            }
+                                        },
 
-                            //             //x <= s & y [>= s & <= e]
-                            //             {
-                            //                 'info.time.startAt': {
-                            //                     $lte: data.info.time.startAt
-                            //                 },
-                            //                 'info.time.endAt': {
-                            //                     $gte: data.info.time.startAt,
-                            //                     $lte: data.info.time.endAt
-                            //                 }
-                            //             },
-                            //         ]
-                            //     }
-                            // ).exec((error, result) => {
-                            //     if (error) {
-                            //         console.log(error)
-                            //         callback(null, 2);
-                            //     } else {
-                            //         if (validate.isNullorEmpty(result)) {
-                            //             callback(null, 0);
-                            //         } else {
-                            //             callback(null, 3);
-                            //         }
-                            //     }
-                            // });
-                            callback(null, 0);
+                                        //x <= s & y [>= s & <= e]
+                                        {
+                                            'info.time.startAt': {
+                                                $lte: data.info.time.startAt
+                                            },
+                                            'info.time.endAt': {
+                                                $gte: data.info.time.startAt,
+                                                $lte: data.info.time.endAt
+                                            }
+                                        },
+                                    ]
+                                }
+                            ).exec((error, result) => {
+                                if (error) {
+                                    console.log(error)
+                                    callback(null, 2);
+                                } else {
+                                    if (validate.isNullorEmpty(result)) {
+                                        callback(null, 0);
+                                    } else {
+                                        callback(null, 3);
+                                    }
+                                }
+                            });
+                            // callback(null, 0);
                         }
                     }
                 });
@@ -1081,11 +1081,11 @@ router.route('/submit').post((req, res) => {
             } else {
                 if (result.maid.value == 0 && result.task == 0) {
                     Task.findOneAndUpdate({
-                            _id: id,
-                            'stakeholders.owner': ownerId,
-                            process: new ObjectId('000000000000000000000001'),
-                            status: true
-                        }, {
+                        _id: id,
+                        'stakeholders.owner': ownerId,
+                        process: new ObjectId('000000000000000000000001'),
+                        status: true
+                    }, {
                             $set: {
                                 'stakeholders.received': maidId,
                                 process: new ObjectId('000000000000000000000003')
@@ -1107,9 +1107,9 @@ router.route('/submit').post((req, res) => {
                     if (result.maid.value == 1 || result.task == 1) {
                         return msg.msgReturn(res, 4);
                     }
-                    // else if (result.task == 3) {
-                    //     return msg.msgReturn(res, 10);
-                    // }
+                    else if (result.task == 3) {
+                        return msg.msgReturn(res, 10);
+                    }
                     else {
                         return msg.msgReturn(res, 3);
                     }
@@ -1148,11 +1148,11 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
         if (!req.files.image) return msg.msgReturn(res, 3);
 
         Task.findOne({
-                _id: id,
-                'stakeholders.owner': ownerId,
-                process: '000000000000000000000003',
-                status: true
-            })
+            _id: id,
+            'stakeholders.owner': ownerId,
+            process: '000000000000000000000003',
+            status: true
+        })
             .populate('stakeholders.owner')
             .exec((error, data) => {
                 if (error) {
@@ -1323,17 +1323,17 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
                             process: '000000000000000000000003',
                             status: true
                         }, {
-                            $set: {
-                                process: new ObjectId('000000000000000000000004'),
-                                'check.check_in': new Date()
-                            }
-                        }, {
-                            upsert: true
-                        }, (error, data) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
-                            return msg.msgReturn(res, 0);
-                        })
+                                $set: {
+                                    process: new ObjectId('000000000000000000000004'),
+                                    'check.check_in': new Date()
+                                }
+                            }, {
+                                upsert: true
+                            }, (error, data) => {
+                                if (error) return msg.msgReturn(res, 3);
+                                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+                                return msg.msgReturn(res, 0);
+                            })
                     }
                 }
             });
@@ -1366,7 +1366,7 @@ router.route('/checkout').post((req, res) => {
         var ownerId = req.cookies.userId;
 
         async.parallel({
-            task: function(callback) {
+            task: function (callback) {
                 Task.findOne({
                     _id: id,
                     'stakeholders.owner': ownerId,
@@ -1397,11 +1397,11 @@ router.route('/checkout').post((req, res) => {
                 if (result.task == 0) {
                     var checkOut = new Date();
                     Task.findOneAndUpdate({
-                            _id: id,
-                            'stakeholders.owner': ownerId,
-                            process: '000000000000000000000004',
-                            status: true
-                        }, {
+                        _id: id,
+                        'stakeholders.owner': ownerId,
+                        process: '000000000000000000000004',
+                        status: true
+                    }, {
                             $set: {
                                 process: new ObjectId('000000000000000000000005'),
                                 'check.check_out': checkOut
@@ -1587,7 +1587,7 @@ router.route('/sendRequest').post((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     async.parallel({
-                        maid: function(callback) {
+                        maid: function (callback) {
                             Maid.findOne({ _id: maidId }).exec((error, data) => {
                                 if (error) {
                                     callback(null, { value: 2 });
@@ -1600,7 +1600,7 @@ router.route('/sendRequest').post((req, res) => {
                                 }
                             });
                         },
-                        work: function(callback) {
+                        work: function (callback) {
                             Work.findOne({ _id: req.body.work }).exec((error, data) => {
                                 if (error) {
                                     callback(null, 2);
@@ -1613,7 +1613,7 @@ router.route('/sendRequest').post((req, res) => {
                                 }
                             });
                         },
-                        task: function(callback) {
+                        task: function (callback) {
                             Task.find({
                                 'stakeholders.owner': ownerId,
                                 process: { $in: ['000000000000000000000001', '000000000000000000000006'] },
@@ -1737,7 +1737,7 @@ router.route('/acceptRequest').post((req, res) => {
 
         async.parallel({
             //check maid exist
-            owner: function(callback) {
+            owner: function (callback) {
                 Owner.findOne({ _id: ownerId, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, { value: 2 });
@@ -1752,7 +1752,7 @@ router.route('/acceptRequest').post((req, res) => {
             },
 
             //check task exist
-            task: function(callback) {
+            task: function (callback) {
                 Task.findOne({
                     _id: id,
                     'stakeholders.owner': ownerId,
@@ -1834,11 +1834,11 @@ router.route('/acceptRequest').post((req, res) => {
             } else {
                 if (result.owner.value == 0 && result.task == 0) {
                     Task.findOneAndUpdate({
-                            _id: id,
-                            'stakeholders.owner': ownerId,
-                            process: '000000000000000000000006',
-                            status: true
-                        }, {
+                        _id: id,
+                        'stakeholders.owner': ownerId,
+                        process: '000000000000000000000006',
+                        status: true
+                    }, {
                             $set: {
                                 'stakeholders.received': maidId,
                                 process: new ObjectId('000000000000000000000003')
@@ -1892,10 +1892,10 @@ router.route('/denyRequest').post((req, res) => {
                                 return msg.msgReturn(res, 4);
                             } else {
                                 Task.findOneAndUpdate({
-                                        _id: id,
-                                        process: '000000000000000000000006',
-                                        'stakeholders.owner': ownerId
-                                    }, {
+                                    _id: id,
+                                    process: '000000000000000000000006',
+                                    'stakeholders.owner': ownerId
+                                }, {
                                         status: false
                                     },
                                     (error) => {
@@ -1922,13 +1922,13 @@ router.route('/getRequest').get((req, res) => {
         var matchQuery = { _id: new ObjectId(id), status: true };
 
         Task.aggregate([{
-                $match: matchQuery
-            },
-            {
-                $project: {
-                    request: '$stakeholders.request'
-                }
+            $match: matchQuery
+        },
+        {
+            $project: {
+                request: '$stakeholders.request'
             }
+        }
         ], (error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);

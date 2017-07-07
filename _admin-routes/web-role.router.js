@@ -36,7 +36,6 @@ router.use(function (req, res, next) {
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            Work.setDefaultLanguage(language);
             next();
         }
         else return msg.msgReturn(res, 6);
@@ -47,9 +46,8 @@ router.use(function (req, res, next) {
 
 router.route('/getAll').get((req, res) => {
     try {
-        WebFunction
-            .find({ status: true })
-            .select('name')
+        webRole
+            .find({ _id: '000000000000000000000001', status: true })
             .exec((error, data) => {
                 if (error) {
                     return msg.msgReturn(res, 3);
@@ -69,30 +67,28 @@ router.route('/getAll').get((req, res) => {
 router.route('/create').post((req, res) => {
     try {
         var webRole = new WebRole();
-        var perm = req.body.perm;
-
-        webRole.name = 'ABCDEF';
-        webRole.perm = perm;
+        webRole.name = 'Admin';
+        webRole.perm = [
+            {
+                func: '000000000000000000000001',
+                isActivated: true
+            },
+            {
+                func: '000000000000000000000002',
+                isActivated: true
+            },
+        ];
         webRole.history = {
             createAt: new Date(),
-            endAt: new Date()
+            updateAt: new Date()
         }
         webRole.status = true
 
-
-        var t = JSON.stringify(perm)
-        console.log(perm);
-        console.log(typeof perm);
-        // webRole.save((error) => {
-        //     if (error) {
-        //         console.log(error)
-        //         return msg.msgReturn(res, 3);
-        //     }
-        //     return msg.msgReturn(res, 0);
-        // })
-
+        webRole.save((error) => {
+            if (error) return msg.msgReturn(res, 3);
+            return msg.msgReturn(res, 0);
+        })
     } catch (error) {
-        console.log(error)
         return msg.msgReturn(res, 3);
     }
 })

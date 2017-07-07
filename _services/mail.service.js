@@ -29,16 +29,20 @@ var MailService = (function () {
                 // html: '<b>Test HTML 😋</b>' // html body
             };
 
+            console.log(confirmUrl)
+
             // send mail with defined transport object
             transporter.sendMail(mailOptions, (error, info) => {
+                // console.log(error, info)
                 if (error) {
-                    return msg.msgReturn(res, 3);
+                    var objType = Object.prototype.toString.call(error);
+                    return msg.msgReturn(res, 3, { error: objType.toString() });
                 }
-                console.log('Message %s sent: %s', info.messageId, info.response);
-                return msg.msgReturn(res, 0);
+                else return msg.msgReturn(res, 0);
             });
         } catch (error) {
-            return msg.msgReturn(res, 3);
+            var objType = Object.prototype.toString.call(error);
+            return msg.msgReturn(res, 3, { error: objType.toString() });
         }
     };
 

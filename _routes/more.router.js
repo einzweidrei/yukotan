@@ -536,9 +536,7 @@ router.route('/maidForgotPassword').post((req, res) => {
                             }
                         },
                         (error) => {
-                            if (error) {
-                                return msg.msgReturn(res, 3)
-                            }
+                            if (error) return msg.msgReturn(res, 3)
                             return mailService.sendMail(res, data, verifyToken);
                         }
                     )
@@ -576,11 +574,10 @@ router.route('/ownerForgotPassword').post((req, res) => {
                                 }
                             }
                         },
-                        (error) => {
-                            if (error) {
-                                return msg.msgReturn(res, 3)
-                            }
-                            return mailService.sendMail(res, data, verifyToken);
+                        (error, session) => {
+                            if (error) return msg.msgReturn(res, 3)
+                            else if (validate.isNullorEmpty(session)) return msg.msgReturn(res, 4)
+                            else return mailService.sendMail(res, data, verifyToken);
                         }
                     )
                 }
