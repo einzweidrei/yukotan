@@ -56,8 +56,11 @@ router.route('/all').get((req, res) => {
     try {
         var startAt = req.query.startAt;
         var endAt = req.query.endAt;
+        var isSolved = req.query.isSolved;
 
         var matchQuery = { status: true }
+
+        if (isSolved) matchQuery['isSolved'] = isSolved;
 
         if (startAt || endAt) {
             var timeQuery = {};
@@ -117,7 +120,7 @@ router.route('/all').get((req, res) => {
             }
         )
     } catch (error) {
-
+        return msg.msgReturn(res, 3);
     }
 });
 

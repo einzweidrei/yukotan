@@ -578,8 +578,11 @@ router.route('/statistical').get((req, res) => {
         var id = req.query.id;
         var startAt = req.query.startAt;
         var endAt = req.query.endAt;
+        var isSolved = req.query.isSolved;
 
         var matchQuery = { 'maid': new ObjectId(id), status: true }
+
+        if (isSolved) matchQuery['isSolved'] = isSolved;
 
         if (startAt || endAt) {
             var timeQuery = {};
