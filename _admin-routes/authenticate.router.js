@@ -69,8 +69,6 @@ router.route('/login').post((req, res) => {
     try {
         var username = req.body.username;
         var p = req.body.password;
-
-        console.log(p)
         var password = AppService.hashString(p);
 
         Account
@@ -82,9 +80,6 @@ router.route('/login').post((req, res) => {
                     return msg.msgReturn(res, 4);
                 } else {
                     var pw2 = data.auth.password;
-
-                    console.log(pw2)
-                    console.log(password)
 
                     if (password == pw2) {
                         var session = new Session();
@@ -102,6 +97,7 @@ router.route('/login').post((req, res) => {
                                     user: {
                                         _id: data._id,
                                         info: data.info,
+                                        permission: data.permission
                                     }
                                 };
                                 return msg.msgReturn(res, 0, dt);
