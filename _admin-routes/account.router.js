@@ -84,8 +84,6 @@ router.route('/create').post((req, res) => {
         var p = req.body.password;
         var password = AppService.hashString(p);
 
-        console.log(p, password);
-
         account.auth = {
             password: password
         }
@@ -101,7 +99,6 @@ router.route('/create').post((req, res) => {
             .findOne({ $or: [{ 'info.username': req.body.username }, { 'info.email': req.body.email }] })
             .exec((error, data) => {
                 if (error) {
-                    console.log(error)
                     return msg.msgReturn(res, 3);
                 } else if (validate.isNullorEmpty(data)) {
                     account.save((error) => {
@@ -113,7 +110,6 @@ router.route('/create').post((req, res) => {
                 }
             })
     } catch (error) {
-        console.log(error)
         return msg.msgReturn(res, 3);
     }
 });
