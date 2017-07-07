@@ -22,7 +22,9 @@ var App = (function () {
     }
 
     App.prototype.getToken = () => {
-        const token = crypto.randomBytes(token_length).toString('hex');
+        const first = crypto.randomBytes(8).toString('hex');
+        const second = crypto.randomBytes(token_length).toString('hex');
+        const token = first + ':' + second;
         return token;
     }
 

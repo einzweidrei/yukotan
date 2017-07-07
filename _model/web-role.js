@@ -6,7 +6,7 @@ var ObjectId = Schema.ObjectId;
 
 var RoleSchema = new Schema(
     {
-        name: { type: String },
+        user: { type: ObjectId, ref: 'Account' },
         perm: [
             {
                 func: { type: ObjectId, ref: 'Function' },

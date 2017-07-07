@@ -47,7 +47,7 @@ router.use(function (req, res, next) {
 router.route('/getAll').get((req, res) => {
     try {
         WebRole
-            .find({ _id: '000000000000000000000001', status: true })
+            .findOne({ _id: '000000000000000000000001', status: true })
             .exec((error, data) => {
                 if (error) {
                     return msg.msgReturn(res, 3);
@@ -55,7 +55,7 @@ router.route('/getAll').get((req, res) => {
                     if (validate.isNullorEmpty(data)) {
                         return msg.msgReturn(res, 4);
                     } else {
-                        return msg.msgReturn(res, 0, data);
+                        return msg.msgReturn(res, 0);
                     }
                 }
             });
