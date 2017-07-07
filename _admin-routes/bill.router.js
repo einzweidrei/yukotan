@@ -96,7 +96,7 @@ router.route('/getAll').get((req, res) => {
                 timeQuery['$lt'] = date;
             }
 
-            findQuery['history.createAt'] = timeQuery;
+            findQuery['createAt'] = timeQuery;
         }
 
         var sortQuery = {}
@@ -117,7 +117,6 @@ router.route('/getAll').get((req, res) => {
             }
         })
     } catch (error) {
-        console.log(error)
         return msg.msgReturn(res, 3);
     }
 })
@@ -200,6 +199,70 @@ router.route('/delete').post((req, res) => {
         )
     } catch (error) {
         return msg.msgReturn(res, 3)
+    }
+})
+
+router.route('/getUserBills').get((req, res) => {
+    try {
+        var id = req.query.id;
+        var user = req.query.user || 1;
+
+        var page = req.query.page || 1;
+        var limit = req.query.limit || 10;
+
+        var isSolved = req.query.isSolved;
+
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
+
+        var sort = req.query.sort || 'asc'; // asc | desc
+
+        var findQuery = {
+            status: true
+        }
+
+        user == 1 ? findQuery['owner'] = new ObjectId(id) : findQuery['maid'] = new ObjectId(id);
+
+        if (isSolved) findQuery['isSolved'] = isSolved;
+
+        if (startAt || endAt) {
+            var timeQuery = {};
+
+            if (startAt) {
+                var date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                var date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            findQuery['date'] = timeQuery;
+        }
+
+        var sortQuery = {}
+        sort == 'asc' ? sortQuery['date'] = 1 : sortQuery['date'] = -1
+
+        var options = {
+            select: '-status -__v',
+            sort: sortQuery,
+            page: parseFloat(page),
+            limit: parseFloat(limit)
+        };
+
+        Bill.paginate(findQuery, options).then((data) => {
+            if (validate.isNullorEmpty(data)) {
+                return msg.msgReturn(res, 4);
+            } else {
+                return msg.msgReturn(res, 0, data);
+            }
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
     }
 })
 

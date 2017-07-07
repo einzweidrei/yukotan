@@ -25,6 +25,7 @@ var Task = require('../_model/task');
 var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
+var Bill = require('../_model/bill');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 var bodyparser = require('body-parser');
@@ -568,6 +569,67 @@ router.route('/chargeWallet').post((req, res) => {
                                 return msg.msgReturn(res, 0);
                             })
                     }
+                }
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/statistical').get((req, res) => {
+    try {
+        var id = req.query.id;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
+        var isSolved = req.query.isSolved || true;
+
+        var matchQuery = { 'owner': new ObjectId(id), isSolved: isSolved, status: true }
+
+        if (startAt || endAt) {
+            var timeQuery = {};
+
+            if (startAt) {
+                var date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                var date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            matchQuery['date'] = timeQuery;
+        }
+
+        Bill.aggregate(
+            [
+                {
+                    $match: matchQuery
+                },
+                {
+                    $group: {
+                        _id: '$method',
+                        taskNumber: {
+                            $sum: 1
+                        },
+                        price: {
+                            $sum: '$price'
+                        }
+                    }
+                }
+            ], (error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                }
+                else if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                }
+                else {
+                    return msg.msgReturn(res, 0, data);
                 }
             }
         )

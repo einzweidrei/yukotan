@@ -25,6 +25,7 @@ var Task = require('../_model/task');
 var Process = require('../_model/process');
 var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
+var Bill = require('../_model/bill');
 
 var ObjectId = require('mongoose').Types.ObjectId;
 
@@ -564,6 +565,45 @@ router.route('/deleteComment').post((req, res) => {
                     } else {
                         return msg.msgReturn(res, 0);
                     }
+                }
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
+router.route('/statistical').get((req, res) => {
+    try {
+        var id = req.query.id;
+
+        var matchQuery = { 'maid': new ObjectId(id), status: true }
+
+        Bill.aggregate(
+            [
+                {
+                    $match: matchQuery
+                },
+                {
+                    $group: {
+                        _id: '$method',
+                        taskNumber: {
+                            $sum: 1
+                        },
+                        price: {
+                            $sum: '$price'
+                        }
+                    }
+                }
+            ], (error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
+                }
+                else if (validate.isNullorEmpty(data)) {
+                    return msg.msgReturn(res, 4);
+                }
+                else {
+                    return msg.msgReturn(res, 0, data);
                 }
             }
         )
