@@ -65,6 +65,64 @@ router.use(function (req, res, next) {
     }
 });
 
+router.route('/getAll').get((req, res) => {
+    try {
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
+        var page = req.query.page || 1;
+        var limit = req.query.limit || 10;
+        var sort = req.query.sort || 'asc';
+
+        var email = req.query.email;
+        var username = req.query.username;
+        var name = req.query.name;
+        var gender = req.query.gender;
+
+        if (startAt || endAt) {
+            var timeQuery = {};
+
+            if (startAt) {
+                var date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                var date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            findQuery['history.createAt'] = timeQuery;
+        }
+
+        var sortQuery = {};
+
+        sort == 'asc' ? sortQuery = { 'history.createAt': 1 } : sortQuery = { 'history.createAt': -1 };
+
+        var query = { status: true };
+
+        if (email) query['info.email'] = new RegExp(email, 'i');
+        if (username) query['info.username'] = new RegExp(username, 'i');
+        if (name) query['info.name'] = new RegExp(name, 'i');
+        if (gender) query['info.gender'] = new RegExp(gender, 'i');
+
+        var options = {
+            select: 'info history',
+            sort: sortQuery,
+            page: parseFloat(page),
+            limit: parseFloat(limit)
+        };
+
+        Account.paginate(query, options).exec((data) => {
+            return msg.msgReturn(res, 0, data);
+        })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 router.route('/create').post((req, res) => {
     try {
         var username = req.body.username;
