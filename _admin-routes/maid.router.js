@@ -576,8 +576,29 @@ router.route('/deleteComment').post((req, res) => {
 router.route('/statistical').get((req, res) => {
     try {
         var id = req.query.id;
+        var startAt = req.query.startAt;
+        var endAt = req.query.endAt;
 
         var matchQuery = { 'maid': new ObjectId(id), status: true }
+
+        if (startAt || endAt) {
+            var timeQuery = {};
+
+            if (startAt) {
+                var date = new Date(startAt);
+                date.setUTCHours(0, 0, 0, 0);
+                timeQuery['$gte'] = date;
+            }
+
+            if (endAt) {
+                var date = new Date(endAt);
+                date.setUTCHours(0, 0, 0, 0);
+                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                timeQuery['$lt'] = date;
+            }
+
+            matchQuery['date'] = timeQuery;
+        }
 
         Bill.aggregate(
             [
@@ -603,7 +624,17 @@ router.route('/statistical').get((req, res) => {
                     return msg.msgReturn(res, 4);
                 }
                 else {
-                    return msg.msgReturn(res, 0, data);
+                    var totalPrice = 0;
+                    data.map(a => {
+                        totalPrice += a.price
+                    });
+
+                    var d = {
+                        data: data,
+                        totalPrice: totalPrice
+                    }
+
+                    return msg.msgReturn(res, 0, d);
                 }
             }
         )
