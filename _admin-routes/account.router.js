@@ -191,9 +191,94 @@ router.route('/create').post((req, res) => {
 
 router.route('/update').post((req, res) => {
     try {
+        var id = req.body.id;
 
+        var email = req.body.email;
+        var name = req.body.name || '';
+        var phone = req.body.phone || '';
+        var image = req.body.image || '';
+        var address = req.body.address || '';
+        var gender = req.body.gender || 0;
+
+        Account.findOne({ 'info.email': email, status: true }, (error, data) => {
+            if (error) {
+                return msg.msgReturn(res, 3);
+            } else if (validate.isNullorEmpty(data)) {
+                Account.findOneAndUpdate(
+                    {
+                        _id: id,
+                        status: true
+                    },
+                    {
+                        $set: {
+                            'info.email': email,
+                            'info.name': name,
+                            'info.phone': phone,
+                            'info.image': image,
+                            'info.address': address,
+                            'info.gender': gender,
+                            'history.updateAt': new Date()
+                        }
+                    }, (error) => {
+                        if (error) return msg.msgReturn(res, 3);
+                        return msg.msgReturn(res, 0);
+                    }
+                )
+            } else {
+                if (id == data._id) {
+                    Account.findOneAndUpdate(
+                        {
+                            _id: id,
+                            status: true
+                        },
+                        {
+                            $set: {
+                                'info.email': email,
+                                'info.name': name,
+                                'info.phone': phone,
+                                'info.image': image,
+                                'info.address': address,
+                                'info.gender': gender,
+                                'history.updateAt': new Date()
+                            }
+                        }, (error) => {
+                            if (error) return msg.msgReturn(res, 3);
+                            return msg.msgReturn(res, 0);
+                        }
+                    )
+                } else {
+                    return msg.msgReturn(res, 2);
+                }
+            }
+        })
     } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
 
+router.route('/delete').post((req, res) => {
+    try {
+        var id = req.query.id;
+
+        Account.findOneAndUpdate(
+            {
+                _id: id,
+                status: true
+            },
+            {
+                $set: {
+                    status: false,
+                    'history.updateAt': new Date()
+                }
+            },
+            (error, data) => {
+                if (error) return msg.msgReturn(res, 3);
+                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+                else return msg.msgReturn(res, 0);
+            }
+        )
+    } catch (error) {
+        return msg.msgReturn(res, 3);
     }
 })
 
