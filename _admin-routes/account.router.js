@@ -115,10 +115,11 @@ router.route('/getAll').get((req, res) => {
             limit: parseFloat(limit)
         };
 
-        Account.paginate(query, options).exec((data) => {
+        Account.paginate(query, options).then((data) => {
             return msg.msgReturn(res, 0, data);
         })
     } catch (error) {
+        console.log(error)
         return msg.msgReturn(res, 3);
     }
 })
@@ -188,5 +189,12 @@ router.route('/create').post((req, res) => {
     }
 });
 
+router.route('/update').post((req, res) => {
+    try {
+
+    } catch (error) {
+
+    }
+})
 
 module.exports = router;
