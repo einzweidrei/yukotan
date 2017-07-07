@@ -629,7 +629,17 @@ router.route('/statistical').get((req, res) => {
                     return msg.msgReturn(res, 4);
                 }
                 else {
-                    return msg.msgReturn(res, 0, data);
+                    var totalPrice = 0;
+                    data.map(a => {
+                        totalPrice += a.price
+                    });
+
+                    var d = {
+                        data: data,
+                        totalPrice: totalPrice
+                    }
+
+                    return msg.msgReturn(res, 0, d);
                 }
             }
         )
