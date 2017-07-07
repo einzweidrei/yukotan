@@ -123,6 +123,22 @@ router.route('/getAll').get((req, res) => {
     }
 })
 
+router.route('/getById').get((req, res) => {
+    try {
+        var id = req.query.id;
+
+        Account.findOne({ _id: id, status: true })
+            .select('info history')
+            .exec((error, data) => {
+                if (error) return msg.msgReturn(res, 3);
+                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+                else return msg.msgReturn(res, 0, data);
+            })
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+})
+
 router.route('/create').post((req, res) => {
     try {
         var username = req.body.username;
@@ -171,5 +187,6 @@ router.route('/create').post((req, res) => {
         return msg.msgReturn(res, 3);
     }
 });
+
 
 module.exports = router;
