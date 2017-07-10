@@ -67,11 +67,12 @@ app.use('/admin/:language/task', require('./_admin-routes/task.router'));
 app.use('/admin/:language/giftcode', require('./_admin-routes/giftcode.router'));
 app.use('/admin/:language/bill', require('./_admin-routes/bill.router'));
 app.use('/admin/:language/contact', require('./_admin-routes/contact.router'));
-app.use('/admin/:language/function', require('./_admin-routes/web-func.router'));
-app.use('/admin/:language/role', require('./_admin-routes/web-role.router'));
+// app.use('/admin/:language/function', require('./_admin-routes/web-func.router'));
+// app.use('/admin/:language/role', require('./_admin-routes/web-role.router'));
 app.use('/admin/:language/account', require('./_admin-routes/account.router'));
 app.use('/admin/:language/auth', require('./_admin-routes/authenticate.router'));
 app.use('/admin/:language/statistical', require('./_admin-routes/statistical.router'));
+app.use('/admin/:language/content', require('./_admin-routes/content.router'));
 
 app.listen(process.env.PORT || 8000, function () {
     console.log('listening on 8000 <3')
