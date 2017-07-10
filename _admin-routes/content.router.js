@@ -79,20 +79,32 @@ router.route('/create').post((req, res) => {
     try {
         var type = req.body.type;
         var image = req.body.image || '';
-        var title = req.body.title || '';
-        var content = req.body.content || '';
+
+        var titleVi = req.body.titleVi || '';
+        var titleEn = req.body.titleEn || '';
+
+        var contentVi = req.body.contentVi || '';
+        var contentEn = req.body.contentEn || '';
 
         var ct = new Content();
         ct.type = type;
-        ct.info = {
-            image: image,
-            title: title,
-            content: content
-        };
+        ct.image = image;
+
+        ct.set('title.all', {
+            en: titleEn,
+            vi: titleVi
+        });
+
+        ct.set('content.all', {
+            en: contentEn,
+            vi: contentVi
+        });
+
         ct.history = {
             createAt: new Date(),
             updateAt: new Date()
         };
+
         ct.status = true
         ct.save((error) => {
             if (error) return msg.msgReturn(res, 3);
@@ -107,8 +119,12 @@ router.route('/update').post((req, res) => {
     try {
         var id = req.body.id;
         var image = req.body.image || '';
-        var title = req.body.title || '';
-        var content = req.body.content || '';
+
+        var titleVi = req.body.titleVi || '';
+        var titleEn = req.body.titleEn || '';
+
+        var contentVi = req.body.contentVi || '';
+        var contentEn = req.body.contentEn || '';
 
         Content.findOneAndUpdate(
             {
@@ -117,9 +133,15 @@ router.route('/update').post((req, res) => {
             },
             {
                 $set: {
-                    'info.image': image,
-                    'info.title': title,
-                    'info.content': content,
+                    image: image,
+                    title: {
+                        vi: titleVi,
+                        en: titleEn
+                    },
+                    content: {
+                        vi: contentVi,
+                        en: contentEn
+                    },
                     'history.updateAt': new Date()
                 }
             },

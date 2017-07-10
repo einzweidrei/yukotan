@@ -7,11 +7,9 @@ var ObjectId = Schema.ObjectId;
 var ContentSchema = new Schema(
     {
         type: { type: Number },
-        info: {
-            image: { type: String },
-            title: { type: String, intl: true },
-            content: { type: String, intl: true },
-        },
+        image: { type: String },
+        title: { type: String, intl: true },
+        content: { type: String, intl: true },
         history: {
             createAt: { type: Date },
             updateAt: { type: Date }
