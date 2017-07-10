@@ -21,15 +21,19 @@ var MailService = new Mail.MailService();
 
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
-var Term = require('../_model/term');
+var Package = require('../_model/package');
+var Contact = require('../_model/contact');
 
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
 
-var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart();
+// setting limit of FILE
+router.use(bodyparser.urlencoded({
+    extended: true
+}));
 
-router.use(multipartMiddleware)
+// // parse application/json
+router.use(bodyparser.json());
 
 router.use(function (req, res, next) {
     console.log('package_router is connecting');
@@ -37,10 +41,8 @@ router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = baseUrl.substring(baseUrl.indexOf('/admin/') + 7, baseUrl.lastIndexOf('/'));
-
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            Term.setDefaultLanguage(language);
             next();
         }
         else {
@@ -51,85 +53,29 @@ router.use(function (req, res, next) {
     }
 });
 
-router.route('/get').get((req, res) => {
+router.route('/createContact').post((req, res) => {
     try {
-        Term.find({}).select('name content').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    var m = []
-                    data.map(a => {
-                        var d = {
-                            _id: a._id,
-                            name: a.name,
-                            content: a.get('content.all')
-                        }
-                        m.push(d)
-                    })
-                    return msg.msgReturn(res, 0, m);
-                }
-            }
+        var name = req.body.name;
+        var email = req.body.email;
+        var content = req.body.content;
+
+        var contact = new Contact();
+        contact.name = name;
+        contact.email = email;
+        contact.content = content;
+        contact.process = false;
+        contact.history = {
+            createAt: new Date(),
+            updateAt: new Date()
+        };
+        contact.status = true;
+        contact.save((error) => {
+            if (error) return msg.msgReturn(res, 3);
+            return msg.msgReturn(res, 0);
         });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
-})
-
-router.route('/getById').get((req, res) => {
-    try {
-        var id = req.query.id;
-        Term.findOne({ _id: id, status: true }).select('name content').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    var d = {
-                        _id: data._id,
-                        name: data.name,
-                        content: data.get('content.all')
-                    }
-                    return msg.msgReturn(res, 0, d);
-                }
-            }
-        });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-})
-
-router.route('/update').post((req, res) => {
-    try {
-        var id = req.body.id;
-
-        var contentVi = req.body.contentVi;
-        var contentEn = req.body.contentEn;
-
-        Term.findOneAndUpdate(
-            {
-                _id: id,
-                status: true
-            },
-            {
-                $set: {
-                    content: {
-                        vi: contentVi,
-                        en: contentEn
-                    }
-                }
-            },
-            (error) => {
-                if (error) return msg.msgReturn(res, 3);
-                return msg.msgReturn(res, 0);
-            }
-        )
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-})
+});
 
 module.exports = router;
