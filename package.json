@@ -31,6 +31,7 @@
     "node-persist": "0.0.8",
     "nodejs": "0.0.0",
     "nodemailer": "^4.0.1",
+    "nodemailer-smtp-transport": "^2.7.4",
     "promise-async": "^0.2.0",
     "randomstring": "^1.1.5",
     "request": "^2.81.0",

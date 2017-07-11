@@ -1,16 +1,29 @@
 var nodemailer = require('nodemailer');
+var smtpTransport = require('nodemailer-smtp-transport');
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
+var url = 'http://localhost:8000/'
 
-var transporter = nodemailer.createTransport({
+// var smtpConfig = {
+//     host: 'smtp.gmail.com',
+//     port: 465,
+//     secure: true, // use SSL, 
+//     // you can try with TLS, but port is then 587
+//     auth: {
+//         user: 'YukoTesting01@gmail.com', // Your email id
+//         pass: '789632145' // Your password
+//     }
+// };
+
+var transporter = nodemailer.createTransport(smtpTransport({
     service: 'gmail',
     auth: {
-        user: 'YukoTesting01@gmail.com',
+        user: 'YukoTesting01@gmail.com', // my mail
         pass: '789632145'
     }
-});
+}));
 
-var url = 'http://localhost:8000/'
+// var transporter = nodemailer.createTransport(smtpConfig);
 
 var MailService = (function () {
     function MailService() { }
@@ -22,27 +35,23 @@ var MailService = (function () {
             // setup email data with unicode symbols
             var mailOptions = {
                 from: '"GV24H" <YukoTesting01@gmail.com>', // sender address
-                to: user.info.email, // list of receivers
-                // to: 'einzweidrei2@gmail.com',
+                // to: user.info.email, // list of receivers
+                to: 'einzweidrei2@gmail.com',
                 subject: 'Confirm to get a new password', // Subject line
                 text: 'Click to this follow link (activate in 7 days): ' + confirmUrl, // plain text body
                 // html: '<b>Test HTML 😋</b>' // html body
             };
 
-            console.log(confirmUrl)
-
-            // send mail with defined transport object
             transporter.sendMail(mailOptions, (error, info) => {
-                // console.log(error, info)
                 if (error) {
                     var objType = Object.prototype.toString.call(error);
-                    return msg.msgReturn(res, 3, { error: objType.toString() });
+                    return msg.msgReturn(res, 3, { error: error.toString() });
                 }
                 else return msg.msgReturn(res, 0);
             });
         } catch (error) {
             var objType = Object.prototype.toString.call(error);
-            return msg.msgReturn(res, 3, { error: objType.toString() });
+            return msg.msgReturn(res, 3, { error: error.toString() });
         }
     };
 

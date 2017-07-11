@@ -23,6 +23,7 @@ var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
 var Contact = require('../_model/contact');
+var Test = require('../_services/test.service');
 
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
@@ -77,5 +78,17 @@ router.route('/createContact').post((req, res) => {
         return msg.msgReturn(res, 3);
     }
 });
+
+router.route('/test').get((req, res) => {
+    try {
+        var t = new Test.Test();
+        t.test((error, data) => {
+            console.log(error)
+            // console.log(data)
+        })
+    } catch (error) {
+        console.log(error)
+    }
+})
 
 module.exports = router;
