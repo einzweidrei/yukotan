@@ -37,6 +37,14 @@ var App = (function () {
         return azure_key;
     }
 
+    App.prototype.getContJson = (status, data) => {
+        var temp = {
+            status: status,
+            data: data
+        };
+        return temp;
+    }
+
     App.prototype.countPrice = (time, maidPrice) => {
         var price = 0;
         var hours = time.getUTCHours();

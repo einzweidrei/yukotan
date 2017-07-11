@@ -15,6 +15,12 @@ var lnService = new languageService.Language();
 var Mail = require('../_services/mail.service');
 var MailService = new Mail.MailService();
 
+var contSession = require('../_controller/session.controller');
+var sessionController = new contSession.Session();
+
+var contOwner = require('../_controller/owner.controller');
+var ownerController = new contOwner.Owner();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
@@ -48,16 +54,12 @@ router.use(function (req, res, next) {
 
             if (req.headers.hbbgvauth) {
                 var token = req.headers.hbbgvauth;
-                Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 14);
-                        } else {
-                            req.cookies['userId'] = data.auth.userId;
-                            next();
-                        }
+                sessionController.verifyToken(token, (error, data) => {
+                    if (error) return msg.msgReturn(res, 3);
+                    else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 14);
+                    else {
+                        req.cookies['userId'] = data.auth.userId;
+                        next();
                     }
                 });
             } else {
@@ -98,17 +100,10 @@ router.route('/checkToken').get((req, res) => {
 router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
-
-        Owner.findOne({ _id: id }).select('-history -wallet -auth -status -location -__v').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    return msg.msgReturn(res, 0, data);
-                }
-            }
+        ownerController.getById(id, (error, data) => {
+            if (error) return msg.msgReturn(res, 3);
+            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+            return msg.msgReturn(res, 0, data);
         });
     } catch (error) {
         return msg.msgReturn(res, 3);
@@ -120,11 +115,12 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
         var owner = new Owner();
         var id = req.cookies.userId;
 
-        var phone = req.body.phone || "";
-        var name = req.body.name || "";
+        var image = '';
+        var phone = req.body.phone || '';
+        var name = req.body.name || '';
         var age = req.body.age || 18;
         var address = {
-            name: req.body.addressName || "",
+            name: req.body.addressName || '',
             coordinates: {
                 lat: req.body.lat || 0,
                 lng: req.body.lng || 0
@@ -137,92 +133,27 @@ router.route('/update').put(multipartMiddleware, (req, res) => {
             coordinates: [req.body.lng || 0, req.body.lat || 0]
         }
 
-        Owner.findOne({ _id: id, status: true }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    if (!req.files.image) {
-                        Owner.findOneAndUpdate({
-                            _id: id,
-                            status: true
-                        }, {
-                                $set: {
-                                    'info.phone': phone,
-                                    'info.name': name,
-                                    'info.age': age,
-                                    'info.address': address,
-                                    'info.gender': gender,
-                                    location: location,
-                                    'history.updateAt': new Date()
-                                }
-                            }, {
-                                upsert: true
-                            },
-                            (error, m) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                m.info.phone = phone;
-                                m.info.name = name;
-                                m.info.age = age;
-                                m.info.address = address;
-                                m.info.gender = gender;
-                                var d = {
-                                    _id: m._id,
-                                    info: m.info,
-                                    evaluation_point: m.evaluation_point,
-                                    wallet: m.wallet
-                                }
-                                return msg.msgReturn(res, 0, d);
-                            }
-                        );
-                    } else {
-                        cloudinary.uploader.upload(
-                            req.files.image.path,
-                            function (result) {
-                                Owner.findOneAndUpdate({
-                                    _id: id,
-                                    status: true
-                                }, {
-                                        $set: {
-                                            'info.phone': phone,
-                                            'info.name': name,
-                                            'info.age': age,
-                                            'info.address': address,
-                                            'info.gender': gender,
-                                            'info.image': result.url,
-                                            location: location,
-                                            'history.updateAt': new Date()
-                                        }
-                                    }, {
-                                        upsert: true
-                                    },
-                                    (error, m) => {
-                                        if (error) return msg.msgReturn(res, 3);
-                                        m.info.phone = phone;
-                                        m.info.name = name;
-                                        m.info.age = age;
-                                        m.info.address = address;
-                                        m.info.gender = gender;
-                                        m.info.image = result.url;
-
-                                        var d = {
-                                            _id: m._id,
-                                            info: m.info,
-                                            evaluation_point: m.evaluation_point,
-                                            wallet: m.wallet
-                                        }
-                                        return msg.msgReturn(res, 0, d);
-                                    }
-                                );
-                            });
-                    }
-                }
-            }
-        });
+        if (!req.files.image) {
+            ownerController.updateInfo(id, name, phone, age, address, gender, location, image, (error, data) => {
+                if (error) return msg.msgReturn(res, 3, {});
+                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4, {});
+                return msg.msgReturn(res, 0, data);
+            });
+        } else {
+            cloudinary.uploader.upload(
+                req.files.image.path,
+                function (result) {
+                    image = result.url;
+                    ownerController.updateInfo(id, name, phone, age, address, gender, location, image, (error, data) => {
+                        if (error) return msg.msgReturn(res, 3, {});
+                        else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4, {});
+                        return msg.msgReturn(res, 0, data);
+                    })
+                });
+        }
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        console.log(error);
+        return msg.msgReturn(res, 3, {});
     }
 });
 
@@ -230,39 +161,16 @@ router.route('/getMyInfo').get((req, res) => {
     try {
         var id = req.cookies.userId;
 
-        Owner.findOne({ _id: id }).select('-auth -status -location -__v').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    return msg.msgReturn(res, 0, data);
-                }
-            }
+        ownerController.getMyInfo(id, (error, data) => {
+            if (error) return msg.msgReturn(res, 3, {});
+            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4, {});
+            return msg.msgReturn(res, 0, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, 3, {});
     }
 });
 
-/** GET - Get All Tasks By Owner ID
- * info {
- *      type: GET
- *      url: /getAllTasks
- *      name: Get All Tasks By Owner ID
- *      description: Get tasks by Owner's ID
- * }
- * 
- * params {
- *      id: owner_ID
- *      process: process_ID
- * }
- * 
- * body {
- *      null
- * } 
- */
 router.route('/getAllTasks').get((req, res) => {
     try {
         var id = req.cookies.userId;
@@ -273,109 +181,20 @@ router.route('/getAllTasks').get((req, res) => {
         var limit = req.query.limit || 0;
         var sortByTaskTime = req.query.sortByTaskTime;
 
-        var findQuery = {
-            'stakeholders.owner': id,
-            status: true
-        }
-
-        if (process) {
-            if (process == '000000000000000000000001') {
-                findQuery['process'] = {
-                    $in: ['000000000000000000000001', '000000000000000000000006']
-                }
-            } else {
-                findQuery['process'] = process;
-            }
-        }
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            findQuery['info.time.startAt'] = timeQuery;
-        }
-
-        var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'stakeholders.received',
-            select: 'info work_info'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        }
-        ];
-
-        var sortQuery = { 'history.createAt': -1 };
-
-        if (sortByTaskTime) {
-            sortQuery = { 'info.time.endAt': 1 };
-        }
-
-        Task
-            .find(findQuery)
-            .populate(populateQuery)
-            .sort(sortQuery)
-            .limit(parseFloat(limit))
-            .select('-location -status -__v').exec((error, data) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        Work.populate(data, { path: 'stakeholders.received.work_info.ability', select: 'name image' }, (error, data) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0, data);
-                        })
-                    }
-                }
-            });
+        ownerController.getAllTasks(id, process, startAt, endAt, limit, sortByTaskTime, (error, data) => {
+            if (error) return msg.msgReturn(res, 3);
+            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+            return msg.msgReturn(res, 0, data);
+        });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
 });
 
-/** GET - Get All Tasks By Owner ID
- * info {
- *      type: GET
- *      url: /getAllTasks
- *      name: Get All Tasks By Owner ID
- *      description: Get tasks by Owner's ID
- * }
- * 
- * params {
- *      id: owner_ID
- *      process: process_ID
- * }
- * 
- * body {
- *      null
- * } 
- */
 router.route('/getHistoryTasks').get((req, res) => {
     try {
         var id = req.cookies.userId;
-        var maidId = req.query.maid;
+        // var maidId = req.query.maid;
         var process = req.query.process || '000000000000000000000005';
 
         var startAt = req.query.startAt;
@@ -383,71 +202,10 @@ router.route('/getHistoryTasks').get((req, res) => {
         var limit = req.query.limit || 10;
         var page = req.query.page || 1;
 
-        var findQuery = {
-            'stakeholders.owner': id,
-            status: true
-        }
-
-        if (process) {
-            findQuery['process'] = process;
-        }
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            findQuery['info.time.startAt'] = timeQuery;
-        }
-
-        var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'stakeholders.received',
-            select: 'info work_info'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        }
-        ];
-
-        var options = {
-            select: '-location -status -__v',
-            populate: populateQuery,
-            sort: {
-                'info.time.startAt': -1
-            },
-            page: parseFloat(page),
-            limit: parseFloat(limit)
-        };
-
-        Task.paginate(findQuery, options).then(data => {
-            if (validate.isNullorEmpty(data)) {
-                return msg.msgReturn(res, 4);
-            } else {
-                Work.populate(data, { path: 'docs.stakeholders.received.work_info.ability', select: 'name image' }, (error, data) => {
-                    if (error) return msg.msgReturn(res, 3);
-                    return msg.msgReturn(res, 0, data);
-                })
-            }
+        ownerController.getHistoryTasks(id, process, startAt, endAt, limit, page, (error, data) => {
+            if (error) return msg.msgReturn(res, 3);
+            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+            return msg.msgReturn(res, 0, data);
         });
     } catch (error) {
         return msg.msgReturn(res, 3);
@@ -457,73 +215,14 @@ router.route('/getHistoryTasks').get((req, res) => {
 router.route('/getAllWorkedMaid').get((req, res) => {
     try {
         var id = req.cookies.userId;
-
         var startAt = req.query.startAt;
         var endAt = req.query.endAt;
 
-        var matchQuery = {
-            process: new ObjectId('000000000000000000000005'),
-            'stakeholders.owner': new ObjectId(id)
-        };
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            matchQuery['info.time.startAt'] = timeQuery;
-        };
-
-        Task.aggregate([{
-            $match: matchQuery
-        },
-        {
-            $sort: {
-                'info.time.startAt': -1
-            },
-        },
-        {
-            $group: {
-                _id: '$stakeholders.received',
-                times: {
-                    $push: '$info.time.startAt'
-                }
-            }
-        }
-        ],
-            // {
-            //     allowDiskUse: true
-            // },
-            (error, data) => {
-                console.log(data)
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        Maid.populate(data, { path: '_id', select: 'info work_info' }, (error, owner) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            Work.populate(owner, { path: '_id.work_info.ability', select: 'name image' }, (error, owner) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                return msg.msgReturn(res, 0, owner);
-                            })
-                        });
-                    }
-                }
-            }
-        );
+        ownerController.getAllWorkedMaid(id, startAt, endAt, (error, data) => {
+            if (error) return msg.msgReturn(res, 3);
+            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+            return msg.msgReturn(res, 0, data);
+        });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
@@ -540,139 +239,27 @@ router.route('/getTaskOfMaid').get((req, res) => {
         var limit = req.query.limit || 10;
         var page = req.query.page || 1;
 
-        var findQuery = {
-            'stakeholders.owner': id,
-            'stakeholders.received': maidId,
-            status: true
-        }
-
-        if (process) {
-            findQuery['process'] = process;
-        }
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            findQuery['info.time.startAt'] = timeQuery;
-        }
-
-        var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'stakeholders.received',
-            select: 'info work_info'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        }
-        ];
-
-        var options = {
-            select: '-location -status -__v',
-            populate: populateQuery,
-            sort: {
-                'info.time.startAt': -1
-            },
-            page: parseFloat(page),
-            limit: parseFloat(limit)
-        };
-
-        Task.paginate(findQuery, options).then(data => {
-            if (validate.isNullorEmpty(data)) {
-                return msg.msgReturn(res, 4);
-            } else {
-                Work.populate(data, { path: 'docs.stakeholders.received.work_info.ability', select: 'name image' }, (error, data) => {
-                    if (error) return msg.msgReturn(res, 3);
-                    return msg.msgReturn(res, 0, data);
-                })
-                // return msg.msgReturn(res, 0, data);
-            }
+        ownerController.getTaskOfMaid(id, maidId, process, startAt, endAt, limit, page, (error, data) => {
+            if (error) return msg.msgReturn(res, 3);
+            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+            return msg.msgReturn(res, 0, data);
         });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
-})
+});
 
 router.route('/comment').post((req, res) => {
     try {
-        var comment = new Comment();
-        comment.fromId = req.cookies.userId;
-        comment.toId = req.body.toId;
-        comment.task = req.body.task;
-        comment.content = req.body.content;
-        comment.evaluation_point = req.body.evaluation_point;
-        comment.createAt = new Date();
-        comment.status = true;
+        var fromId = req.cookies.userId;
+        var toId = req.body.toId;
+        var task = req.body.task;
+        var content = req.body.content;
+        var evaluation_point = req.body.evaluation_point;
 
-        Maid.findOne({ _id: comment.toId, status: true }).select('work_info').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Comment.findOne({ fromId: comment.fromId, task: comment.task }).exec((error, cmt) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            if (validate.isNullorEmpty(cmt)) {
-                                var ep_2 = data.work_info.evaluation_point;
-                                var new_ep = (comment.evaluation_point + ep_2) / 2;
-
-                                if ((comment.evaluation_point + ep_2) % 2 >= 5) {
-                                    new_ep = Math.ceil(new_ep);
-                                } else {
-                                    new_ep = Math.round(new_ep);
-                                }
-
-                                Maid.findOneAndUpdate({
-                                    _id: comment.toId,
-                                    status: true
-                                }, {
-                                        $set: {
-                                            'work_info.evaluation_point': new_ep
-                                        }
-                                    }, {
-                                        upsert: true
-                                    },
-                                    (error) => {
-                                        if (error) {
-                                            return msg.msgReturn(res, 3);
-                                        } else {
-                                            comment.save((error) => {
-                                                if (error) return msg.msgReturn(res, 3);
-                                                return msg.msgReturn(res, 0);
-                                            });
-                                        }
-                                    }
-                                );
-                            } else {
-                                return msg.msgReturn(res, 2);
-                            }
-                        }
-                    });
-                }
-            }
+        ownerController.comment(fromId, toId, task, content, evaluation_point, (error, data) => {
+            if (error) return msg.msgReturn(res, error);
+            return msg.msgReturn(res, 0);
         });
     } catch (error) {
         return msg.msgReturn(res, 3);

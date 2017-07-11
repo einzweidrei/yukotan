@@ -4,26 +4,13 @@ var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
 var url = 'http://localhost:8000/'
 
-// var smtpConfig = {
-//     host: 'smtp.gmail.com',
-//     port: 465,
-//     secure: true, // use SSL, 
-//     // you can try with TLS, but port is then 587
-//     auth: {
-//         user: 'YukoTesting01@gmail.com', // Your email id
-//         pass: '789632145' // Your password
-//     }
-// };
-
 var transporter = nodemailer.createTransport(smtpTransport({
     service: 'gmail',
     auth: {
-        user: 'YukoTesting01@gmail.com', // my mail
+        user: 'YukoTesting01@gmail.com',
         pass: '789632145'
     }
 }));
-
-// var transporter = nodemailer.createTransport(smtpConfig);
 
 var MailService = (function () {
     function MailService() { }
@@ -34,9 +21,9 @@ var MailService = (function () {
 
             // setup email data with unicode symbols
             var mailOptions = {
-                from: '"GV24H" <YukoTesting01@gmail.com>', // sender address
-                // to: user.info.email, // list of receivers
-                to: 'einzweidrei2@gmail.com',
+                from: 'NGV247', // sender address
+                to: user.info.email, // list of receivers
+                // to: 'einzweidrei2@gmail.com',
                 subject: 'Confirm to get a new password', // Subject line
                 text: 'Click to this follow link (activate in 7 days): ' + confirmUrl, // plain text body
                 // html: '<b>Test HTML 😋</b>' // html body
@@ -59,7 +46,7 @@ var MailService = (function () {
         try {
             // setup email data with unicode symbols
             var mailOptions = {
-                from: 'GV24H <YukoTesting01@gmail.com>', // sender address
+                from: 'NGV247', // sender address
                 to: email, // list of receivers
                 subject: 'Reset your password', // Subject line
                 text: 'Your new password: ' + newPw, // plain text body

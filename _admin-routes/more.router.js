@@ -24,6 +24,8 @@ var Session = require('../_model/session');
 var Package = require('../_model/package');
 var Contact = require('../_model/contact');
 var Test = require('../_services/test.service');
+var contSession = require('../_controller/session.controller');
+var sessionController = new contSession.Session();
 
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
@@ -82,9 +84,8 @@ router.route('/createContact').post((req, res) => {
 router.route('/test').get((req, res) => {
     try {
         var t = new Test.Test();
-        t.test((error, data) => {
-            console.log(error)
-            // console.log(data)
+        t.test('lul', (error, data) => {
+            console.log(data);
         })
     } catch (error) {
         console.log(error)
