@@ -1,8 +1,12 @@
 var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
+var messStatus = require('../_services/mess-status.service');
+var ms = messStatus.MessageStatus;
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
-var url = 'http://localhost:8000/'
+
+var url = 'http://localhost:8000/';
+var senderAddress = 'NGV247 (YukoTesting01@gmail.com)';
 
 var transporter = nodemailer.createTransport(smtpTransport({
     service: 'gmail',
@@ -14,6 +18,34 @@ var transporter = nodemailer.createTransport(smtpTransport({
 
 var MailService = (function () {
     function MailService() { }
+
+    MailService.prototype.submitMail = (mailOptions, callback) => {
+        try {
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                return callback(null, info);
+            });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    }
+
+    MailService.prototype.sendConfirmForgotPwMail = (email, verifyToken, callback) => {
+        var confirmUrl = url + user._id + '-' + verifyToken;
+
+        var mailOptions = {
+            from: senderAddress,
+            to: user.info.email,
+            subject: 'Confirm to get a new password',
+            text: 'Click to this follow link (activate in 7 days): ' + confirmUrl,
+        };
+
+        var mailService = new MailService();
+        mailService.submitMail(mailOptions, (error, data) => {
+            if (error) return callback(ms.EXCEPTION_FAILED);
+            return callback(null, info);
+        });
+    }
 
     MailService.prototype.sendMail = (res, user, verifyToken) => {
         try {

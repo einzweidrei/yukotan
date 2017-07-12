@@ -3,6 +3,8 @@ var as = require('../_services/app.service');
 var AppService = new as.App();
 var validationService = require('../_services/validation.service');
 var validate = new validationService.Validation();
+var messStatus = require('../_services/mess-status.service');
+var ms = messStatus.MessageStatus;
 
 var Comment = (function () {
     function Comment() { }
@@ -18,14 +20,20 @@ var Comment = (function () {
         comment.status = true;
 
         comment.save((error, data) => {
-            if (error) return callback(error);
+            if (error) return callback(ms.EXCEPTION_FAILED);
             return callback(null, data);
         });
     }
 
     Comment.prototype.findOne = (searchQuery, callback) => {
         mComment.findOne(searchQuery).exec((error, data) => {
-            if (error) return callback(error);
+            if (error) return callback(ms.EXCEPTION_FAILED);
+            return callback(null, data);
+        });
+    }
+
+    Comment.prototype.paginate = (searchQuery, options, callback) => {
+        mComment.paginate(searchQuery, options).then((data) => {
             return callback(null, data);
         });
     }

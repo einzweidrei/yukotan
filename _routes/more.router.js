@@ -19,6 +19,18 @@ var mailService = new mail.MailService();
 var as = require('../_services/app.service');
 var AppService = new as.App();
 
+var messStatus = require('../_services/mess-status.service');
+var ms = messStatus.MessageStatus;
+
+var contMaid = require('../_controller/maid.controller');
+var maidController = new contMaid.Maid();
+
+var contTask = require('../_controller/task.controller');
+var taskController = new contTask.Task();
+
+var contTerm = require('../_controller/term.controller');
+var termController = new contTerm.Term();
+
 var Owner = require('../_model/owner');
 var Session = require('../_model/session');
 var Package = require('../_model/package');
@@ -33,74 +45,66 @@ var cloudinary = require('cloudinary');
 var ObjectId = require('mongoose').Types.ObjectId;
 
 router.use(function (req, res, next) {
-    console.log('more_router is connecting');
-
     try {
         var baseUrl = req.baseUrl;
-        var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
+        var language = AppService.getAppLanguage(baseUrl);
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            Package.setDefaultLanguage(language);
-            Work.setDefaultLanguage(language);
-            Process.setDefaultLanguage(language);
-            AppInfo.setDefaultLanguage(language);
-
+            AppService.setLanguage(language);
             next();
-        } else {
-            return msg.msgReturn(res, 6);
         }
+        else return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
-router.route('/resetPassword').post((req, res) => {
-    try {
-        var newPw = AppService.randomString(7);
-        var hashPw = AppService.hashString(newPw);
+// router.route('/resetPassword').post((req, res) => {
+//     try {
+//         var newPw = AppService.randomString(7);
+//         var hashPw = AppService.hashString(newPw);
 
-        var username = req.body.username;
-        var email = req.body.email;
+//         var username = req.body.username;
+//         var email = req.body.email;
 
-        Owner.findOne({ 'info.username': username, 'info.email': email }).exec((error, data) => {
-            if (error) {
-                console.log(error);
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Owner.findOneAndUpdate({
-                        'info.username': username,
-                        'info.email': email
-                    }, {
-                            $set: {
-                                'auth.password': hashPw
-                            }
-                        }, {
-                            upsert: true
-                        },
-                        (error) => {
-                            if (error) {
-                                return msg.msgReturn(res, 3);
-                            } else {
-                                return mailService.resetPassword(email, newPw, res);
+//         Owner.findOne({ 'info.username': username, 'info.email': email }).exec((error, data) => {
+//             if (error) {
+//                 console.log(error);
+//                 return msg.msgReturn(res, 3);
+//             } else {
+//                 if (validate.isNullorEmpty(data)) {
+//                     return msg.msgReturn(res, 4);
+//                 } else {
+//                     Owner.findOneAndUpdate({
+//                         'info.username': username,
+//                         'info.email': email
+//                     }, {
+//                             $set: {
+//                                 'auth.password': hashPw
+//                             }
+//                         }, {
+//                             upsert: true
+//                         },
+//                         (error) => {
+//                             if (error) {
+//                                 return msg.msgReturn(res, 3);
+//                             } else {
+//                                 return mailService.resetPassword(email, newPw, res);
 
-                                // console.log(mailService.resetPassword(email, newPw));
-                                // if (boolean) return msg.msgReturn(res, 0);
-                                // return msg.msgReturn(res, 0);
-                            }
-                        }
-                    )
-                }
-            }
-        });
-    } catch (error) {
-        console.log(error);
-        return msg.msgReturn(res, 3);
-    }
-});
+//                                 // console.log(mailService.resetPassword(email, newPw));
+//                                 // if (boolean) return msg.msgReturn(res, 0);
+//                                 // return msg.msgReturn(res, 0);
+//                             }
+//                         }
+//                     )
+//                 }
+//             }
+//         });
+//     } catch (error) {
+//         return msg.msgReturn(res, 3);
+//     }
+// });
 
 router.route('/getAllMaids').get((req, res) => {
     try {
@@ -123,31 +127,7 @@ router.route('/getAllMaids').get((req, res) => {
         var sortBy = req.query.sortBy || "distance"; //distance & price
         var sortType = req.query.sortType || "asc"; //asc & desc
 
-        var sortQuery = {};
-
-        if (sortType == "desc") {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'work_info.price': -1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': -1
-                }
-            }
-        } else {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'work_info.price': 1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': 1
-                }
-            }
-        };
-
-        var loc = {
+        var location = {
             type: 'Point',
             coordinates: [
                 parseFloat(req.query.lng) || 0,
@@ -155,102 +135,12 @@ router.route('/getAllMaids').get((req, res) => {
             ]
         };
 
-        var matchQuery = { status: true };
-
-        if (ageMin || ageMax) {
-            var query = {};
-
-            if (ageMin) {
-                query['$gte'] = parseFloat(ageMin);
-            }
-
-            if (ageMax) {
-                query['$lte'] = parseFloat(ageMax);
-            }
-
-            matchQuery['info.age'] = query;
-        }
-
-        if (priceMin || priceMax) {
-            var query = {};
-
-            if (priceMin) {
-                query['$gte'] = parseFloat(priceMin);
-            }
-
-            if (priceMax) {
-                query['$lte'] = parseFloat(priceMax);
-            }
-
-            matchQuery['work_info.price'] = query;
-        }
-
-        if (workId) {
-            matchQuery['work_info.ability'] = new ObjectId(workId);
-        }
-
-        if (gender) {
-            matchQuery['info.gender'] = parseFloat(gender);
-        }
-
-        Maid.aggregate([{
-            $geoNear: {
-                near: loc,
-                distanceField: 'dist.calculated',
-                minDistance: parseFloat(minDistance),
-                maxDistance: parseFloat(maxDistance) * 1000,
-                // num: limit,
-                spherical: true
-            }
-        },
-        {
-            $match: matchQuery
-        },
-        {
-            $sort: sortQuery
-        },
-        // {
-        //     $skip: skip
-        // },
-        {
-            $project: {
-                info: 1,
-                work_info: 1
-            }
-        }
-        ], (error, places) => {
-            // console.log(places)
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(places)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Work.populate(places, { path: 'work_info.ability', select: 'name image' }, (error, data) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        return msg.msgReturn(res, 0, data);
-                        // else {
-                        //     result = []
-                        //     for (i = skip; i < skip + parseFloat(limit); i++) {
-                        //         if (!data[i] || data[i] == null) break
-                        //         result.push(data[i])
-                        //     }
-
-                        //     var d = {
-                        //         docs: result,
-                        //         total: data.length,
-                        //         limit: limit,
-                        //         page: page,
-                        //         pages: Math.ceil(data.length / limit)
-                        //     }
-                        //     return msg.msgReturn(res, 0, d);
-                        // }
-                    });
-                }
-            }
-        });
+        maidController.getAllMaids(minDistance, maxDistance, limit, page, skip, priceMin, priceMax,
+            ageMin, ageMax, workId, gender, sortBy, sortType, location, (error, data) => {
+                return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
+            });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
@@ -258,36 +148,10 @@ router.route('/getTaskAround').get((req, res) => {
     try {
         var minDistance = req.query.minDistance || 0;
         var maxDistance = req.query.maxDistance || 5;
-        if (maxDistance == 0) { maxDistance = 0.001 }
-
         var sortBy = req.query.sortBy || "distance"; //distance & price
         var sortType = req.query.sortType || "asc"; //asc & desc
 
-        var sortQuery = {};
-
-        if (sortType == "desc") {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'info.price': -1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': -1
-                }
-            }
-        } else {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'info.price': 1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': 1
-                }
-            }
-        };
-
-        var loc = {
+        var location = {
             type: 'Point',
             coordinates: [
                 parseFloat(req.query.lng) || 0,
@@ -295,56 +159,11 @@ router.route('/getTaskAround').get((req, res) => {
             ]
         };
 
-        var now = new Date();
-        var matchQuery = {
-            process: new ObjectId('000000000000000000000001'),
-            'info.time.startAt': {
-                $gt: now
-            },
-            status: true
-        };
-
-        Task.aggregate([{
-            $geoNear: {
-                near: loc,
-                distanceField: 'dist.calculated',
-                minDistance: parseFloat(minDistance),
-                maxDistance: parseFloat(maxDistance) * 1000,
-                // maxDistance: (maxDistance / 111.12),
-                // num: limit,
-                // distanceMultiplier: 0.001,
-                spherical: true
-            }
-        },
-        {
-            $match: matchQuery
-        },
-        {
-            $group: {
-                _id: '$info.work',
-                count: {
-                    $sum: 1
-                }
-            }
-        },
-        {
-            $sort: sortQuery
-        }
-        ], (error, places) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(places)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Work.populate(places, { path: '_id', select: 'name image' }, (error, data) => {
-                        return msg.msgReturn(res, 0, data);
-                    });
-                }
-            }
+        taskController.getTaskAround(minDistance, maxDistance, sortBy, sortType, location, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
@@ -363,33 +182,7 @@ router.route('/getTaskByWork').get((req, res) => {
         var sortBy = req.query.sortBy || "distance"; //distance & price
         var sortType = req.query.sortType || "asc"; //asc & desc
 
-        var sortQuery = {};
-
-        // if (maxDistance == 0) { maxDistance = 0.001 }
-
-        if (sortType == "desc") {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'info.price': -1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': -1
-                }
-            }
-        } else {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'info.price': 1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': 1
-                }
-            }
-        };
-
-        var loc = {
+        var location = {
             type: 'Point',
             coordinates: [
                 parseFloat(req.query.lng) || 0,
@@ -397,119 +190,28 @@ router.route('/getTaskByWork').get((req, res) => {
             ]
         };
 
-        var now = new Date()
-        var matchQuery = {
-            process: new ObjectId('000000000000000000000001'),
-            'info.time.startAt': {
-                $gt: now
-            },
-            status: true
-        };
-
-        if (package) {
-            matchQuery['info.package'] = new ObjectId(package);
-        }
-
-        if (work) {
-            matchQuery['info.work'] = new ObjectId(work);
-        }
-
-        if (title) {
-            matchQuery['info.title'] = new RegExp(title, 'i');
-        }
-
-        Task.aggregate([{
-            $geoNear: {
-                near: loc,
-                distanceField: 'dist.calculated',
-                minDistance: parseFloat(minDistance),
-                maxDistance: parseFloat(maxDistance) * 1000,
-                spherical: true
-            }
-        },
-        {
-            $match: matchQuery
-        },
-        {
-            $sort: sortQuery
-        },
-        {
-            $project: {
-                process: 1,
-                history: 1,
-                stakeholders: 1,
-                info: 1,
-                dist: 1
-            }
-        }
-        ], (error, places) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(places)) {
-                    return msg.msgReturn(res, 4, {});
-                } else {
-                    Owner.populate(places, { path: 'stakeholders.owner', select: 'info' }, (error, data) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        Work.populate(data, { path: 'info.work', select: 'name image' }, (error, data) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            Package.populate(data, { path: 'info.package', select: 'name' }, (error, data) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                Process.populate(data, { path: 'process', select: 'name' }, (error, data) => {
-                                    if (error) return msg.msgReturn(res, 3);
-                                    else {
-                                        result = []
-                                        for (i = skip; i < skip + parseFloat(limit); i++) {
-                                            if (!data[i] || data[i] == null) break
-                                            result.push(data[i])
-                                        }
-
-                                        var d = {
-                                            docs: result,
-                                            total: data.length,
-                                            limit: limit,
-                                            page: page,
-                                            pages: Math.ceil(data.length / limit)
-                                        }
-                                        return msg.msgReturn(res, 0, d);
-                                    }
-                                });
-                            });
-                        });
-                    });
-                }
-            }
-        });
+        taskController.getTaskByWork(minDistance, maxDistance, limit, page, skip, title, package, work,
+            sortBy, sortType, location, (error, data) => {
+                return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
+            });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
 router.route('/getGV24HInfo').get((req, res) => {
     try {
-        var language = req.cookies.language;
-        Term.setDefaultLanguage(language);
-
         var id = req.query.id;
 
-        Term.find({ _id: id }).select('name content').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    return msg.msgReturn(res, 0, data[0]);
-                }
-            }
+        termController.getInfo(id, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
 });
 
 router.route('/maidForgotPassword').post((req, res) => {
-
     try {
         var username = req.body.username;
         var email = req.body.email;

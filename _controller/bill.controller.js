@@ -1,4 +1,4 @@
-var mSession = require('../_model/session');
+var mBill = require('../_model/bill');
 var as = require('../_services/app.service');
 var AppService = new as.App();
 var validationService = require('../_services/validation.service');
@@ -6,18 +6,17 @@ var validate = new validationService.Validation();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-var Session = (function () {
-    function Session() { }
+var Bill = (function () {
+    function Bill() { }
 
-    Session.prototype.verifyToken = (token, callback) => {
-        mSession.findOne({ 'auth.token': token }).exec((error, data) => {
+    Bill.prototype.aggregate = (aggregateQuery, callback) => {
+        mBill.aggregate(aggregateQuery, (error, data) => {
             if (error) return callback(ms.EXCEPTION_FAILED);
-            else if (validate.isNullorEmpty(data)) return callback(ms.UNAUTHORIZED);
             return callback(null, data);
         });
     }
 
-    return Session;
+    return Bill;
 }());
 
-exports.Session = Session;
+exports.Bill = Bill;
