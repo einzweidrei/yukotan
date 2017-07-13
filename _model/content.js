@@ -16,15 +16,15 @@ var ContentSchema = new Schema(
         },
         status: { type: Boolean }
     }
-    // ,
-    // {
-    //     toJSON: {
-    //         virtuals: true,
-    //         transform: function (doc, ret) {
-    //             delete ret.id;
-    //         }
-    //     }
-    // }
+    ,
+    {
+        toJSON: {
+            virtuals: true,
+            transform: function (doc, ret) {
+                delete ret.id;
+            }
+        }
+    }
 );
 
 ContentSchema.plugin(mongooseIntl, { languages: ['en', 'vi'], defaultLanguage: 'en' })
