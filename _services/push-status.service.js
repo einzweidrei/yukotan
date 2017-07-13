@@ -3,6 +3,8 @@ var PushStatus = (function () {
     PushStatus.CANCEL = 0;
     PushStatus.SUBMIT = 8;
     PushStatus.CHECK_OUT = 5;
+    PushStatus.SEND_REQUEST = 6;
+    PushStatus.ACCEPT_REQUEST = 2;
 
     function PushStatus() { }
 

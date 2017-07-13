@@ -438,6 +438,10 @@ var Owner = (function () {
                             new_ep = Math.round(new_ep);
                         }
 
+                        if (new_ep >= 5) {
+                            new_ep = 5;
+                        }
+
                         var maidSet = {
                             'work_info.evaluation_point': new_ep
                         }

@@ -253,8 +253,8 @@ var Maid = (function () {
             sort: {
                 createAt: -1
             },
-            page: page,
-            limit: limit
+            page: parseFloat(page),
+            limit: parseFloat(limit)
         };
 
         mComment.paginate(query, options).then((data) => {

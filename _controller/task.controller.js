@@ -775,6 +775,167 @@ var Task = (function () {
         )
     };
 
+    Task.prototype.sendRequest = (maidId, ownerId, title, package, work, description, price, addressName, lat, lng, startAt, endAt, hour, tools, language, callback) => {
+        var task = new mTask();
+
+        task.info = {
+            title: title,
+            package: package,
+            work: work,
+            description: description,
+            price: price,
+            address: {
+                name: addressName,
+                coordinates: {
+                    lat: lat,
+                    lng: lng
+                }
+            },
+            time: {
+                startAt: startAt,
+                endAt: endAt,
+                hour: hour
+            },
+            tools: tools
+        };
+
+        task.stakeholders = {
+            owner: ownerId,
+            request: [{
+                maid: maidId,
+                time: new Date()
+            }],
+            received: maidId
+        };
+
+        task.process = new ObjectId('000000000000000000000006');
+
+        task.location = {
+            type: 'Point',
+            coordinates: [lng, lat]
+        };
+
+        task.history = {
+            createAt: new Date(),
+            updateAt: new Date()
+        };
+
+        task.status = true;
+
+        var start = new Date(startAt);
+        var end = new Date(endAt);
+
+        if (start >= end) {
+            return callback(ms.TIME_NOT_VALID);
+        } else {
+            async.parallel(
+                {
+                    maid: function (callback) {
+                        mMaid
+                            .findOne({ _id: maidId, status: true })
+                            .exec((error, data) => {
+                                if (error) return callback(ms.EXCEPTION_FAILED);
+                                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                                else return callback(null, data);
+                            });
+                    },
+                    task: function (callback) {
+                        mTask.find({
+                            'stakeholders.owner': ownerId,
+                            process: { $in: ['000000000000000000000001', '000000000000000000000006'] },
+                            status: true
+                        }).exec((error, data) => {
+                            if (error) return callback(ms.EXCEPTION_FAILED);
+                            else if (validate.isNullorEmpty(data) || !data || data.length <= 10) return callback(null, data);
+                            else return callback(ms.TASK_OUT_OF_LIMIT);
+                        });
+                    }
+                }, (error, result) => {
+                    if (error) return callback(error);
+                    else {
+                        var maid = result.maid;
+
+                        task.save((error) => {
+                            if (error) return callback(ms.EXCEPTION_FAILED);
+                            else {
+                                FCMService.pushNotify(maid, language, ps.SEND_REQUEST, '', (error, data) => {
+                                    if (error) return callback(error);
+                                    else return callback(null, data);
+                                });
+                            }
+                        })
+                    }
+                }
+            )
+        }
+    };
+
+    Task.prototype.acceptRequest = (id, ownerId, maidId, language, callback) => {
+        mTask.findOne(
+            {
+                _id: id,
+                'stakeholders.owner': ownerId,
+                process: '000000000000000000000006',
+                status: true
+            }
+        ).exec((error, data) => {
+            if (error) return callback(ms.EXCEPTION_FAILED);
+            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+            else {
+                async.parallel(
+                    {
+                        owner: function (callback) {
+                            mOwner
+                                .findOne({ _id: ownerId, status: true })
+                                .exec((error, owner) => {
+                                    if (error) return callback(ms.EXCEPTION_FAILED);
+                                    else if (validate.isNullorEmpty(owner)) return callback(ms.DATA_NOT_EXIST);
+                                    else return callback(null, owner);
+                                });
+                        },
+                        task: function (callback) {
+                            var task = new Task();
+                            var startAt = data.info.time.startAt;
+                            var endAt = data.info.time.endAt;
+                            task.checkTaskTimeExist(maidId, startAt, endAt, (error, res) => {
+                                if (error) return callback(error);
+                                else return callback(null, res);
+                            });
+                        }
+                    }, (error, result) => {
+                        if (error) return callback(error);
+                        else {
+                            Task.findOneAndUpdate(
+                                {
+                                    _id: id,
+                                    'stakeholders.owner': ownerId,
+                                    process: '000000000000000000000006',
+                                    status: true
+                                },
+                                {
+                                    $set: {
+                                        'stakeholders.received': maidId,
+                                        process: new ObjectId('000000000000000000000003')
+                                    }
+                                },
+                                (error) => {
+                                    if (error) return callback(ms.EXCEPTION_FAILED);
+                                    else {
+                                        var owner = result.owner;
+                                        FCMService.pushNotify(owner, language, ps.ACCEPT_REQUEST, '', (error, data) => {
+                                            if (error) return callback(error);
+                                            else return callback(null, data);
+                                        });
+                                    }
+                                }
+                            );
+                        }
+                    }
+                );
+            }
+        });
+    };
+
     return Task;
 }());
 
