@@ -64,7 +64,7 @@ router.route('/getAll').get((req, res) => {
         var type = req.query.type;
         Content
             .find({ type: type, status: true })
-            .select('type info')
+            //.select('type info')
             .exec((error, data) => {
                 if (error) return msg.msgReturn(res, 3);
                 else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
