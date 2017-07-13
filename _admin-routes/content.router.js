@@ -95,7 +95,7 @@ router.route('/create').post((req, res) => {
             vi: titleVi
         });
 
-        ct.set('content.all', {
+        ct.set('body.all', {
             en: contentEn,
             vi: contentVi
         });
@@ -138,7 +138,7 @@ router.route('/update').post((req, res) => {
                         vi: titleVi,
                         en: titleEn
                     },
-                    content: {
+                    body: {
                         vi: contentVi,
                         en: contentEn
                     },

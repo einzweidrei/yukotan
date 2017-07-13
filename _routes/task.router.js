@@ -35,1310 +35,165 @@ var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 var ObjectId = require('mongoose').Types.ObjectId;
 
-/** Middle Ware
- * 
- */
-router.use(function (req, res, next) {
-    console.log('task_router is connecting');
+var contSession = require('../_controller/session.controller');
+var sessionController = new contSession.Session();
+var contTask = require('../_controller/task.controller');
+var taskController = new contTask.Task();
+var as = require('../_services/app.service');
+var AppService = new as.App();
+var messStatus = require('../_services/mess-status.service');
+var ms = messStatus.MessageStatus;
 
+router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
-        var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
+        var language = AppService.getAppLanguage(baseUrl);
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            Package.setDefaultLanguage(language);
-            Work.setDefaultLanguage(language);
-            Process.setDefaultLanguage(language);
-
+            AppService.setLanguage(language);
             if (req.headers.hbbgvauth) {
                 var token = req.headers.hbbgvauth;
-                Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 14);
-                        } else {
-                            console.log(data)
-                            req.cookies['userId'] = data.auth.userId;
-                            // req.cookies['deviceToken'] = "d97ocXsgXC4:APA91bGQcYODiUMjGG9ysByxG_v8J_B9Ce4rVznRXGb3ArAMv-7Q-CCyEYvoIQ-i4hVl9Yl7tdNzRF9zfxh75iS4El6w7GDuzAKYELw9XG9L5RgAJUmVysxs7s7o_20QQXNhyCJnShj0";
-                            next();
-                        }
+                sessionController.verifyToken(token, (error, data) => {
+                    if (error) return msg.msgReturn(res, error);
+                    else {
+                        req.cookies['userId'] = data.auth.userId;
+                        next();
                     }
                 });
-            } else {
-                return msg.msgReturn(res, 14);
             }
-            // next();
-        } else {
-            return msg.msgReturn(res, 6);
+            else return msg.msgReturn(res, ms.UNAUTHORIZED);
         }
+        else return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
-/** POST - Get All Tasks
- * info {
- *      type: POST
- *      url: /getAll
- *      role: Owner
- *      name: Get All Tasks
- *      description: Get all tasks which is around [input location]
- * }
- * 
- * params {
- *      lat: Number
- *      lng: Number
- *      minDistance: Number
- *      maxDistance: Number
- *      limit: Number
- *      page: Number
- *      sortBy: "distance" | "price"
- *      sortType: "asc" | "desc"
- * }
- * 
- * body {
- *      title: String
- *      process: process_ID
- *      package: [ package_ID ]
- *      work: [ work_ID ]
- * }
- */
-router.route('/getAll').post((req, res) => {
-    try {
-        var minDistance = req.body.minDistance || 1;
-        var maxDistance = req.body.maxDistance || 2000;
-        var limit = req.body.limit || 20;
-        var page = req.body.page || 1;
-        var skip = (page - 1) * limit;
-
-        var title = req.body.title;
-        var process = req.body.process;
-        var package = req.body.package;
-        var work = req.body.work;
-
-        var sortBy = req.body.sortBy || "distance"; //distance & price
-        var sortType = req.body.sortType || "asc"; //asc & desc
-
-        var sortQuery = {};
-
-        if (sortType == "desc") {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'info.price': -1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': -1
-                }
-            }
-        } else {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'info.price': 1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': 1
-                }
-            }
-        };
-
-        var loc = {
-            type: 'Point',
-            coordinates: [
-                parseFloat(req.body.lng) || 0,
-                parseFloat(req.body.lat) || 0
-            ]
-        };
-
-        var matchQuery = { status: true };
-
-        if (!process) {
-            matchQuery['process'] = new ObjectId('000000000000000000000001');
-        } else {
-            matchQuery['process'] = {
-                $in: [
-                    new ObjectId(process)
-                ]
-            };
-        }
-
-        if (package) {
-            matchQuery['info.package'] = new ObjectId(package);
-        }
-
-        if (work) {
-            var arr = new Array();
-            if (work instanceof Array) {
-                for (var i = 0; i < work.length; i++) {
-                    arr.push(new ObjectId(work[i]));
-                }
-                matchQuery['info.work'] = {
-                    $in: arr
-                }
-            }
-        }
-
-        if (title) {
-            matchQuery['info.title'] = new RegExp(title, 'i');
-        }
-
-        // console.log(matchQuery);
-        Task.aggregate([{
-            $geoNear: {
-                near: loc,
-                distanceField: 'dist.calculated',
-                minDistance: minDistance,
-                maxDistance: maxDistance,
-                num: limit,
-                spherical: true
-            }
-        },
-        {
-            $match: matchQuery
-        },
-        {
-            $sort: sortQuery
-        },
-        {
-            $skip: skip
-        },
-        {
-            $project: {
-                process: 1,
-                history: 1,
-                stakeholders: 1,
-                info: 1,
-                dist: 1
-                // status: 1
-            }
-        }
-        ], (error, places) => {
-            // console.log(places);
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(places)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Owner.populate(places, { path: 'stakeholders.owner', select: 'info' }, (error, data) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        Work.populate(data, { path: 'info.work', select: 'name image' }, (error, data) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            Package.populate(data, { path: 'info.package', select: 'name' }, (error, data) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                Process.populate(data, { path: 'process', select: 'name' }, (error, data) => {
-                                    if (error) return msg.msgReturn(res, 3);
-                                    else {
-                                        var d = {
-                                            docs: data,
-                                            total: data.length,
-                                            limit: limit,
-                                            page: page,
-                                            pages: Math.ceil(data.length / limit)
-                                        }
-                                        return msg.msgReturn(res, 0, d);
-                                    }
-                                });
-                            });
-                        });
-                    });
-                }
-            }
-        });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
-
-/** GET - Get Task By Task ID
- * info {
- *      type: GET
- *      url: /getById
- *      role: All
- *      name: Get Task By Task ID
- *      description: Get one task by task ID
- * }
- * 
- * params {
- *      id: task_ID
- * }
- * 
- * body {
- *      null
- * }
- */
-router.route('/getById').get((req, res) => {
-    try {
-        var id = req.query.id;
-
-        var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'stakeholders.owner',
-            select: 'info'
-        },
-        {
-            path: 'stakeholders.received',
-            select: 'info'
-        },
-        {
-            path: 'stakeholders.request.maid',
-            select: 'info'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        }
-        ]
-
-        Task.findOne({ _id: id, status: true }).populate(populateQuery).select('-location -status -__v').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    return msg.msgReturn(res, 0, data);
-                }
-            }
-        });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
-
-/** POST - Create Task
- * info {
- *      type: POST
- *      url: /create
- *      role: Owner
- *      name: Create Task
- *      description: Create one task by owner
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      title: String
- *      package: package_ID
- *      work: work_ID
- *      description: String
- *      price: Number
- *      addressName: String
- *      lat: Number
- *      lng: Number
- *      startAt: Date
- *      endAt: Date
- *      hour: Number
- *      tools: Boolean
- *      process: process_ID
- * }
- */
 router.route('/create').post((req, res) => {
     try {
-        var task = new Task();
+        var ownerId = req.cookies.userId;
+        var title = req.body.title || '';
+        var package = req.body.package;
+        var work = req.body.work;
+        var description = req.body.description || '';
+        var price = req.body.price || 0;
+        var addressName = req.body.addressName || '';
+        var lat = req.body.lat || 1;
+        var lng = req.body.lng || 1;
+        var startAt = req.body.startAt || new Date();
+        var endAt = req.body.endAt || new Date();
+        var hour = req.body.hour || 1;
+        var tools = req.body.tools || false;
 
-        task.info = {
-            title: req.body.title || "",
-            package: req.body.package,
-            work: req.body.work,
-            description: req.body.description || "",
-            price: req.body.price || 0,
-            address: {
-                name: req.body.addressName || "",
-                coordinates: {
-                    lat: req.body.lat || 0,
-                    lng: req.body.lng || 0
-                }
-            },
-            time: {
-                startAt: req.body.startAt || new Date(),
-                endAt: req.body.endAt || new Date(),
-                hour: req.body.hour || 0
-            },
-            tools: req.body.tools || false
-        };
-
-        task.stakeholders = {
-            owner: req.cookies.userId
-        };
-
-        task.process = new ObjectId('000000000000000000000001');
-
-        task.location = {
-            type: 'Point',
-            coordinates: [
-                req.body.lng || 0,
-                req.body.lat || 0
-            ]
-        };
-
-        task.history = {
-            createAt: new Date(),
-            updateAt: new Date()
-        };
-
-        task.status = true;
-
-        var start = new Date(task.info.time.startAt);
-        var end = new Date(task.info.time.endAt);
-        if (start >= end) {
-            return msg.msgReturn(res, 9);
-        }
-
-        // if (task.info.time.startAt >= task.info.time.endAt) {
-        //     return msg.msgReturn(res, 9);
-        // } else {
-        //     var h = task.info.time.startAt.getHours() + task.info.time.endAt.getHours();
-        //     if (task.info.time.hour > h) {
-        //         return msg.msgReturn(res, 9);
-        //     }
-        // }
-
-        Owner.findOne({ _id: req.cookies.userId }).exec((error, owner) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(owner)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    async.parallel({
-                        work: function (callback) {
-                            Work.findOne({ _id: req.body.work }).exec((error, data) => {
-                                if (error) {
-                                    callback(null, 2);
-                                } else {
-                                    if (validate.isNullorEmpty(data)) {
-                                        callback(null, 1);
-                                    } else {
-                                        callback(null, 0);
-                                    }
-                                }
-                            });
-                        },
-                        package: function (callback) {
-                            Package.findOne({ _id: req.body.package }).exec((error, data) => {
-                                if (error) {
-                                    callback(null, 2);
-                                } else {
-                                    if (validate.isNullorEmpty(data)) {
-                                        callback(null, 1);
-                                    } else {
-                                        callback(null, 0);
-                                    }
-                                }
-                            });
-                        },
-                        process: function (callback) {
-                            Process.findOne({ _id: task.process }).exec((error, data) => {
-                                if (error) {
-                                    callback(null, 2);
-                                } else {
-                                    if (validate.isNullorEmpty(data)) {
-                                        callback(null, 1);
-                                    } else {
-                                        callback(null, 0);
-                                    }
-                                }
-                            });
-                        },
-                        task: function (callback) {
-                            Task.find({
-                                'stakeholders.owner': req.cookies.userId,
-                                process: { $in: ['000000000000000000000001', '000000000000000000000006'] },
-                                status: true
-                            }).exec((error, data) => {
-                                if (error) {
-                                    callback(null, 2);
-                                } else {
-                                    if (validate.isNullorEmpty(data) || !data || data.length <= 10) {
-                                        callback(null, 0);
-                                    } else {
-                                        callback(null, 4);
-                                    }
-                                }
-                            });
-                        }
-                    }, (error, result) => {
-                        console.log(result);
-                        if (error) {
-                            console.log(error);
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            if (result.work == 0 && result.package == 0 && result.process == 0) {
-                                if (result.task == 0) {
-                                    task.save((error) => {
-                                        if (error) {
-                                            return msg.msgReturn(res, 3);
-                                        } else {
-                                            return msg.msgReturn(res, 0);
-                                        }
-                                    });
-                                } else if (result.task == 4) {
-                                    return msg.msgReturn(res, 8);
-                                } else {
-                                    return msg.msgReturn(res, 3);
-                                }
-                            } else {
-                                if (result.work == 1 || result.package == 1 || result.process == 1) {
-                                    return msg.msgReturn(res, 4);
-                                } else {
-                                    return msg.msgReturn(res, 3);
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-        });
+        taskController.create(title, package, work, description, price, addressName, lat, lng,
+            startAt, endAt, hour, tools, ownerId, (error, data) => {
+                return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+            });
     } catch (error) {
-        console.log(error);
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
-/** PUT - Update Task
- * info {
- *      type: PUT
- *      url: /update
- *      role: Owner
- *      name: Update Task
- *      description: Update one task by owner
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      id: task_ID
- *      title: String
- *      package: package_ID
- *      work: work_ID
- *      description: String
- *      price: Number
- *      addressName: String
- *      lat: Number
- *      lng: Number
- *      startAt: Date
- *      endAt: Date
- *      hour: Number
- *      tools: Boolean
- *      process: process_ID
- * }
- */
 router.route('/update').put((req, res) => {
     try {
-        var task = new Task();
         var id = req.body.id;
+        var ownerId = req.cookies.userId;
+        var title = req.body.title || '';
+        var package = req.body.package;
+        var work = req.body.work;
+        var description = req.body.description || '';
+        var price = req.body.price || 0;
+        var addressName = req.body.addressName || '';
+        var lat = req.body.lat || 1;
+        var lng = req.body.lng || 1;
+        var startAt = req.body.startAt || new Date();
+        var endAt = req.body.endAt || new Date();
+        var hour = req.body.hour || 1;
+        var tools = req.body.tools || false;
 
-        task.info = {
-            title: req.body.title || "",
-            package: req.body.package,
-            work: req.body.work,
-            description: req.body.description || "",
-            price: req.body.price || 0,
-            address: {
-                name: req.body.addressName || "",
-                coordinates: {
-                    lat: req.body.lat || 0,
-                    lng: req.body.lng || 0
-                }
-            },
-            time: {
-                startAt: req.body.startAt || new Date(),
-                endAt: req.body.endAt || new Date(),
-                hour: req.body.hour || 0
-            },
-            tools: req.body.tools || false
-        };
-
-        // task.process = req.body.process;
-
-        task.location = {
-            type: 'Point',
-            coordinates: [
-                req.body.lng || 0,
-                req.body.lat || 0
-            ]
-        };
-
-        // var start = new Date(task.info.time.startAt);
-        // var end = new Date(task.info.time.endAt);
-        // if (start >= end) {
-        //     return msg.msgReturn(res, 9);
-        // }
-
-        // if (task.info.time.startAt >= task.info.time.endAt) {
-        //     return msg.msgReturn(res, 9);
-        // } else {
-        //     var h = task.info.time.startAt.getHours() + task.info.time.endAt.getHours();
-        //     if (task.info.time.hour > h) {
-        //         return msg.msgReturn(res, 9);
-        //     }
-        // }
-
-        async.parallel({
-            work: function (callback) {
-                Work.findOne({ _id: req.body.work, status: true }).exec((error, data) => {
-                    if (error) {
-                        callback(null, 2);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            callback(null, 1);
-                        } else {
-                            callback(null, 0);
-                        }
-                    }
-                });
-            },
-            package: function (callback) {
-                Package.findOne({ _id: req.body.package, status: true }).exec((error, data) => {
-                    if (error) {
-                        callback(null, 2);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            callback(null, 1);
-                        } else {
-                            callback(null, 0);
-                        }
-                    }
-                });
-            },
-            task: function (callback) {
-                Task.findOne({ _id: req.body.id, 'stakeholders.owner': req.cookies.userId, status: true }).exec((error, data) => {
-                    if (error) {
-                        callback(null, 2);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            callback(null, 1);
-                        } else {
-                            if (data.process == '000000000000000000000001') {
-                                callback(null, 0);
-                            } else {
-                                callback(null, 3);
-                            }
-                        }
-                    }
-                });
-            }
-        }, (error, result) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (result.work == 0 && result.package == 0 && result.task == 0) {
-                    Task.findOneAndUpdate({
-                        _id: id,
-                        'stakeholders.owner': req.cookies.userId,
-                        status: true
-                    }, {
-                            $set: {
-                                info: task.info,
-                                // process: task.process,
-                                location: task.location,
-                                'history.updateAt': new Date()
-                            }
-                        }, {
-                            upsert: true
-                        },
-                        (error, result) => {
-                            if (error) {
-                                return msg.msgReturn(res, 3);
-                            } else {
-                                return msg.msgReturn(res, 0);
-                            }
-                        }
-                    )
-                } else {
-                    if (result.work == 1 || result.package == 1 || result.task == 1) {
-                        return msg.msgReturn(res, 4);
-                    } else if (result.task == 3) {
-                        return msg.msgReturn(res, 7);
-                    } else {
-                        return msg.msgReturn(res, 3);
-                    }
-                }
-            }
-        });
+        taskController.update(id, title, package, work, description, price, addressName,
+            lat, lng, startAt, endAt, hour, tools, ownerId, (error, data) => {
+                return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+            });
     } catch (error) {
-        console.log(error);
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
-/** DELETE - Delete Task
- * info {
- *      type: DELETE
- *      url: /delete
- *      role: Owner
- *      name: Delete Task
- *      description: Delete one task by owner
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      id: task_ID
- * }
- */
 router.route('/delete').delete((req, res) => {
     try {
         var id = req.body.id;
         var ownerId = req.cookies.userId;
+        var language = req.cookies.language;
 
-        Task.findOneAndUpdate({
-            _id: id,
-            'stakeholders.owner': ownerId,
-            status: true
-        }, {
-                $set: {
-                    'history.updateAt': new Date(),
-                    status: false
-                }
-            },
-            (error, result) => {
-                if (error) return msg.msgReturn(res, 3);
-                else {
-                    if (validate.isNullorEmpty(result)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        if (result.process == '000000000000000000000001') {
-                            return msg.msgReturn(res, 0);
-                        } else {
-                            var maidId = result.stakeholders.received;
-                            Maid.findOne({ _id: maidId, status: true })
-                                .exec((error, maid) => {
-                                    if (error || validate.isNullorEmpty(maid)) return msg.msgReturn(res, 0);
-                                    return FCMService.pushNotification(res, maid, req.cookies.language, 1, [], '')
-                                })
-                        }
-                    }
-                }
-            }
-        )
+        taskController.delete(id, ownerId, language, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+        });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
-/** DELETE - Cancel Task
- * info {
- *      type: DELETE
- *      url: /Cancel
- *      role: Maid
- *      name: Cancel Task
- *      description: Cancel one task by maid
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      id: task_ID
- *      maidId: maid_ID
- * }
- */
 router.route('/cancel').delete((req, res) => {
     try {
         var id = req.body.id;
         var maidId = req.cookies.userId;
+        var language = req.cookies.language;
 
-        Task.findOne({
-            _id: id,
-            'stakeholders.request.maid': maidId,
-            status: true
-        }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    if (data.process == '000000000000000000000001') {
-                        Task.findOneAndUpdate({
-                            _id: id,
-                            'stakeholders.request.maid': maidId,
-                            process: '000000000000000000000001',
-                            status: true
-                        }, {
-                                $pull: {
-                                    'stakeholders.request': { maid: maidId }
-                                }
-                            }, {
-                                safe: true
-                            },
-                            (error, result) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                return msg.msgReturn(res, 0);
-                            }
-                        )
-                    } else if (data.process == '000000000000000000000003') {
-                        Owner.findOne({ _id: data.stakeholders.owner, status: true }).select('auth').exec((error, owner) => {
-                            Task.findOneAndUpdate({
-                                _id: id,
-                                'stakeholders.received': maidId,
-                                process: '000000000000000000000003',
-                                status: true
-                            }, {
-                                    $set: {
-                                        process: new ObjectId('000000000000000000000001')
-                                    },
-                                    $pull: {
-                                        'stakeholders.request': { maid: maidId }
-                                    },
-                                    $unset: {
-                                        'stakeholders.received': maidId,
-                                    }
-                                }, {
-                                    safe: true
-                                },
-                                (error, result) => {
-                                    if (error) return msg.msgReturn(res, 3);
-                                    else {
-                                        return owner.auth.device_token == '' ?
-                                            msg.msgReturn(res, 17) :
-                                            FCMService.pushNotification(res, owner, req.cookies.language, 0, [], '')
-                                    }
-                                }
-                            )
-                        })
-                    } else {
-                        return msg.msgReturn(res, 15);
-                    }
-                }
-            }
+        taskController.cancel(id, maidId, language, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
-/** POST - Reserve Task
- * info {
- *      type: POST
- *      url: /reserve
- *      role: Maid
- *      name: Reserve Task
- *      description: Reserve one task by maid
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      id: task_ID
- *      maidId: maid_ID
- * }
- */
 router.route('/reserve').post((req, res) => {
     try {
         var id = req.body.id;
         var maidId = req.cookies.userId;
 
-        async.parallel({
-            maid: function (callback) {
-                Maid.findOne({ _id: maidId, status: true }).exec((error, data) => {
-                    if (error) {
-                        callback(null, 2);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            callback(null, 1);
-                        } else {
-                            callback(null, 0);
-                        }
-                    }
-                });
-            }
-        }, (error, result) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (result.maid == 0) {
-                    maid = {
-                        maid: maidId,
-                        time: new Date()
-                    };
-
-                    Task.findOne({
-                        _id: id,
-                        process: '000000000000000000000001',
-                        'stakeholders.request.maid': maidId,
-                        status: true
-                    }).exec((error, data) => {
-                        console.log(data)
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            if (validate.isNullorEmpty(data)) {
-                                Task.findOneAndUpdate({
-                                    _id: id,
-                                    process: '000000000000000000000001',
-                                    status: true
-                                }, {
-                                        $push: {
-                                            'stakeholders.request': maid
-                                        }
-                                    }, {
-                                        upsert: true
-                                    },
-                                    (error) => {
-                                        if (error) return msg.msgReturn(res, 3);
-                                        else return msg.msgReturn(res, 0);
-                                    }
-                                );
-                                // return msg.msgReturn(res, 4);
-                            } else {
-                                return msg.msgReturn(res, 16);
-                                // var check = false
-                                // var lstMaid = data.stakeholders.request;
-
-                                // if (!validate.isNullorEmpty(lstMaid)) {
-                                //     for (i = 0; i < lstMaid.length; i++) {
-                                //         if (lstMaid[i].maid == maidId) {
-                                //             check = true
-                                //             break
-                                //         }
-                                //     }
-                                // }
-
-                                // if (check) {
-                                //     return msg.msgReturn(res, 16);
-                                // } else {
-                                //     Task.findOneAndUpdate(
-                                //         {
-                                //             _id: id,
-                                //             process: '000000000000000000000001',
-                                //             status: true
-                                //         },
-                                //         {
-                                //             $push: {
-                                //                 'stakeholders.request': maid
-                                //             }
-                                //         },
-                                //         {
-                                //             upsert: true
-                                //         },
-                                //         (error) => {
-                                //             if (error) return msg.msgReturn(res, 3);
-                                //             else return msg.msgReturn(res, 0);
-                                //         }
-                                //     );
-                                // }
-                            }
-                        }
-                    });
-                } else {
-                    if (result.maid == 1) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        return msg.msgReturn(res, 3);
-                    }
-                }
-            }
+        taskController.reverse(id, maidId, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
-/** POST - Submit Task
- * info {
- *      type: POST
- *      url: /submit
- *      role: Owner
- *      name: Submit Task
- *      description: Submit one task by maid
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      id: task_ID
- *      ownerId: owner_ID
- *      maidId: maid_ID
- * }
- */
 router.route('/submit').post((req, res) => {
     try {
         var id = req.body.id;
         var ownerId = req.cookies.userId;
         var maidId = req.body.maidId;
+        var language = req.cookies.language;
 
-        async.parallel({
-            maid: function (callback) {
-                Maid.findOne({ _id: maidId, status: true }).exec((error, data) => {
-                    if (error) {
-                        callback(null, { value: 2 });
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            callback(null, { value: 1 });
-                        } else {
-                            callback(null, { value: 0, data: data });
-                        }
-                    }
-                });
-            },
-
-            task: function (callback) {
-                Task.findOne({
-                    _id: id,
-                    'stakeholders.owner': ownerId,
-                    process: new ObjectId('000000000000000000000001'),
-                    status: true
-                }).exec((error, data) => {
-                    if (error) {
-                        callback(null, 2);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            callback(null, 1);
-                        } else {
-                            //check no-duplicated time of task
-                            Task.findOne(
-                                {
-                                    'stakeholders.received': maidId,
-                                    $or: [
-                                        //x >= s & y <= e
-                                        {
-                                            'info.time.startAt': {
-                                                $gte: data.info.time.startAt
-                                            },
-                                            'info.time.endAt': {
-                                                $lte: data.info.time.endAt
-                                            }
-                                        },
-
-                                        //x <= s & y >= e
-                                        {
-                                            'info.time.startAt': {
-                                                $lte: data.info.time.startAt
-                                            },
-                                            'info.time.endAt': {
-                                                $gte: data.info.time.endAt
-                                            }
-                                        },
-
-                                        //x [>= s & <= e] & y >= e
-                                        {
-                                            'info.time.startAt': {
-                                                $gte: data.info.time.startAt,
-                                                $lte: data.info.time.endAt
-                                            },
-                                            'info.time.endAt': {
-                                                $gte: data.info.time.endAt
-                                            }
-                                        },
-
-                                        //x <= s & y [>= s & <= e]
-                                        {
-                                            'info.time.startAt': {
-                                                $lte: data.info.time.startAt
-                                            },
-                                            'info.time.endAt': {
-                                                $gte: data.info.time.startAt,
-                                                $lte: data.info.time.endAt
-                                            }
-                                        },
-                                    ]
-                                }
-                            ).exec((error, result) => {
-                                if (error) {
-                                    console.log(error)
-                                    callback(null, 2);
-                                } else {
-                                    if (validate.isNullorEmpty(result)) {
-                                        callback(null, 0);
-                                    } else {
-                                        callback(null, 3);
-                                    }
-                                }
-                            });
-                            // callback(null, 0);
-                        }
-                    }
-                });
-            }
-        }, (error, result) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (result.maid.value == 0 && result.task == 0) {
-                    Task.findOneAndUpdate({
-                        _id: id,
-                        'stakeholders.owner': ownerId,
-                        process: new ObjectId('000000000000000000000001'),
-                        status: true
-                    }, {
-                            $set: {
-                                'stakeholders.received': maidId,
-                                process: new ObjectId('000000000000000000000003')
-                            }
-                        }, {
-                            upsert: true
-                        },
-                        (error) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            else {
-                                var maid = result.maid.data;
-                                return maid.auth.device_token == '' ?
-                                    msg.msgReturn(res, 17) :
-                                    FCMService.pushNotification(res, maid, req.cookies.language, 8, [], '')
-                            }
-                        }
-                    );
-                } else {
-                    if (result.maid.value == 1 || result.task == 1) {
-                        return msg.msgReturn(res, 4);
-                    }
-                    else if (result.task == 3) {
-                        return msg.msgReturn(res, 10);
-                    }
-                    else {
-                        return msg.msgReturn(res, 3);
-                    }
-                }
-            }
+        taskController.submit(id, ownerId, maidId, language, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
-/** POST - Check In Task
- * info {
- *      type: POST
- *      url: /checkin
- *      role: Owner
- *      name: Check In Task
- *      description: Check in one task by Owner
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      id: task_ID
- *      ownerId: owner_ID
- * }
- */
 router.route('/checkin').post(multipartMiddleware, (req, res) => {
     try {
         var id = req.body.id;
         var ownerId = req.cookies.userId;
-        var subs_key = AppService.getAzureKey();
-
-        if (!req.files.image) return msg.msgReturn(res, 3);
-
-        Task.findOne({
-            _id: id,
-            'stakeholders.owner': ownerId,
-            process: '000000000000000000000003',
-            status: true
-        })
-            .populate('stakeholders.owner')
-            .exec((error, data) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        if (validate.isNullorEmpty(data.check.check_in)) {
-                            cloudinary.uploader.upload(
-                                req.files.image.path,
-                                function (result) {
-                                    var imgUrl = result.url;
-                                    async.parallel({
-                                        faceId1: function (callback) {
-                                            request({
-                                                method: 'POST',
-                                                preambleCRLF: true,
-                                                postambleCRLF: true,
-                                                uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
-                                                headers: {
-                                                    'Content-Type': 'application/json',
-                                                    'Ocp-Apim-Subscription-Key': subs_key
-                                                },
-                                                body: JSON.stringify(
-                                                    {
-                                                        url: imgUrl
-                                                    }
-                                                )
-                                            },
-                                                function (error, response, body) {
-                                                    if (error) {
-                                                        callback(null, '');
-                                                    }
-                                                    else {
-                                                        var data = JSON.parse(body);
-                                                        if (validate.isNullorEmpty(data)) {
-                                                            callback(null, '')
-                                                        } else {
-                                                            callback(null, data[0].faceId);
-                                                        }
-                                                    }
-                                                    console.log('FaceId1 successful!  Server responded with:', body);
-                                                });
-                                        },
-                                        faceId2: function (callback) {
-                                            Maid.findOne({ _id: data.stakeholders.received, status: true }).exec((error, maid) => {
-                                                if (error) {
-                                                    callback(null, '');
-                                                } else {
-                                                    if (validate.isNullorEmpty(maid)) {
-                                                        callback(null, '');
-                                                    } else {
-                                                        request({
-                                                            method: 'POST',
-                                                            preambleCRLF: true,
-                                                            postambleCRLF: true,
-                                                            uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false',
-                                                            headers: {
-                                                                'Content-Type': 'application/json',
-                                                                'Ocp-Apim-Subscription-Key': subs_key
-                                                            },
-                                                            body: JSON.stringify(
-                                                                {
-                                                                    url: maid.info.image
-                                                                }
-                                                            )
-                                                        },
-                                                            function (error, response, body) {
-                                                                if (error) {
-                                                                    callback(null, '');
-                                                                }
-                                                                else {
-                                                                    var data = JSON.parse(body);
-                                                                    if (validate.isNullorEmpty(data)) {
-                                                                        callback(null, '')
-                                                                    } else {
-                                                                        callback(null, data[0].faceId);
-                                                                    }
-                                                                }
-                                                                console.log('FaceId2 successful!  Server responded with:', body);
-                                                            });
-                                                    }
-                                                }
-                                            })
-                                        },
-                                        task: function (callback) {
-                                            Task.findOne(
-                                                {
-                                                    process: '000000000000000000000004',
-                                                    'stakeholders.received': data.stakeholders.received,
-                                                    status: true
-                                                },
-                                                (error, t) => {
-                                                    if (error) callback(null, 2)
-                                                    else if (validate.isNullorEmpty(t)) callback(null, 0)
-                                                    else callback(null, 1)
-                                                });
-                                        }
-                                    }, (error, data) => {
-                                        if (error) {
-                                            return msg.msgReturn(res, 3);
-                                        } else {
-                                            if (data.faceId1 != '' && data.faceId2 != '' && data.task == 0) {
-                                                request({
-                                                    method: 'POST',
-                                                    preambleCRLF: true,
-                                                    postambleCRLF: true,
-                                                    uri: 'https://southeastasia.api.cognitive.microsoft.com/face/v1.0/verify',
-                                                    headers: {
-                                                        'Content-Type': 'application/json',
-                                                        'Ocp-Apim-Subscription-Key': subs_key
-                                                    },
-                                                    body: JSON.stringify(
-                                                        {
-                                                            "faceId1": data.faceId1,
-                                                            "faceId2": data.faceId2
-                                                        }
-                                                    )
-                                                },
-                                                    function (error, response, body) {
-                                                        if (error) {
-                                                            console.error('upload failed:', error);
-                                                            return msg.msgReturn(res, 3);
-                                                        }
-                                                        var item = JSON.parse(body);
-
-                                                        if (item.isIdentical) {
-                                                            Task.findOneAndUpdate(
-                                                                {
-                                                                    _id: id,
-                                                                    'stakeholders.owner': ownerId,
-                                                                    process: '000000000000000000000003',
-                                                                    status: true
-                                                                },
-                                                                {
-                                                                    $set: {
-                                                                        process: new ObjectId('000000000000000000000004'),
-                                                                        'check.check_in': new Date()
-                                                                    }
-                                                                },
-                                                                {
-                                                                    upsert: true
-                                                                }, (error, data) => {
-                                                                    if (error) return msg.msgReturn(res, 3);
-                                                                    return msg.msgReturn(res, 0);
-                                                                }
-                                                            )
-                                                        } else {
-                                                            return msg.msgReturn(res, 19);
-                                                        }
-                                                    });
-                                            } else {
-                                                return data.task == 1 ? msg.msgReturn(res, 11) : msg.msgReturn(res, 19);
-                                            }
-                                        }
-                                    });
-                                }
-                            );
-                        }
-                        else {
-                            return msg.msgReturn(res, 11);
-                        }
-
-                        // Task.findOneAndUpdate({
-                        //     _id: id,
-                        //     'stakeholders.owner': ownerId,
-                        //     process: '000000000000000000000003',
-                        //     status: true
-                        // }, {
-                        //         $set: {
-                        //             process: new ObjectId('000000000000000000000004'),
-                        //             'check.check_in': new Date()
-                        //         }
-                        //     }, {
-                        //         upsert: true
-                        //     }, (error, data) => {
-                        //         if (error) return msg.msgReturn(res, 3);
-                        //         else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
-                        //         return msg.msgReturn(res, 0);
-                        //     })
-                    }
-                }
-            });
+        if (!req.files.image) return msg.msgReturn(res, ms.EXCEPTION_FAILED);
+        else {
+            cloudinary.uploader.upload(
+                req.files.image.path,
+                function (result) {
+                    var imageUrl = result.url;
+                    taskController.checkIn(id, ownerId, imageUrl, (error, data) => {
+                        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+                    });
+                });
+        }
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
@@ -1364,163 +219,149 @@ router.route('/checkout').post((req, res) => {
     try {
         var id = req.body.id;
         var ownerId = req.cookies.userId;
+        var language = req.cookies.language;
 
-        async.parallel({
-            task: function (callback) {
-                Task.findOne({
-                    _id: id,
-                    'stakeholders.owner': ownerId,
-                    process: '000000000000000000000004',
-                    status: true
-                }).exec((error, data) => {
-                    if (error) {
-                        callback(null, 2);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            callback(null, 1);
-                        } else {
-                            if (validate.isNullorEmpty(data.check.check_in)) {
-                                callback(null, 4);
-                            } else if (validate.isNullorEmpty(data.check.check_out)) {
-                                callback(null, 0);
-                            } else {
-                                callback(null, 3);
-                            }
-                        }
-                    }
-                });
-            }
-        }, (error, result) => {
-            if (error) {
-                return msg.msgReturn(res, 3, {});
-            } else {
-                if (result.task == 0) {
-                    var checkOut = new Date();
-                    Task.findOneAndUpdate({
-                        _id: id,
-                        'stakeholders.owner': ownerId,
-                        process: '000000000000000000000004',
-                        status: true
-                    }, {
-                            $set: {
-                                process: new ObjectId('000000000000000000000005'),
-                                'check.check_out': checkOut
-                            }
-                        }, {
-                            upsert: true
-                        },
-                        (error, task) => {
-                            if (error) return msg.msgReturn(res, 3, {});
-                            else {
-                                var bill = new Bill();
-                                bill.owner = task.stakeholders.owner;
-                                bill.maid = task.stakeholders.received;
-                                bill.task = task._id;
-                                bill.isSolved = false;
-                                bill.date = new Date();
-                                bill.createAt = new Date();
-                                bill.method = 1;
-                                bill.status = true;
-
-                                Maid.findOne({ _id: task.stakeholders.received, status: true }).exec((error, maid) => {
-                                    if (error) return msg.msgReturn(res, 3, {});
-                                    else if (validate.isNullorEmpty(maid)) return msg.msgReturn(res, 4, {});
-                                    else {
-                                        if (task.info.package == '000000000000000000000001') {
-                                            bill.price = task.info.price;
-
-                                            var timeIn = new Date(task.info.time.startAt);
-                                            var timeOut = new Date(task.info.time.endAt);
-
-                                            var t = new Date(timeOut.getTime() - timeIn.getTime());
-                                            bill.period = t;
-
-                                            var dt = {
-                                                _id: bill._id,
-                                                period: t,
-                                                price: task.info.price,
-                                                date: new Date()
-                                            }
-
-                                            bill.save((error) => {
-                                                if (error) return msg.msgReturn(res, 3);
-                                                return maid.auth.device_token == '' ?
-                                                    msg.msgReturn(res, 17, dt) :
-                                                    FCMService.pushNotification(res, maid, req.cookies.language, 5, dt, '')
-                                            });
-                                        } else if (task.info.package == '000000000000000000000002') {
-                                            if (error) {
-                                                return msg.msgReturn(res, 0, {});
-                                            } else {
-                                                if (validate.isNullorEmpty(maid)) {
-                                                    return msg.msgReturn(res, 4, {});
-                                                } else {
-                                                    var timeIn = new Date(task.check.check_in);
-                                                    var timeOut = new Date(checkOut);
-                                                    var diff = new Date(timeOut.getTime() - timeIn.getTime());
-
-                                                    var price = AppService.countPrice(diff, maid.work_info.price);
-
-                                                    // var price = 0;
-                                                    // var maidPrice = maid.work_info.price;
-                                                    // var hours = t.getUTCHours();
-                                                    // var minutes = t.getUTCMinutes();
-
-                                                    // if (hours == 0) {
-                                                    //     price = maidPrice;
-                                                    // } else {
-                                                    //     if (minutes >= 0 && minutes < 15) {
-                                                    //         price = maidPrice * hours + maidPrice / 4;
-                                                    //     } else if (minutes >= 15 && minutes < 30) {
-                                                    //         price = maidPrice * hours + maidPrice / 2;
-                                                    //     } else if (minutes >= 30 && minutes < 45) {
-                                                    //         price = maidPrice * hours + maidPrice * (3 / 4);
-                                                    //     } else {
-                                                    //         price = maidPrice * (hours + 1);
-                                                    //     }
-                                                    // }
-
-                                                    bill.period = t;
-                                                    bill.price = price;
-
-                                                    var dt = {
-                                                        _id: bill._id,
-                                                        period: t,
-                                                        price: price,
-                                                        date: new Date()
-                                                    }
-
-                                                    bill.save((error) => {
-                                                        if (error) return msg.msgReturn(res, 3);
-                                                        else {
-                                                            return maid.auth.device_token == '' ?
-                                                                msg.msgReturn(res, 17, dt) :
-                                                                FCMService.pushNotification(res, maid, req.cookies.language, 5, dt, '')
-                                                        }
-                                                    });
-                                                }
-                                            }
-                                        } else {
-                                            return msg.msgReturn(res, 4, {});
-                                        }
-                                    }
-                                })
-                            }
-                        }
-                    );
-                } else {
-                    if (result.task == 1) {
-                        return msg.msgReturn(res, 4, {});
-                    } else if (result.task == 3) {
-                        return msg.msgReturn(res, 12, {});
-                    } else if (result.task == 4) {
-                        return msg.msgReturn(res, 13, {});
-                    } else {
-                        return msg.msgReturn(res, 3, {});
-                    }
-                }
-            }
+        taskController.checkOut(id, ownerId, language, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
         });
+
+        // async.parallel({
+        //     task: function (callback) {
+        //         Task.findOne({
+        //             _id: id,
+        //             'stakeholders.owner': ownerId,
+        //             process: '000000000000000000000004',
+        //             status: true
+        //         }).exec((error, data) => {
+        //             if (error) {
+        //                 callback(null, 2);
+        //             } else {
+        //                 if (validate.isNullorEmpty(data)) {
+        //                     callback(null, 1);
+        //                 } else {
+        //                     if (validate.isNullorEmpty(data.check.check_in)) {
+        //                         callback(null, 4);
+        //                     } else if (validate.isNullorEmpty(data.check.check_out)) {
+        //                         callback(null, 0);
+        //                     } else {
+        //                         callback(null, 3);
+        //                     }
+        //                 }
+        //             }
+        //         });
+        //     }
+        // }, (error, result) => {
+        //     if (error) {
+        //         return msg.msgReturn(res, 3, {});
+        //     } else {
+        //         if (result.task == 0) {
+        //             var checkOut = new Date();
+        //             Task.findOneAndUpdate({
+        //                 _id: id,
+        //                 'stakeholders.owner': ownerId,
+        //                 process: '000000000000000000000004',
+        //                 status: true
+        //             }, {
+        //                     $set: {
+        //                         process: new ObjectId('000000000000000000000005'),
+        //                         'check.check_out': checkOut
+        //                     }
+        //                 }, {
+        //                     upsert: true
+        //                 },
+        //                 (error, task) => {
+        //                     if (error) return msg.msgReturn(res, 3, {});
+        //                     else {
+        //                         var bill = new Bill();
+        //                         bill.owner = task.stakeholders.owner;
+        //                         bill.maid = task.stakeholders.received;
+        //                         bill.task = task._id;
+        //                         bill.isSolved = false;
+        //                         bill.date = new Date();
+        //                         bill.createAt = new Date();
+        //                         bill.method = 1;
+        //                         bill.status = true;
+
+        //                         Maid.findOne({ _id: task.stakeholders.received, status: true }).exec((error, maid) => {
+        //                             if (error) return msg.msgReturn(res, 3, {});
+        //                             else if (validate.isNullorEmpty(maid)) return msg.msgReturn(res, 4, {});
+        //                             else {
+        //                                 if (task.info.package == '000000000000000000000001') {
+        //                                     bill.price = task.info.price;
+
+        //                                     var timeIn = new Date(task.info.time.startAt);
+        //                                     var timeOut = new Date(task.info.time.endAt);
+
+        //                                     var t = new Date(timeOut.getTime() - timeIn.getTime());
+        //                                     bill.period = t;
+
+        //                                     var dt = {
+        //                                         _id: bill._id,
+        //                                         period: t,
+        //                                         price: task.info.price,
+        //                                         date: new Date()
+        //                                     }
+
+        //                                     bill.save((error) => {
+        //                                         if (error) return msg.msgReturn(res, 3);
+        //                                         return maid.auth.device_token == '' ?
+        //                                             msg.msgReturn(res, 17, dt) :
+        //                                             FCMService.pushNotification(res, maid, req.cookies.language, 5, dt, '')
+        //                                     });
+        //                                 } else if (task.info.package == '000000000000000000000002') {
+        //                                     if (error) {
+        //                                         return msg.msgReturn(res, 0, {});
+        //                                     } else {
+        //                                         if (validate.isNullorEmpty(maid)) {
+        //                                             return msg.msgReturn(res, 4, {});
+        //                                         } else {
+        //                                             var timeIn = new Date(task.check.check_in);
+        //                                             var timeOut = new Date(checkOut);
+        //                                             var diff = new Date(timeOut.getTime() - timeIn.getTime());
+
+        //                                             var price = AppService.countPrice(diff, maid.work_info.price);
+
+        //                                             bill.period = diff;
+        //                                             bill.price = price;
+
+        //                                             var dt = {
+        //                                                 _id: bill._id,
+        //                                                 period: diff,
+        //                                                 price: price,
+        //                                                 date: new Date()
+        //                                             }
+
+        //                                             bill.save((error) => {
+        //                                                 if (error) return msg.msgReturn(res, 3);
+        //                                                 else {
+        //                                                     return maid.auth.device_token == '' ?
+        //                                                         msg.msgReturn(res, 17, dt) :
+        //                                                         FCMService.pushNotification(res, maid, req.cookies.language, 5, dt, '')
+        //                                                 }
+        //                                             });
+        //                                         }
+        //                                     }
+        //                                 } else {
+        //                                     return msg.msgReturn(res, 4, {});
+        //                                 }
+        //                             }
+        //                         })
+        //                     }
+        //                 }
+        //             );
+        //         } else {
+        //             if (result.task == 1) {
+        //                 return msg.msgReturn(res, 4, {});
+        //             } else if (result.task == 3) {
+        //                 return msg.msgReturn(res, 12, {});
+        //             } else if (result.task == 4) {
+        //                 return msg.msgReturn(res, 13, {});
+        //             } else {
+        //                 return msg.msgReturn(res, 3, {});
+        //             }
+        //         }
+        //     }
+        // });
     } catch (error) {
         return msg.msgReturn(res, 3, {});
     }

@@ -14,7 +14,26 @@ var Bill = (function () {
             if (error) return callback(ms.EXCEPTION_FAILED);
             return callback(null, data);
         });
-    }
+    };
+
+    Bill.prototype.save = (owner, maid, taskId, price, period, callback) => {
+        var bill = new mBill();
+        bill.owner = owner;
+        bill.maid = maid;
+        bill.task = taskId;
+        bill.isSolved = false;
+        bill.date = new Date();
+        bill.createAt = new Date();
+        bill.method = 1;
+        bill.status = true;
+        bill.price = price;
+        bill.period = period;
+
+        bill.save((error, data) => {
+            if (error) return callback(ms.EXCEPTION_FAILED);
+            else return callback(null, data);
+        });
+    };
 
     return Bill;
 }());

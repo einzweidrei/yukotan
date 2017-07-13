@@ -229,10 +229,9 @@ router.route('/report').post((req, res) => {
     try {
         var ownerId = req.cookies.userId;
         var maidId = req.body.toId;
-        var from = 1;
         var content = req.body.content;
 
-        ownerController.report(ownerId, maidId, from, content, (error, data) => {
+        ownerController.report(ownerId, maidId, content, (error, data) => {
             return error ? msg.msgReturn(res, error) : msg.msgReturn(res, 0);
         });
     } catch (error) {

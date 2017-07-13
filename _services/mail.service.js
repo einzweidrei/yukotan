@@ -30,7 +30,7 @@ var MailService = (function () {
         }
     }
 
-    MailService.prototype.sendConfirmForgotPwMail = (email, verifyToken, callback) => {
+    MailService.prototype.sendConfirmForgotPwMail = (user, verifyToken, callback) => {
         var confirmUrl = url + user._id + '-' + verifyToken;
 
         var mailOptions = {
@@ -43,7 +43,7 @@ var MailService = (function () {
         var mailService = new MailService();
         mailService.submitMail(mailOptions, (error, data) => {
             if (error) return callback(ms.EXCEPTION_FAILED);
-            return callback(null, info);
+            return callback(null, data);
         });
     }
 

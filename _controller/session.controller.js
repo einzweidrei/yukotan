@@ -17,6 +17,22 @@ var Session = (function () {
         });
     }
 
+    Session.prototype.findOneAndUpdate = (searchQuery, setQuery, upsert, callback) => {
+        mSession.findOneAndUpdate(
+            searchQuery,
+            {
+                $set: setQuery
+            },
+            {
+                upsert: upsert
+            },
+            (error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                return callback(null, data);
+            }
+        );
+    }
+
     return Session;
 }());
 

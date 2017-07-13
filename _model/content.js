@@ -9,7 +9,7 @@ var ContentSchema = new Schema(
         type: { type: Number },
         image: { type: String },
         title: { type: String, intl: true },
-        content: { type: String, intl: true },
+        body: { type: String, intl: true },
         history: {
             createAt: { type: Date },
             updateAt: { type: Date }

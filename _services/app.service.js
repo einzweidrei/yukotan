@@ -9,6 +9,7 @@ const Term = require('../_model/term');
 const hash_key = 'LULULUL';
 const token_length = 64;
 const azure_key = 'b1726597dcc74171abf38be836846977'
+const task_limit = 10;
 
 var App = (function () {
     function App() { }
@@ -19,6 +20,10 @@ var App = (function () {
         Process.setDefaultLanguage(language);
         AppInfo.setDefaultLanguage(language);
         Term.setDefaultLanguage(language);
+    }
+
+    App.prototype.getTaskLimit = () => {
+        return task_limit;
     }
 
     App.prototype.getAppLanguage = (baseUrl) => {

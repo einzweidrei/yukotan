@@ -20,6 +20,10 @@ var contReport = require('../_controller/report.controller');
 var reportController = new contReport.Report();
 var contBill = require('../_controller/bill.controller');
 var billController = new contBill.Bill();
+var mail = require('../_services/mail.service');
+var mailService = new mail.MailService();
+var contSession = require('../_controller/session.controller');
+var sessionController = new contSession.Session();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
@@ -479,8 +483,8 @@ var Owner = (function () {
         })
     }
 
-    Owner.prototype.report = (ownerId, maidId, from, content, callback) => {
-        reportController.save(ownerId, maidId, from, content, (error, data) => {
+    Owner.prototype.report = (ownerId, maidId, content, callback) => {
+        reportController.save(ownerId, maidId, 1, content, (error, data) => {
             if (error) return callback(ms.EXCEPTION_FAILED);
             return callback(null, data);
         });
@@ -609,7 +613,7 @@ var Owner = (function () {
                             }
                             callback(null, data);
                         }
-                        else return callback(null, data);
+                        else return callback(null, data[0]);
                     });
                 },
                 task: function (callback) {
@@ -721,6 +725,46 @@ var Owner = (function () {
                                 });
                             });
                     });
+                });
+            }
+        });
+    }
+
+    Owner.prototype.forgotPassword = (username, email, callback) => {
+        var verifyToken = AppService.getVerifyToken();
+        var searchQuery = {
+            'info.username': username,
+            'info.email': email,
+            status: true
+        };
+
+        var owner = new Owner();
+        owner.findOne(searchQuery, '-__v', (error, data) => {
+            if (error) return callback(ms.EXCEPTION_FAILED);
+            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+            else {
+                var sessionSearch = {
+                    'auth.userId': data._id,
+                    status: true
+                };
+
+                var sessionSet = {
+                    verification: {
+                        password: {
+                            key: verifyToken,
+                            date: new Date()
+                        }
+                    }
+                };
+
+                sessionController.findOneAndUpdate(sessionSearch, sessionSet, true, (error, sess) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else {
+                        mailService.sendConfirmForgotPwMail(data, verifyToken, (error, data) => {
+                            if (error) return callback(ms.EXCEPTION_FAILED);
+                            return callback(null, data);
+                        });
+                    }
                 });
             }
         });

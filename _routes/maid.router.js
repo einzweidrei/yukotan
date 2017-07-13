@@ -1,526 +1,89 @@
 var express = require('express');
-var mongoose = require('mongoose');
 var router = express.Router();
-var async = require('promise-async');
-
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
-
-var validationService = require('../_services/validation.service');
-var validate = new validationService.Validation();
-
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
-
-var Mail = require('../_services/mail.service');
-var MailService = new Mail.MailService();
-
-var Owner = require('../_model/owner');
-var Session = require('../_model/session');
-var Package = require('../_model/package');
-var Work = require('../_model/work');
-var Task = require('../_model/task');
-var Process = require('../_model/process');
-var Maid = require('../_model/maid');
-var Comment = require('../_model/comment');
-var Bill = require('../_model/bill');
-var Report = require('../_model/report');
-
-var ObjectId = require('mongoose').Types.ObjectId;
+var contSession = require('../_controller/session.controller');
+var sessionController = new contSession.Session();
+var contMaid = require('../_controller/maid.controller');
+var maidController = new contMaid.Maid();
+var messStatus = require('../_services/mess-status.service');
+var ms = messStatus.MessageStatus;
+var as = require('../_services/app.service');
+var AppService = new as.App();
 
 router.use(function (req, res, next) {
-    console.log('maid_router is connecting');
-
     try {
         var baseUrl = req.baseUrl;
-        var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
+        var language = AppService.getAppLanguage(baseUrl);
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            Package.setDefaultLanguage(language);
-            Work.setDefaultLanguage(language);
-            Process.setDefaultLanguage(language);
-
+            AppService.setLanguage(language);
             if (req.headers.hbbgvauth) {
                 var token = req.headers.hbbgvauth;
-                Session.findOne({ 'auth.token': token }).exec((error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 14);
-                        } else {
-                            req.cookies['userId'] = data.auth.userId;
-                            next();
-                        }
+                sessionController.verifyToken(token, (error, data) => {
+                    if (error) return msg.msgReturn(res, error);
+                    else {
+                        req.cookies['userId'] = data.auth.userId;
+                        next();
                     }
                 });
-            } else {
-                return msg.msgReturn(res, 14);
             }
-            // next();
-        } else {
-            return msg.msgReturn(res, 6);
+            else return msg.msgReturn(res, ms.UNAUTHORIZED);
         }
+        else return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
 router.route('/checkToken').get((req, res) => {
     try {
-        return msg.msgReturn(res, 0);
+        return msg.msgReturn(res, ms.SUCCESS);
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 })
 
 router.route('/getAbility').get((req, res) => {
     try {
         var id = req.cookies.userId;
-
-        Maid.findOne({ _id: id, status: true })
-            .populate({ path: 'work_info.ability', select: 'name image' })
-            .select('work_info.ability').exec((error, data) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    console.log(data)
-                    if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        return msg.msgReturn(res, 0, data.work_info.ability);
-                    }
-                }
-            });
+        maidController.getAbility(id, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
+        });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
-/** GET - Get Maid By Maid ID
- * info {
- *      type: GET
- *      url: /getById
- *      name: Get Maid By Maid ID
- *      description: Get one maid's information by maid's ID
- * }
- * 
- * params {
- *      id: Maid_ID
- * }
- * 
- * body {
- *      null
- * } 
- */
 router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
 
-        Maid.findOne({ _id: id, status: true }).select('-status -location -__v').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3, {});
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4, {});
-                } else {
-                    return msg.msgReturn(res, 0, data);
-                }
-            }
+        maidController.getById(id, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3, {});
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
 });
 
-/** GET - Get All Denied Tasks
- * info {
- *      type: GET
- *      url: /getAllDeniedTasks
- *      role: Maid
- *      name: Get All Denied Tasks
- *      description: Get all denied tasks
- * }
- */
-router.route('/getAllDeniedTasks').get((req, res) => {
-    try {
-        var maidId = req.cookies.userId;
-
-        var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'stakeholders.owner',
-            select: 'info'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        }
-        ];
-
-        Task.find({
-            'stakeholders.received': maidId,
-            process: {
-                $in: ['000000000000000000000003', '000000000000000000000004']
-            },
-            status: false
-        }).populate(populateQuery).exec((error, data) => {
-            if (error) return msg.msgReturn(res, 3);
-            return msg.msgReturn(res, 0, data);
-        });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
-
-/** GET - Get All Direct Requests
- * info {
- *      type: GET
- *      url: /getAll
- *      role: Maid
- *      name: Get All Direct Requests
- *      description: Get all direct request of Owner
- * }
- * 
- * body {
- *      lat: Number
- *      lng: Number
- *      minDistance: Number
- *      maxDistance: Number
- *      limit: Number
- *      page: Number
- *      sortBy: "distance" | "price"
- *      sortType: "asc" | "desc"
- *      title: String
- *      package: [package_ID]
- *      work: [work_ID]
- * }
- */
-router.route('/getAllRequest').post((req, res) => {
-    try {
-        var maidId = req.cookies.userId;
-
-        var minDistance = req.body.minDistance || 0;
-        var maxDistance = req.body.maxDistance || 2000;
-        var limit = req.body.limit || 20;
-        var page = req.body.page || 1;
-        var skip = (page - 1) * limit;
-
-        var title = req.body.title;
-        var package = req.body.package;
-        var work = req.body.work;
-
-        var sortBy = req.body.sortBy || "distance"; //distance & price
-        var sortType = req.body.sortType || "asc"; //asc & desc
-
-        var sortQuery = {};
-
-        if (sortType == "desc") {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'info.price': -1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': -1
-                }
-            }
-        } else {
-            if (sortBy == "price") {
-                sortQuery = {
-                    'info.price': 1
-                }
-            } else {
-                sortQuery = {
-                    'dist.calculated': 1
-                }
-            }
-        };
-
-        var loc = {
-            type: 'Point',
-            coordinates: [
-                parseFloat(req.body.lng) || 0,
-                parseFloat(req.body.lat) || 0
-            ]
-        };
-
-        var matchQuery = {
-            process: new ObjectId('000000000000000000000006'),
-            'stakeholders.received.maid': maidId,
-            // requestTo: new ObjectId(maidId),
-            status: true
-        };
-
-        if (package) {
-            var arr = new Array();
-            if (package instanceof Array) {
-                for (var i = 0; i < package.length; i++) {
-                    arr.push(new ObjectId(package[i]));
-                }
-
-                matchQuery['info.package'] = {
-                    $in: arr
-                }
-            }
-        }
-
-        if (work) {
-            var arr = new Array();
-            if (work instanceof Array) {
-                for (var i = 0; i < work.length; i++) {
-                    arr.push(new ObjectId(work[i]));
-                }
-                matchQuery['info.work'] = {
-                    $in: arr
-                }
-            }
-        }
-
-        if (title) {
-            matchQuery['info.title'] = new RegExp(title, 'i');
-        }
-
-        Task.aggregate([{
-            $geoNear: {
-                near: loc,
-                distanceField: 'dist.calculated',
-                minDistance: minDistance,
-                maxDistance: maxDistance,
-                num: limit,
-                spherical: true
-            }
-        },
-        {
-            $match: matchQuery
-        },
-        {
-            $sort: sortQuery
-        },
-        {
-            $skip: skip
-        },
-        {
-            $project: {
-                location: 0,
-                __v: 0
-            }
-        }
-        ], (error, places) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(places)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Owner.populate(places, { path: 'stakeholders.owner', select: 'info' }, (error, data) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        Work.populate(data, { path: 'info.work', select: 'name image' }, (error, data) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            Package.populate(data, { path: 'info.package', select: 'name' }, (error, data) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                Process.populate(data, { path: 'process', select: 'name' }, (error, data) => {
-                                    if (error) return msg.msgReturn(res, 3);
-                                    return msg.msgReturn(res, 0, data);
-                                });
-                            });
-                        });
-                    });
-                }
-            }
-        });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-});
-
-/** GET - Get All Tasks By Maid ID
- * info {
- *      type: GET
- *      url: /getAllTasks
- *      name: Get All Tasks By Maid ID
- *      description: Get tasks by Maid's ID
- * }
- * 
- * params {
- *      id: Maid_ID
- *      process: process_ID
- * }
- * 
- * body {
- *      null
- * } 
- */
 router.route('/getAllTasks').get((req, res) => {
     try {
-        // console.log(req.body)
         var id = req.cookies.userId;
-        // var id = '5923c12f7d7da13b240e7a77';
         var process = req.query.process;
         var startAt = req.query.startAt;
         var endAt = req.query.endAt;
         var limit = req.query.limit || 0;
         var sortByTaskTime = req.query.sortByTaskTime;
 
-        console.log(req.body)
-
-        var findQuery = {
-            status: true
-        }
-
-        if (process) {
-            if (process == '000000000000000000000001') {
-                // findQuery['$or'] = [
-                //     { 'stakeholders.request.maid': new ObjectId(id) },
-                //     { 'requestTo': new ObjectId(id) }
-                // ]
-                findQuery['stakeholders.request.maid'] = id;
-                findQuery['process'] = {
-                    $in: ['000000000000000000000001', '000000000000000000000006']
-                }
-            } else {
-                findQuery['stakeholders.received'] = id;
-                findQuery['process'] = process;
-            }
-        }
-
-        var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        },
-        {
-            path: 'stakeholders.owner',
-            select: 'info evaluation_point'
-        }
-        ]
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            findQuery['info.time.startAt'] = timeQuery;
-        }
-
-        var sortQuery = { 'history.createAt': -1 };
-
-        if (sortByTaskTime) {
-            sortQuery = { 'info.time.endAt': 1 };
-        }
-
-        console.log(findQuery)
-
-        Task
-            .find(findQuery)
-            .populate(populateQuery)
-            .sort(sortQuery)
-            .limit(parseFloat(limit))
-            .select('-location -status -__v').exec((error, data) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        return msg.msgReturn(res, 0, data);
-                    }
-                }
-            });
-    } catch (error) {
-        console.log(error)
-        return msg.msgReturn(res, 3);
-    }
-});
-
-router.route('/comment').post((req, res) => {
-    try {
-        var comment = new Comment();
-        comment.fromId = req.cookies.userId;
-        comment.toId = req.body.toId;
-        comment.task = req.body.task;
-        comment.content = req.body.content;
-        comment.evaluation_point = req.body.evaluation_point;
-        comment.createAt = new Date();
-        comment.status = true;
-
-        Owner.findOne({ _id: comment.toId, status: true }).select('evaluation_point').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Comment.findOne({ fromId: comment.fromId, task: comment.task }).exec((error, cmt) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            if (validate.isNullorEmpty(cmt)) {
-                                var ep_2 = data.evaluation_point;
-                                var new_ep = (comment.evaluation_point + ep_2) / 2;
-
-                                if ((comment.evaluation_point + ep_2) % 2 >= 5) {
-                                    new_ep = Math.ceil(new_ep);
-                                } else {
-                                    new_ep = Math.round(new_ep);
-                                }
-
-                                Owner.findOneAndUpdate({
-                                    _id: comment.toId,
-                                    status: true
-                                }, {
-                                        $set: {
-                                            evaluation_point: new_ep
-                                        }
-                                    }, {
-                                        upsert: true
-                                    },
-                                    (error) => {
-                                        if (error) {
-                                            return msg.msgReturn(res, 3);
-                                        } else {
-                                            comment.save((error) => {
-                                                if (error) return msg.msgReturn(res, 3);
-                                                return msg.msgReturn(res, 0);
-                                            });
-                                        }
-                                    }
-                                );
-                            } else {
-                                return msg.msgReturn(res, 2);
-                            }
-                        }
-                    });
-                }
-            }
+        maidController.getAllTasks(id, process, startAt, endAt, limit, sortByTaskTime, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
@@ -531,36 +94,11 @@ router.route('/getComment').get((req, res) => {
         var limit = parseFloat(req.query.limit) || 20;
         var page = req.query.page || 1;
 
-        var query = { toId: id };
-        var options = {
-            select: 'evaluation_point content task createAt fromId',
-            populate: { path: 'task', select: 'info' },
-            sort: {
-                createAt: -1
-            },
-            page: page,
-            limit: limit
-        };
-
-        Comment.paginate(query, options).then((data) => {
-            if (validate.isNullorEmpty(data)) {
-                return msg.msgReturn(res, 4);
-            } else {
-                Owner.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 4);
-                        } else {
-                            return msg.msgReturn(res, 0, data);
-                        }
-                    }
-                });
-            }
+        maidController.getComment(id, limit, page, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
 });
 
@@ -574,150 +112,25 @@ router.route('/getHistoryTasks').get((req, res) => {
         var limit = req.query.limit || 10;
         var page = req.query.page || 1;
 
-        var findQuery = {
-            'stakeholders.received': id,
-            status: true
-        }
-
-        if (process) {
-            findQuery['process'] = process;
-        }
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            findQuery['info.time.startAt'] = timeQuery;
-        }
-
-        var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'stakeholders.owner',
-            select: 'info evaluation_point'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        }
-        ];
-
-        var options = {
-            select: '-location -status -__v',
-            populate: populateQuery,
-            sort: {
-                'info.time.startAt': -1
-            },
-            page: parseFloat(page),
-            limit: parseFloat(limit)
-        };
-
-        Task.paginate(findQuery, options).then(data => {
-            if (validate.isNullorEmpty(data)) {
-                return msg.msgReturn(res, 4);
-            } else {
-                return msg.msgReturn(res, 0, data);
-            }
+        maidController.getHistoryTasks(id, process, startAt, endAt, limit, page, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
 });
 
 router.route('/getAllWorkedOwner').get((req, res) => {
     try {
         var id = req.cookies.userId;
-
         var startAt = req.query.startAt;
         var endAt = req.query.endAt;
 
-        var matchQuery = {
-            process: new ObjectId('000000000000000000000005'),
-            'stakeholders.received': new ObjectId(id)
-        };
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            matchQuery['info.time.startAt'] = timeQuery;
-        };
-
-        Task.aggregate([{
-            $match: matchQuery
-        },
-        {
-            $sort: {
-                'info.time.startAt': -1
-            },
-        },
-        {
-            $group: {
-                _id: '$stakeholders.owner',
-                times: {
-                    $push: '$info.time.startAt'
-                }
-                // time: '$info.time.startAt'
-            }
-        }
-        ],
-            // {
-            //     allowDiskUse: true
-            // },
-            (error, data) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        Owner.populate(data, { path: '_id', select: 'info evaluation_point' }, (error, owner) => {
-                            if (error) {
-                                return msg.msgReturn(res, 3);
-                            } else {
-                                if (validate.isNullorEmpty(owner)) {
-                                    return msg.msgReturn(res, 4);
-                                } else {
-                                    return msg.msgReturn(res, 0, owner);
-                                }
-                            }
-                        });
-                    }
-                }
-            }
-        );
+        maidController.getAllWorkedOwner(id, startAt, endAt, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
+        });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
@@ -726,19 +139,11 @@ router.route('/getTaskComment').get((req, res) => {
         var id = req.cookies.userId;
         var task = req.query.task;
 
-        Comment.findOne({ toId: id, task: task, status: true }).select('createAt evaluation_point content').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3, {});
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4, {});
-                } else {
-                    return msg.msgReturn(res, 0, data);
-                }
-            }
+        maidController.getTaskComment(id, task, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3, {});
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
 });
 
@@ -753,72 +158,11 @@ router.route('/getTaskOfOwner').get((req, res) => {
         var limit = req.query.limit || 10;
         var page = req.query.page || 1;
 
-        var findQuery = {
-            'stakeholders.owner': ownerId,
-            'stakeholders.received': id,
-            status: true
-        }
-
-        if (process) {
-            findQuery['process'] = process;
-        }
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            findQuery['info.time.startAt'] = timeQuery;
-        }
-
-        var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'stakeholders.owner',
-            select: 'info evaluation_point'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        }
-        ];
-
-        var options = {
-            select: '-location -status -__v',
-            populate: populateQuery,
-            sort: {
-                'info.time.startAt': -1
-            },
-            page: parseFloat(page),
-            limit: parseFloat(limit)
-        };
-
-        Task.paginate(findQuery, options).then(data => {
-            if (validate.isNullorEmpty(data)) {
-                return msg.msgReturn(res, 4);
-            } else {
-                return msg.msgReturn(res, 0, data);
-            }
+        maidController.getTaskOfOwner(id, ownerId, process, startAt, endAt, limit, page, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
 });
 
@@ -828,128 +172,25 @@ router.route('/statistical').get((req, res) => {
         var startAt = req.query.startAt;
         var endAt = req.query.endAt;
 
-        var billQuery = {
-            maid: new ObjectId(id)
-        };
-
-        var taskQuery = {
-            'stakeholders.received': new ObjectId(id),
-            status: true
-        };
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            billQuery['createAt'] = timeQuery;
-            taskQuery['info.time.startAt'] = timeQuery;
-        };
-
-        async.parallel({
-            bill: function (callback) {
-                Bill.aggregate([{
-                    $match: billQuery
-                },
-                {
-                    $group: {
-                        _id: null,
-                        totalPrice: {
-                            $sum: '$price'
-                        }
-                    }
-                },
-                ], (error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            const d = {
-                                _id: null,
-                                totalPrice: 0
-                            }
-                            callback(null, d);
-                        } else {
-                            callback(null, data[0]);
-                        }
-                    }
-                });
-            },
-            task: function (callback) {
-                Task.aggregate([{
-                    $match: taskQuery
-                },
-                {
-                    $group: {
-                        _id: '$process',
-                        count: {
-                            $sum: 1
-                        }
-                    }
-                }
-                ], (error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        callback(null, data);
-                    }
-                });
-            }
-        }, (error, result) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                var task = result.task;
-                var bill = result.bill;
-                var d = {
-                    totalPrice: bill.totalPrice,
-                    task: task
-                }
-                return msg.msgReturn(res, 0, d);
-            }
+        maidController.statistical(id, startAt, endAt, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
 });
 
 router.route('/report').post((req, res) => {
     try {
-        var report = new Report();
-        report.maidId = req.cookies.userId;
-        report.ownerId = req.body.toId;
-        report.from = 2;
-        report.content = req.body.content;
-        report.createAt = new Date();
-        report.status = true;
+        var maidId = req.cookies.userId;
+        var ownerId = req.body.toId;
+        var content = req.body.content;
 
-        Owner.findOne({ _id: report.ownerId, status: true }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    report.save((error) => {
-                        if (error) return msg.msgReturn(res, 3);
-                        return msg.msgReturn(res, 0);
-                    });
-                }
-            }
+        maidController.report(maidId, ownerId, content, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
@@ -958,24 +199,11 @@ router.route('/onAnnouncement').post((req, res) => {
         var id = req.cookies.userId;
         var device_token = req.body.device_token;
 
-        Maid.findOneAndUpdate(
-            {
-                _id: id,
-                status: true
-            },
-            {
-                $set: {
-                    'auth.device_token': device_token
-                }
-            },
-            (error, data) => {
-                if (error) return msg.msgReturn(res, 3)
-                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4)
-                return msg.msgReturn(res, 0)
-            }
-        )
+        maidController.onAnnouncement(id, device_token, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+        });
     } catch (error) {
-        return msg.msgReturn(res, 3)
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
@@ -983,24 +211,11 @@ router.route('/offAnnouncement').post((req, res) => {
     try {
         var id = req.cookies.userId;
 
-        Maid.findOneAndUpdate(
-            {
-                _id: id,
-                status: true
-            },
-            {
-                $set: {
-                    'auth.device_token': ''
-                }
-            },
-            (error, data) => {
-                if (error) return msg.msgReturn(res, 3)
-                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4)
-                return msg.msgReturn(res, 0)
-            }
-        )
+        maidController.offAnnouncement(id, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+        });
     } catch (error) {
-        return msg.msgReturn(res, 3)
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
