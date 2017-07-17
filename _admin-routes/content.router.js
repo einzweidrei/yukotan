@@ -41,7 +41,7 @@ var multipartMiddleware = multipart();
 
 router.use(multipartMiddleware);
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = baseUrl.substring(baseUrl.indexOf('/admin/') + 7, baseUrl.lastIndexOf('/'));
@@ -50,8 +50,7 @@ router.use(function (req, res, next) {
             req.cookies['language'] = language;
             Content.setDefaultLanguage(language);
             next();
-        }
-        else {
+        } else {
             return msg.msgReturn(res, 6);
         }
     } catch (error) {
@@ -69,6 +68,35 @@ router.route('/getAll').get((req, res) => {
                 if (error) return msg.msgReturn(res, 3);
                 else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
                 else return msg.msgReturn(res, 0, data);
+            });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/getWebAll').get((req, res) => {
+    try {
+        var type = req.query.type;
+        Content
+            .find({ type: type, status: true })
+            .select('-status -__v')
+            .exec((error, data) => {
+                if (error) return msg.msgReturn(res, 3);
+                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+                else {
+                    var m = []
+                    data.map(a => {
+                        var d = {
+                            _id: a._id,
+                            image: a.image,
+                            title: a.get('title.all'),
+                            body: a.get('body.all'),
+                            history: a.history,
+                        };
+                        m.push(d);
+                    });
+                    return msg.msgReturn(res, 0, m);
+                }
             });
     } catch (error) {
         return msg.msgReturn(res, 3);
@@ -126,12 +154,10 @@ router.route('/update').post((req, res) => {
         var contentVi = req.body.contentVi || '';
         var contentEn = req.body.contentEn || '';
 
-        Content.findOneAndUpdate(
-            {
+        Content.findOneAndUpdate({
                 _id: id,
                 status: true
-            },
-            {
+            }, {
                 $set: {
                     image: image,
                     title: {
@@ -160,8 +186,7 @@ router.route('/delete').post((req, res) => {
     try {
         var id = req.query.id;
 
-        Content.findOneAndRemove(
-            {
+        Content.findOneAndRemove({
                 _id: id,
                 status: true
             },

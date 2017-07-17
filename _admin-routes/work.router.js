@@ -31,7 +31,7 @@ var bodyparser = require('body-parser');
 
 router.use(multipartMiddleware);
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     console.log('package_router is connecting');
 
     try {
@@ -42,8 +42,7 @@ router.use(function (req, res, next) {
             req.cookies['language'] = language;
             Work.setDefaultLanguage(language);
             next();
-        }
-        else return msg.msgReturn(res, 6);
+        } else return msg.msgReturn(res, 6);
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
@@ -81,12 +80,10 @@ router.route('/update').post((req, res) => {
         var nameEn = req.body.nameEn || '';
         var image = req.body.image || '';
 
-        Work.findOneAndUpdate(
-            {
+        Work.findOneAndUpdate({
                 _id: id,
                 status: true
-            },
-            {
+            }, {
                 $set: {
                     name: {
                         vi: nameVi,
@@ -109,12 +106,10 @@ router.route('/update').post((req, res) => {
 router.route('/delete').post((req, res) => {
     try {
         var id = req.query.id;
-        Work.findByIdAndUpdate(
-            {
+        Work.findByIdAndUpdate({
                 _id: id,
                 status: true
-            },
-            {
+            }, {
                 $set: {
                     status: false
                 }
@@ -132,22 +127,25 @@ router.route('/delete').post((req, res) => {
 router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
-        Work.findOne({ _id: id, status: true }).select('name image').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
+        Work
+            .findOne({ _id: id, status: true })
+            .select('name image')
+            .exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
                 } else {
-                    var g = {
-                        _id: data._id,
-                        name: data.get('name.all'),
-                        image: data.image
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        var g = {
+                            _id: data._id,
+                            name: data.get('name.all'),
+                            image: data.image
+                        };
+                        return msg.msgReturn(res, 0, g);
                     }
-                    return msg.msgReturn(res, 0, g);
                 }
-            }
-        });
+            });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
@@ -155,26 +153,29 @@ router.route('/getById').get((req, res) => {
 
 router.route('/getAll').get((req, res) => {
     try {
-        Work.find({ status: true }).select('name image').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
+        Work
+            .find({ status: true })
+            .select('name image')
+            .exec((error, data) => {
+                if (error) {
+                    return msg.msgReturn(res, 3);
                 } else {
-                    var m = []
-                    data.map(a => {
-                        var d = {
-                            _id: a._id,
-                            name: a.get('name.all'),
-                            image: a.image
-                        }
-                        m.push(d)
-                    })
-                    return msg.msgReturn(res, 0, m);
+                    if (validate.isNullorEmpty(data)) {
+                        return msg.msgReturn(res, 4);
+                    } else {
+                        var m = []
+                        data.map(a => {
+                            var d = {
+                                _id: a._id,
+                                name: a.get('name.all'),
+                                image: a.image
+                            };
+                            m.push(d);
+                        });
+                        return msg.msgReturn(res, 0, m);
+                    }
                 }
-            }
-        });
+            });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
