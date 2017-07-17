@@ -1,11 +1,11 @@
-var Message = (function () {
+var Message = (function() {
     Message.SUCCESS = "SUCCESS";
     Message.FAILED = "FAILED";
     Message.DUPLICATED = "DUPLICATED";
     Message.msg_required = "REQUIRED";
     Message.DATA_NOT_EXIST = "DATA_NOT_EXIST";
     Message.LANGUAGE_NOT_SUPPORT = "LANGUAGE_NOT_SUPPORT";
-    Message.INVALID_PASSWORD = "INVALID_PASSWORD ";
+    Message.INVALID_PASSWORD = "INVALID_PASSWORD";
     Message.TASK_UPDATE_FAILED = "TASK_UPDATE_FAILED"; //Task had picked by maid, can't update
     Message.TASK_OUT_OF_LIMIT = "TASK_OUT_OF_LIMIT"; //Out of limit tasks
     Message.TIME_NOT_VALID = "TIME_NOT_VALID";
@@ -20,7 +20,7 @@ var Message = (function () {
     Message.PAYMENT_FAILED = "WALLET_NOT_ENOUGH";
     Message.FACE_IDENTICAL_FAILED = "FACE_IDENTICAL_FAILED";
 
-    function Message() { }
+    function Message() {}
 
     Message.prototype.msgData = (status, msg, data) => {
         return JSON.stringify({

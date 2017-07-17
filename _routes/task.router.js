@@ -1,40 +1,14 @@
 var express = require('express');
-var mongoose = require('mongoose');
-var requestLanguage = require('express-request-language');
-var cookieParser = require('cookie-parser');
-var async = require('promise-async');
-var request = require('request');
 var router = express.Router();
-
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
-
-var validationService = require('../_services/validation.service');
-var validate = new validationService.Validation();
-
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
-
-var FCM = require('../_services/fcm.service');
-var FCMService = new FCM.FCMService();
-
 var as = require('../_services/app.service');
 var AppService = new as.App();
-
-var Owner = require('../_model/owner');
-var Session = require('../_model/session');
-var Package = require('../_model/package');
-var Work = require('../_model/work');
-var Task = require('../_model/task');
-var Process = require('../_model/process');
-var Maid = require('../_model/maid');
-var Bill = require('../_model/bill');
-var Comment = require('../_model/comment');
 var cloudinary = require('cloudinary');
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
-var ObjectId = require('mongoose').Types.ObjectId;
-
 var contSession = require('../_controller/session.controller');
 var sessionController = new contSession.Session();
 var contTask = require('../_controller/task.controller');
@@ -195,24 +169,6 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
     }
 });
 
-/** POST - Check Out Task
- * info {
- *      type: POST
- *      url: /checkout
- *      role: Owner
- *      name: Check Out Task
- *      description: Check out one task by Owner
- * }
- * 
- * params {
- *      null
- * }
- * 
- * body {
- *      id: task_ID
- *      ownerId: owner_ID
- * }
- */
 router.route('/checkout').post((req, res) => {
     try {
         var id = req.body.id;
@@ -274,99 +230,38 @@ router.route('/denyRequest').post((req, res) => {
         var id = req.body.id;
         var ownerId = req.body.ownerId;
         var maidId = req.cookies.userId;
+        var language = req.cookies.language;
 
-        Owner.findOne({ _id: ownerId, status: true }).exec((error, owner) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(owner)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Task.findOne({ _id: id, process: '000000000000000000000006', 'stakeholders.owner': ownerId }).exec((error, data) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            if (validate.isNullorEmpty(data)) {
-                                return msg.msgReturn(res, 4);
-                            } else {
-                                Task.findOneAndUpdate({
-                                        _id: id,
-                                        process: '000000000000000000000006',
-                                        'stakeholders.owner': ownerId
-                                    }, {
-                                        status: false
-                                    },
-                                    (error) => {
-                                        if (error) return msg.msgReturn(res, 3);
-                                        return owner.auth.device_token == '' ?
-                                            msg.msgReturn(res, 17) :
-                                            FCMService.pushNotification(res, owner, req.cookies.language, 13, [], '')
-                                    }
-                                )
-                            }
-                        }
-                    });
-                }
-            }
-        })
+        taskController.denyRequest(id, ownerId, maidId, language, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+        });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
 router.route('/getRequest').get((req, res) => {
     try {
         var id = req.query.id;
-        var matchQuery = { _id: new ObjectId(id), status: true };
 
-        Task.aggregate([{
-                $match: matchQuery
-            },
-            {
-                $project: {
-                    request: '$stakeholders.request'
-                }
-            }
-        ], (error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    Maid.populate(data, { path: 'request.maid', select: 'info work_info' }, (error, result) => {
-                        if (error) return msg.msgReturn(res, 3)
-                        Work.populate(result, { path: 'request.maid.work_info.ability', select: 'name image' }, (error, result) => {
-                            if (error) return msg.msgReturn(res, 3)
-                            return msg.msgReturn(res, 0, result)
-                        })
-                    });
-                }
-            }
+        taskController.getRequest(id, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
 router.route('/getComment').get((req, res) => {
     try {
         var id = req.cookies.userId;
-        var task = req.query.task;
+        var taskId = req.query.task;
 
-        Comment.findOne({ fromId: id, task: task, status: true }).select('createAt evaluation_point content').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3, {});
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4, {});
-                } else {
-                    return msg.msgReturn(res, 0, data);
-                }
-            }
+        taskController.getComment(id, taskId, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3, {});
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
 });
 

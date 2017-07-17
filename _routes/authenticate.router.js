@@ -23,275 +23,87 @@ var ObjectId = require('mongoose').Types.ObjectId;
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 
+var contAuth = require('../_controller/authenticate.controller');
+var authController = new contAuth.Authenticate();
+var messStatus = require('../_services/mess-status.service');
+var ms = messStatus.MessageStatus;
+
 router.use(multipartMiddleware);
 
 router.use(function(req, res, next) {
     try {
         var baseUrl = req.baseUrl;
-        var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
+        var language = AppService.getAppLanguage(baseUrl);
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
             next();
         } else {
-            return msg.msgReturn(res, 6);
+            return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
         }
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
-
-// const hash_key = 'LULULUL';
-// // const hash_key = 'HBBSolution';
-// const token_length = 64;
-
-// function hash(content) {
-//     const crypto = require('crypto');
-//     const hash = crypto.createHmac('sha256', hash_key)
-//         .update(content)
-//         .digest('hex');
-//     return hash;
-// }
-
-// function getToken() {
-//     // const token_length = 64;
-//     var crypto = require('crypto');
-//     var token = crypto.randomBytes(token_length).toString('hex');
-//     return token;
-// }
 
 router.route('/login').post((req, res) => {
     try {
         var username = req.body.username || "";
-        var password = AppService.hashString(req.body.password) || "";
+        var password = req.body.password || "";
         var device_token = req.body.device_token || "";
 
-        Owner.findOne({ 'info.username': username }).select('_id info evaluation_point wallet auth').exec((error, data) => {
-            if (validate.isNullorEmpty(data)) {
-                return msg.msgReturn(res, 4, {});
-            } else {
-                if (error) {
-                    return msg.msgReturn(res, 3, {});
-                } else {
-                    if (data.auth.password != password) {
-                        return msg.msgReturn(res, 5, {});
-                    } else {
-                        Owner.findOneAndUpdate({
-                            _id: data._id,
-                            status: true
-                        }, {
-                            $set: {
-                                'auth.device_token': device_token
-                            }
-                        }, {
-                            upsert: true
-                        }, (error) => {
-                            if (error) return msg.msgReturn(res, 3, {});
-                            else {
-                                Session.findOne({ 'auth.userId': data._id }).exec((error, result) => {
-                                    if (error) {
-                                        return msg.msgReturn(res, 3, {});
-                                    } else {
-                                        var newToken = AppService.getToken();
-
-                                        if (validate.isNullorEmpty(result)) {
-                                            var session = new Session();
-                                            session.auth.userId = data._id;
-                                            session.auth.token = newToken;
-                                            session.loginAt = new Date();
-                                            session.auth.device_token = device_token;
-                                            session.status = true;
-
-                                            session.save((error) => {
-                                                if (error) {
-                                                    return msg.msgReturn(res, 3, {});
-                                                } else {
-                                                    var dt = {
-                                                        token: newToken,
-                                                        user: {
-                                                            _id: data._id,
-                                                            info: data.info,
-                                                            evaluation_point: data.evaluation_point,
-                                                            wallet: data.wallet
-                                                        }
-                                                    }
-                                                    return msg.msgReturn(res, 0, dt);
-                                                }
-                                            });
-                                        } else {
-                                            Session.findOneAndUpdate({
-                                                    'auth.userId': data._id,
-                                                    status: true
-                                                }, {
-                                                    $set: {
-                                                        'auth.token': newToken,
-                                                        'auth.device_token': device_token,
-                                                        loginAt: new Date()
-                                                    }
-                                                }, {
-                                                    upsert: true
-                                                },
-                                                (error, result) => {
-                                                    var dt = {
-                                                        token: newToken,
-                                                        user: {
-                                                            _id: data._id,
-                                                            info: data.info,
-                                                            evaluation_point: data.evaluation_point,
-                                                            wallet: data.wallet
-                                                        }
-                                                    }
-                                                    return msg.msgReturn(res, 0, dt);
-                                                }
-                                            )
-                                        }
-                                    }
-                                });
-                            }
-                        })
-                    }
-                }
-            }
+        authController.login(username, password, device_token, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3, {});
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
 });
 
 router.route('/register').post((req, res) => {
     try {
-        var owner = new Owner();
+        var username = req.body.username || '';
+        var email = req.body.email || '';
+        var phone = req.body.phone || '';
+        var name = req.body.name || '';
+        var age = req.body.age || '';
+        var addressName = req.body.addressName || '';
+        var lat = req.body.lat || 1;
+        var lng = req.body.lng || 1;
+        var gender = req.body.gender || 0;
+        var password = req.body.password || '';
+        var device_token = req.body.device_token || '';
+        var image = '';
 
-        owner.info = {
-            username: req.body.username || "",
-            email: req.body.email || "",
-            phone: req.body.phone || "",
-            name: req.body.name || "",
-            age: req.body.age || 18,
-            address: {
-                name: req.body.addressName || "",
-                coordinates: {
-                    lat: req.body.lat || 0,
-                    lng: req.body.lng || 0
-                }
-            },
-            gender: req.body.gender || 0,
-        };
-
-        owner.evaluation_point = 3;
-
-        owner.wallet = 0;
-
-        owner.auth = {
-            password: AppService.hashString(req.body.password),
-            device_token: req.body.device_token
-        };
-
-        owner.history = {
-            createAt: new Date(),
-            updateAt: new Date()
-        };
-
-        owner.status = true;
-
-        owner.location = {
-            type: 'Point',
-            coordinates: [req.body.lng, req.body.lat]
-        };
-
-        Owner.findOne({ $or: [{ 'info.username': req.body.username }, { 'info.email': req.body.email }] }).exec((error, data) => {
-            if (validate.isNullorEmpty(data)) {
-                if (!req.files.image) {
-                    owner.info.image = "";
-                    owner.save((error, data) => {
-                        if (error) {
-                            return msg.msgReturn(res, 3);
-                        } else {
-                            var session = new Session();
-                            session.auth.userId = data._id;
-                            session.auth.token = AppService.getToken();
-                            session.loginAt = new Date();
-                            session.status = true;
-
-                            session.save((error) => {
-                                if (error) {
-                                    return msg.msgReturn(res, 3);
-                                } else {
-                                    var dt = {
-                                        token: session.auth.token,
-                                        user: {
-                                            _id: data._id,
-                                            info: data.info,
-                                            evaluation_point: data.evaluation_point,
-                                            wallet: data.wallet
-                                        }
-                                    };
-                                    return msg.msgReturn(res, 0, dt);
-                                }
-                            });
-                        }
-                    });
-                } else {
-                    cloudinary.uploader.upload(
-                        req.files.image.path,
-                        function(result) {
-                            owner.info.image = result.url;
-                            owner.save((error, data) => {
-                                if (error) {
-                                    return msg.msgReturn(res, 3);
-                                } else {
-                                    var session = new Session();
-                                    session.auth.userId = data._id;
-                                    session.auth.token = AppService.getToken();
-                                    session.loginAt = new Date();
-                                    session.status = true;
-
-                                    session.save((error) => {
-                                        if (error) {
-                                            return msg.msgReturn(res, 3);
-                                        } else {
-                                            var dt = {
-                                                token: session.auth.token,
-                                                user: {
-                                                    _id: data._id,
-                                                    info: data.info,
-                                                    evaluation_point: data.evaluation_point,
-                                                    wallet: data.wallet
-                                                }
-                                            };
-                                            return msg.msgReturn(res, 0, dt);
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    )
-                }
-            } else {
-                return msg.msgReturn(res, 2, {});
-            }
-        })
+        if (!req.files.image) {
+            authController.register(username, email, phone, name, age, addressName,
+                lat, lng, gender, password, device_token, image, (error, data) => {
+                    return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+                });
+        } else {
+            cloudinary.uploader.upload(
+                req.files.image.path,
+                function(result) {
+                    image = result.url;
+                    authController.register(username, email, phone, name, age, addressName,
+                        lat, lng, gender, password, device_token, image, (error, data) => {
+                            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+                        });
+                });
+        }
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
 });
 
 router.route('/check').get((req, res) => {
     try {
         var username = req.query.username;
-        Owner.findOne({ 'info.username': username }).exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    return msg.msgReturn(res, 2);
-                }
-            }
+        authController.checkOwnerExist(username, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
@@ -412,9 +224,9 @@ router.route('/maid/login').post((req, res) => {
 
 function remakeId(n) {
     while (n.length < 24) {
-        n += '0'
-    }
-    return n
+        n += '0';
+    };
+    return n;
 }
 
 router.route('/thirdLogin').post((req, res) => {

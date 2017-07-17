@@ -90,6 +90,7 @@ router.route('/getWebAll').get((req, res) => {
                             image: a.image,
                             title: a.get('title.all'),
                             body: a.get('body.all'),
+                            type: a.type,
                             history: a.history,
                         };
                         m.push(d);
@@ -117,6 +118,7 @@ router.route('/getById').get((req, res) => {
                         image: data.image,
                         title: data.get('title.all'),
                         body: data.get('body.all'),
+                        type: data.type,
                         history: data.history
                     };
 

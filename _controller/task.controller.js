@@ -4,6 +4,7 @@ var mPackage = require('../_model/package');
 var mProcess = require('../_model/process');
 var mOwner = require('../_model/owner');
 var mMaid = require('../_model/maid');
+var mComment = require('../_model/comment');
 var async = require('promise-async');
 var ObjectId = require('mongoose').Types.ObjectId;
 var as = require('../_services/app.service');
@@ -921,6 +922,44 @@ var Task = (function() {
                 );
             }
         });
+    };
+
+    Task.prototype.getRequest = (id, callback) => {
+        var matchQuery = {
+            _id: new ObjectId(id),
+            status: true
+        };
+
+        mTask.aggregate([{
+                $match: matchQuery
+            },
+            {
+                $project: {
+                    request: '$stakeholders.request'
+                }
+            }
+        ], (error, data) => {
+            if (error) return callback(ms.EXCEPTION_FAILED);
+            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+            else {
+                mMaid.populate(data, { path: 'request.maid', select: 'info work_info' }, (error, result) => {
+                    mWork.populate(result, { path: 'request.maid.work_info.ability', select: 'name image' }, (error, result) => {
+                        return callback(null, result);
+                    });
+                });
+            }
+        });
+    };
+
+    Task.prototype.getComment = (id, taskId, callback) => {
+        mComment
+            .findOne({ fromId: id, task: taskId, status: true })
+            .select('createAt evaluation_point content')
+            .exec((error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else return callback(null, data);
+            });
     };
 
     return Task;

@@ -6,32 +6,30 @@ var validate = new validationService.Validation();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-var Session = (function () {
-    function Session() { }
+var Session = (function() {
+    function Session() {}
 
     Session.prototype.verifyToken = (token, callback) => {
         mSession.findOne({ 'auth.token': token }).exec((error, data) => {
             if (error) return callback(ms.EXCEPTION_FAILED);
             else if (validate.isNullorEmpty(data)) return callback(ms.UNAUTHORIZED);
-            return callback(null, data);
+            else return callback(null, data);
         });
-    }
+    };
 
     Session.prototype.findOneAndUpdate = (searchQuery, setQuery, upsert, callback) => {
         mSession.findOneAndUpdate(
-            searchQuery,
-            {
+            searchQuery, {
                 $set: setQuery
-            },
-            {
+            }, {
                 upsert: upsert
             },
             (error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
-                return callback(null, data);
+                else return callback(null, data);
             }
         );
-    }
+    };
 
     return Session;
 }());

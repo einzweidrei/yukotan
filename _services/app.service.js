@@ -11,8 +11,8 @@ const token_length = 64;
 const azure_key = 'b1726597dcc74171abf38be836846977'
 const task_limit = 10;
 
-var App = (function () {
-    function App() { }
+var App = (function() {
+    function App() {}
 
     App.prototype.setLanguage = (language) => {
         Package.setDefaultLanguage(language);
@@ -20,21 +20,28 @@ var App = (function () {
         Process.setDefaultLanguage(language);
         AppInfo.setDefaultLanguage(language);
         Term.setDefaultLanguage(language);
-    }
+    };
+
+    App.prototype.remakeId = (id) => {
+        while (id.length < 24) {
+            id += '0';
+        };
+        return id;
+    };
 
     App.prototype.getTaskLimit = () => {
         return task_limit;
-    }
+    };
 
     App.prototype.getAppLanguage = (baseUrl) => {
         var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
         return language;
-    }
+    };
 
     App.prototype.randomString = (number) => {
         const string = randomstring.generate(number);
         return string;
-    }
+    };
 
     App.prototype.hashString = (content) => {
         if (!content) content = ''
@@ -42,23 +49,23 @@ var App = (function () {
             .update(content)
             .digest('hex');
         return hash;
-    }
+    };
 
     App.prototype.getToken = () => {
         const first = crypto.randomBytes(8).toString('hex');
         const second = crypto.randomBytes(token_length).toString('hex');
         const token = first + ':' + second;
         return token;
-    }
+    };
 
     App.prototype.getVerifyToken = () => {
         const token = randomstring.generate(5) + ':' + randomstring.generate(20);
         return token;
-    }
+    };
 
     App.prototype.getAzureKey = () => {
         return azure_key;
-    }
+    };
 
     App.prototype.getContJson = (status, data) => {
         var temp = {
@@ -66,7 +73,7 @@ var App = (function () {
             data: data
         };
         return temp;
-    }
+    };
 
     App.prototype.countPrice = (time, maidPrice) => {
         var price = 0;
@@ -88,7 +95,7 @@ var App = (function () {
         }
 
         return price;
-    }
+    };
 
     App.prototype.getPerm = (account, owner, maid, task, bill, giftcode, work, aboutus, report, contact) => {
         var perm = [];
@@ -104,7 +111,7 @@ var App = (function () {
         perm.push({ name: 'Contact', isActivated: contact });
 
         return perm;
-    }
+    };
 
     return App;
 }());
