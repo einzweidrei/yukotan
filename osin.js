@@ -16,8 +16,8 @@ admin.initializeApp({
 });
 
 // connecting mongodb
-// var mongodburi = 'mongodb://127.0.0.1:61836/NGV247';
-var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
+var mongodburi = 'mongodb://127.0.0.1:61836/NGV247';
+// var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodburi);
 

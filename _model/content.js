@@ -15,8 +15,7 @@ var ContentSchema = new Schema(
             updateAt: { type: Date }
         },
         status: { type: Boolean }
-    }
-    ,
+    },
     {
         toJSON: {
             virtuals: true,
