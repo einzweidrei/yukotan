@@ -19,7 +19,7 @@ var termController = new contTerm.Term();
 var contAppInfo = require('../_controller/app-info.controller');
 var appInfoController = new contAppInfo.AppInfo();
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getAppLanguage(baseUrl);
@@ -28,8 +28,7 @@ router.use(function (req, res, next) {
             req.cookies['language'] = language;
             AppService.setLanguage(language);
             next();
-        }
-        else return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
+        } else return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
     } catch (error) {
         return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }

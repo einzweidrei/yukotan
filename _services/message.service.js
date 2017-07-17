@@ -19,6 +19,7 @@ var Message = (function() {
     Message.PUSH_NOTIFY_FAILED = "PUSH_NOTIFY_FAILED";
     Message.PAYMENT_FAILED = "WALLET_NOT_ENOUGH";
     Message.FACE_IDENTICAL_FAILED = "FACE_IDENTICAL_FAILED";
+    Message.INVALID_KEY = "INVALID_KEY";
 
     function Message() {}
 
@@ -73,6 +74,8 @@ var Message = (function() {
                 return res.status(200).send(Message.prototype.msgData(false, Message.PAYMENT_FAILED, data));
             case 19:
                 return res.status(200).send(Message.prototype.msgData(false, Message.FACE_IDENTICAL_FAILED, data));
+            case 20:
+                return res.status(200).send(Message.prototype.msgData(false, Message.INVALID_KEY, data));
             default:
                 break;
         }

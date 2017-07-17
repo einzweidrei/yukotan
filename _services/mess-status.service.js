@@ -1,4 +1,4 @@
-var MessageStatus = (function () {
+var MessageStatus = (function() {
     MessageStatus.SUCCESS = 0;
     MessageStatus.FAILED = 1;
     MessageStatus.DUPLICATED = 2;
@@ -19,8 +19,9 @@ var MessageStatus = (function () {
     MessageStatus.PUSH_NOTIFY_FAILED = 17;
     MessageStatus.PAYMENT_FAILED = 18;
     MessageStatus.FACE_IDENTICAL_FAILED = 19;
+    MessageStatus.INVALID_KEY = 20;
 
-    function MessageStatus() { }
+    function MessageStatus() {}
 
     return MessageStatus;
 }());
