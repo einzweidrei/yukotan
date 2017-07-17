@@ -76,8 +76,12 @@ router.route('/getAll').get((req, res) => {
 
 router.route('/getWebAll').get((req, res) => {
     try {
+        var type = req.query.type;
+        var searchQuery = { status: true };
+        if (type) searchQuery['type'] = type;
+
         Content
-            .find({ status: true })
+            .find(searchQuery)
             .select('-status -__v')
             .exec((error, data) => {
                 if (error) return msg.msgReturn(res, 3);

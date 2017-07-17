@@ -1,6 +1,7 @@
 var mSession = require('../_model/session');
 var mOwner = require('../_model/owner');
 var mMaid = require('../_model/maid');
+var ObjectId = require('mongoose').Types.ObjectId;
 var as = require('../_services/app.service');
 var AppService = new as.App();
 var validationService = require('../_services/validation.service');
@@ -149,6 +150,7 @@ var Authenticate = (function() {
     };
 
     Authenticate.prototype.loginByMaid = (username, password, device_token, callback) => {
+        var pw = AppService.hashString(password);
         mMaid
             .findOne({ 'info.username': username })
             .populate({ path: 'work_info.ability', select: 'name image' })
@@ -198,6 +200,126 @@ var Authenticate = (function() {
                         }
                     });
                 }
+            });
+    };
+
+    Authenticate.prototype.thirdLogin = (id, token, device_token, callback) => {
+        var realId = AppService.remakeId(id);
+
+        mOwner.findOneAndUpdate({
+            _id: realId,
+            status: true
+        }, {
+            $set: {
+                'auth.device_token': device_token
+            }
+        }, (error, data) => {
+            if (error) return callback(ms.EXCEPTION_FAILED);
+            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+            else {
+                mSession.findOneAndUpdate({
+                        'auth.userId': data._id,
+                        status: true
+                    }, {
+                        $set: {
+                            'auth.token': token,
+                            loginAt: new Date()
+                        }
+                    }, {
+                        upsert: true
+                    },
+                    (error, result) => {
+                        if (error) return callback(ms.EXCEPTION_FAILED);
+                        else {
+                            var dt = {
+                                token: token,
+                                user: {
+                                    _id: data._id,
+                                    info: data.info,
+                                    evaluation_point: data.evaluation_point,
+                                    wallet: data.wallet
+                                }
+                            }
+                            return callback(null, dt);
+                        }
+                    }
+                );
+            }
+        });
+    };
+
+    Authenticate.prototype.thirdRegister = (id, token, device_token, username, email, phone, name, age, addressName, lat, lng, gender, image, callback) => {
+        var realId = AppService.remakeId(id);
+
+        var owner = new mOwner();
+        owner._id = new ObjectId(realId);
+        owner.info = {
+            username: username,
+            email: email,
+            phone: phone,
+            name: name,
+            age: age,
+            image: image,
+            address: {
+                name: addressName,
+                coordinates: {
+                    lat: lat,
+                    lng: lng
+                }
+            },
+            gender: gender,
+        };
+        owner.evaluation_point = 3;
+        owner.wallet = 0;
+        owner.auth = {
+            device_token: device_token
+        };
+        owner.history = {
+            createAt: new Date(),
+            updateAt: new Date()
+        };
+        owner.status = true;
+        owner.location = {
+            type: 'Point',
+            coordinates: [lng, lat]
+        };
+
+        mOwner
+            .findOne({
+                $or: [
+                    { _id: realId },
+                    { 'info.email': email }
+                ]
+            }).exec((error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                else if (validate.isNullorEmpty(data)) {
+                    owner.save((error, data) => {
+                        if (error) return callback(ms.EXCEPTION_FAILED);
+                        else {
+                            var session = new mSession();
+                            session.auth.userId = data._id;
+                            session.auth.token = token;
+                            session.loginAt = new Date();
+                            session.status = true;
+
+                            session.save((error) => {
+                                if (error) return callback(ms.EXCEPTION_FAILED);
+                                else {
+                                    var dt = {
+                                        token: token,
+                                        user: {
+                                            _id: data._id,
+                                            info: data.info,
+                                            evaluation_point: data.evaluation_point,
+                                            wallet: data.wallet
+                                        }
+                                    };
+                                    return callback(null, dt);
+                                }
+                            });
+                        }
+                    });
+                } else return callback(ms.DUPLICATED);
             });
     };
 
