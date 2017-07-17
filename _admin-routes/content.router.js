@@ -126,7 +126,7 @@ router.route('/getById').get((req, res) => {
                         history: data.history
                     };
 
-                    return msg.msgReturn(res, 0, m);
+                    return msg.msgReturn(res, 0, g);
                 }
             });
     } catch (error) {
