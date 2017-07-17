@@ -34,7 +34,7 @@ var BillCharge = require('../_model/bill_charge');
 var cloudinary = require('cloudinary');
 var ObjectId = require('mongoose').Types.ObjectId;
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     console.log('task_router is connecting');
 
     try {
@@ -65,8 +65,7 @@ router.use(function (req, res, next) {
                 return msg.msgReturn(res, 14);
             }
             // next();
-        }
-        else {
+        } else {
             return msg.msgReturn(res, 6);
         }
     } catch (error) {
@@ -80,12 +79,11 @@ router.route('/payBillGV').post((req, res) => {
         var billId = req.body.billId;
 
         async.parallel({
-            bill: function (callback) {
+            bill: function(callback) {
                 Bill.findOne({ _id: billId, owner: userId2, isSolved: false, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, { value: 2 });
-                    }
-                    else {
+                    } else {
                         if (validate.isNullorEmpty(data)) {
                             callback(null, { value: 1 });
                         } else {
@@ -94,12 +92,11 @@ router.route('/payBillGV').post((req, res) => {
                     }
                 });
             },
-            owner: function (callback) {
+            owner: function(callback) {
                 Owner.findOne({ _id: userId2, status: true }).exec((error, data) => {
                     if (error) {
                         callback(null, { value: 2 });
-                    }
-                    else {
+                    } else {
                         if (validate.isNullorEmpty(data)) {
                             callback(null, { value: 1 });
                         } else {
@@ -120,9 +117,7 @@ router.route('/payBillGV').post((req, res) => {
 
                     if (ownerWallet < billWallet) return msg.msgReturn(res, 18);
                     else {
-                        Bill.findOneAndUpdate(
-                            { _id: billId, owner: userId2, isSolved: false, status: true },
-                            {
+                        Bill.findOneAndUpdate({ _id: billId, owner: userId2, isSolved: false, status: true }, {
                                 $set: {
                                     method: 1,
                                     isSolved: true,
@@ -133,9 +128,7 @@ router.route('/payBillGV').post((req, res) => {
                                 if (error) return msg.msgReturn(res, 3);
                                 else {
                                     var newWallet = ownerWallet - billWallet;
-                                    Owner.findOneAndUpdate(
-                                        { _id: userId2, status: true },
-                                        { $set: { wallet: newWallet } },
+                                    Owner.findOneAndUpdate({ _id: userId2, status: true }, { $set: { wallet: newWallet } },
                                         (error) => {
                                             if (error) return msg.msgReturn(res, 3);
                                             return msg.msgReturn(res, 0);
@@ -161,8 +154,7 @@ router.route('/payDirectly').post((req, res) => {
         Bill.findOne({ _id: billId, owner: userId, isSolved: false, status: true }).exec((error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
-            }
-            else {
+            } else {
                 if (validate.isNullorEmpty(data)) {
                     return msg.msgReturn(res, 4);
                 } else {
@@ -172,9 +164,7 @@ router.route('/payDirectly').post((req, res) => {
                             if (validate.isNullorEmpty(maid)) {
                                 return msg.msgReturn(res, 4);
                             } else {
-                                Bill.findOneAndUpdate(
-                                    { _id: billId, owner: userId, isSolved: false, status: true },
-                                    {
+                                Bill.findOneAndUpdate({ _id: billId, owner: userId, isSolved: false, status: true }, {
                                         $set: {
                                             method: 3,
                                             date: new Date()
@@ -228,9 +218,7 @@ router.route('/payDirectConfirm').post((req, res) => {
         var userId = req.cookies.userId;
         var billId = req.body.billId;
 
-        Bill.findOneAndUpdate(
-            { _id: billId, maid: userId, method: 3, isSolved: false, status: true },
-            {
+        Bill.findOneAndUpdate({ _id: billId, maid: userId, method: 3, isSolved: false, status: true }, {
                 $set: {
                     isSolved: true,
                     date: new Date()
@@ -302,9 +290,7 @@ router.route('/payOnlineConfirm').post((req, res) => {
         var userId = req.cookies.userId;
         var billId = req.body.billId;
 
-        Bill.findOneAndUpdate(
-            { _id: billId, owner: userId, isSolved: false, status: true },
-            {
+        Bill.findOneAndUpdate({ _id: billId, owner: userId, isSolved: false, status: true }, {
                 $set: {
                     method: 2
                 }
@@ -324,9 +310,7 @@ router.route('/payOnline').post((req, res) => {
         var userId = req.cookies.userId;
         var billId = req.body.billId;
 
-        Bill.findOneAndUpdate(
-            { _id: billId, owner: userId, method: 2, isSolved: false, status: true },
-            {
+        Bill.findOneAndUpdate({ _id: billId, owner: userId, method: 2, isSolved: false, status: true }, {
                 $set: {
                     isSolved: true,
                     date: new Date()
@@ -393,23 +377,20 @@ router.route('/chargeOnlineSecConfirm').post((req, res) => {
                     if (validate.isNullorEmpty(data)) {
                         return msg.msgReturn(res, 4);
                     } else {
-                        BillCharge.findOneAndUpdate(
-                            {
+                        BillCharge.findOneAndUpdate({
                                 _id: billId,
                                 owner: owner,
                                 'verify.key': key,
                                 isSolved: false,
                                 status: true
-                            },
-                            {
+                            }, {
                                 $set: {
                                     verify: {
                                         key: newKey,
                                         date: new Date()
                                     }
                                 }
-                            },
-                            {
+                            }, {
                                 upsert: true
                             },
                             (error) => {
@@ -454,36 +435,30 @@ router.route('/chargeOnlineThiConfirm').post((req, res) => {
                                 if (second > 60) {
                                     return msg.msgReturn(res, 3);
                                 } else {
-                                    BillCharge.findOneAndUpdate(
-                                        {
+                                    BillCharge.findOneAndUpdate({
                                             owner: owner,
                                             'verify.key': key,
                                             isSolved: false,
                                             status: true
-                                        },
-                                        {
+                                        }, {
                                             $set: {
                                                 isSolved: true
                                             }
-                                        },
-                                        {
+                                        }, {
                                             upsert: true
                                         },
                                         (error) => {
                                             if (error) return msg.msgReturn(res, 3);
                                             else {
                                                 var p = ow.wallet + data.price;
-                                                Owner.findOneAndUpdate(
-                                                    {
+                                                Owner.findOneAndUpdate({
                                                         _id: owner,
                                                         status: true
-                                                    },
-                                                    {
+                                                    }, {
                                                         $set: {
                                                             wallet: p
                                                         }
-                                                    },
-                                                    {
+                                                    }, {
                                                         upsert: true
                                                     },
                                                     (error) => {
