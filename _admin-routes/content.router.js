@@ -76,9 +76,8 @@ router.route('/getAll').get((req, res) => {
 
 router.route('/getWebAll').get((req, res) => {
     try {
-        var type = req.query.type;
         Content
-            .find({ type: type, status: true })
+            .find({ status: true })
             .select('-status -__v')
             .exec((error, data) => {
                 if (error) return msg.msgReturn(res, 3);
@@ -95,6 +94,32 @@ router.route('/getWebAll').get((req, res) => {
                         };
                         m.push(d);
                     });
+                    return msg.msgReturn(res, 0, m);
+                }
+            });
+    } catch (error) {
+        return msg.msgReturn(res, 3);
+    }
+});
+
+router.route('/getById').get((req, res) => {
+    try {
+        var id = req.query.id;
+        Content
+            .findOne({ _id: id, status: true })
+            .select('-status -__v')
+            .exec((error, data) => {
+                if (error) return msg.msgReturn(res, 3);
+                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
+                else {
+                    var g = {
+                        _id: data._id,
+                        image: data.image,
+                        title: data.get('title.all'),
+                        body: data.get('body.all'),
+                        history: data.history
+                    };
+
                     return msg.msgReturn(res, 0, m);
                 }
             });
