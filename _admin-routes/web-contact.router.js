@@ -35,7 +35,7 @@ router.use(bodyparser.urlencoded({
 // // parse application/json
 router.use(bodyparser.json());
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     console.log('package_router is connecting');
 
     try {
@@ -44,8 +44,7 @@ router.use(function (req, res, next) {
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
             next();
-        }
-        else {
+        } else {
             return msg.msgReturn(res, 6);
         }
     } catch (error) {
@@ -95,12 +94,10 @@ router.route('/update').post((req, res) => {
         var id = req.body.id;
         var process = req.body.process || false;
 
-        Contact.findOneAndUpdate(
-            {
+        Contact.findOneAndUpdate({
                 _id: id,
                 status: true
-            },
-            {
+            }, {
                 $set: {
                     process: process,
                     'history.updateAt': new Date()
@@ -127,8 +124,7 @@ router.route('/delete').post((req, res) => {
     try {
         var id = req.query.id;
 
-        Contact.findOneAndRemove(
-            {
+        Contact.findOneAndRemove({
                 _id: id,
                 status: true
             },

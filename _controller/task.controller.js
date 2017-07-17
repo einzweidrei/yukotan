@@ -868,7 +868,7 @@ var Task = (function() {
                 }, (error, result) => {
                     if (error) return callback(error);
                     else {
-                        Task.findOneAndUpdate({
+                        mTask.findOneAndUpdate({
                                 _id: id,
                                 'stakeholders.owner': ownerId,
                                 process: '000000000000000000000006',
@@ -892,6 +892,33 @@ var Task = (function() {
                         );
                     }
                 });
+            }
+        });
+    };
+
+    Task.prototype.denyRequest = (id, ownerId, maidId, language, callback) => {
+        mOwner.findOne({ _id: ownerId, status: true }).exec((error, owner) => {
+            if (error) return callback(ms.EXCEPTION_FAILED);
+            else if (validate.isNullorEmpty(owner)) return callback(ms.DATA_NOT_EXIST);
+            else {
+                mTask.findOneAndUpdate({
+                        _id: id,
+                        process: '000000000000000000000006',
+                        'stakeholders.owner': ownerId
+                    }, {
+                        status: false
+                    },
+                    (error, data) => {
+                        if (error) return callback(ms.EXCEPTION_FAILED);
+                        else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                        else {
+                            FCMService.pushNotify(owner, language, ps.DENY_REQUEST, '', (error, data) => {
+                                if (error) return callback(error);
+                                else return callback(null, data);
+                            });
+                        }
+                    }
+                );
             }
         });
     };

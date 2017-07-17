@@ -31,7 +31,7 @@ router.use(multipartMiddleware);
 /** Middle Ware
  * 
  */
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     console.log('cms-owner_router is connecting');
     try {
         var baseUrl = req.baseUrl;
@@ -56,8 +56,7 @@ router.use(function (req, res, next) {
             // } else {
             //     return msg.msgReturn(res, 14);
             // }
-        }
-        else {
+        } else {
             return msg.msgReturn(res, 6);
         }
     } catch (error) {
@@ -129,16 +128,16 @@ router.route('/getById').get((req, res) => {
         var id = req.query.id;
 
         Account.findOne({ _id: id, status: true })
-            .select('info history')
+            .select('-status -__v')
             .exec((error, data) => {
                 if (error) return msg.msgReturn(res, 3);
                 else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
                 else return msg.msgReturn(res, 0, data);
-            })
+            });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
-})
+});
 
 router.route('/create').post((req, res) => {
     try {
@@ -236,12 +235,30 @@ router.route('/update').post((req, res) => {
             if (error) {
                 return msg.msgReturn(res, 3);
             } else if (validate.isNullorEmpty(data)) {
-                Account.findOneAndUpdate(
-                    {
+                Account.findOneAndUpdate({
+                    _id: id,
+                    status: true
+                }, {
+                    $set: {
+                        'info.email': email,
+                        'info.name': name,
+                        'info.phone': phone,
+                        'info.image': image,
+                        'info.address': address,
+                        'info.gender': gender,
+                        permission: perm,
+                        'history.updateAt': new Date()
+                    }
+                }, (error) => {
+                    if (error) return msg.msgReturn(res, 3);
+                    return msg.msgReturn(res, 0);
+                })
+            } else {
+                if (id == data._id) {
+                    Account.findOneAndUpdate({
                         _id: id,
                         status: true
-                    },
-                    {
+                    }, {
                         $set: {
                             'info.email': email,
                             'info.name': name,
@@ -255,31 +272,7 @@ router.route('/update').post((req, res) => {
                     }, (error) => {
                         if (error) return msg.msgReturn(res, 3);
                         return msg.msgReturn(res, 0);
-                    }
-                )
-            } else {
-                if (id == data._id) {
-                    Account.findOneAndUpdate(
-                        {
-                            _id: id,
-                            status: true
-                        },
-                        {
-                            $set: {
-                                'info.email': email,
-                                'info.name': name,
-                                'info.phone': phone,
-                                'info.image': image,
-                                'info.address': address,
-                                'info.gender': gender,
-                                permission: perm,
-                                'history.updateAt': new Date()
-                            }
-                        }, (error) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            return msg.msgReturn(res, 0);
-                        }
-                    )
+                    })
                 } else {
                     return msg.msgReturn(res, 2);
                 }
@@ -294,12 +287,10 @@ router.route('/delete').post((req, res) => {
     try {
         var id = req.query.id;
 
-        Account.findOneAndUpdate(
-            {
+        Account.findOneAndUpdate({
                 _id: id,
                 status: true
-            },
-            {
+            }, {
                 $set: {
                     status: false,
                     'history.updateAt': new Date()

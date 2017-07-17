@@ -44,7 +44,7 @@ var AppService = new as.App();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getAppLanguage(baseUrl);
@@ -61,10 +61,8 @@ router.use(function (req, res, next) {
                         next();
                     }
                 });
-            }
-            else return msg.msgReturn(res, ms.UNAUTHORIZED);
-        }
-        else return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
+            } else return msg.msgReturn(res, ms.UNAUTHORIZED);
+        } else return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
     } catch (error) {
         return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
@@ -185,7 +183,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
         else {
             cloudinary.uploader.upload(
                 req.files.image.path,
-                function (result) {
+                function(result) {
                     var imageUrl = result.url;
                     taskController.checkIn(id, ownerId, imageUrl, (error, data) => {
                         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
@@ -292,10 +290,10 @@ router.route('/denyRequest').post((req, res) => {
                                 return msg.msgReturn(res, 4);
                             } else {
                                 Task.findOneAndUpdate({
-                                    _id: id,
-                                    process: '000000000000000000000006',
-                                    'stakeholders.owner': ownerId
-                                }, {
+                                        _id: id,
+                                        process: '000000000000000000000006',
+                                        'stakeholders.owner': ownerId
+                                    }, {
                                         status: false
                                     },
                                     (error) => {
@@ -322,13 +320,13 @@ router.route('/getRequest').get((req, res) => {
         var matchQuery = { _id: new ObjectId(id), status: true };
 
         Task.aggregate([{
-            $match: matchQuery
-        },
-        {
-            $project: {
-                request: '$stakeholders.request'
+                $match: matchQuery
+            },
+            {
+                $project: {
+                    request: '$stakeholders.request'
+                }
             }
-        }
         ], (error, data) => {
             if (error) {
                 return msg.msgReturn(res, 3);
