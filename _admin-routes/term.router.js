@@ -1,135 +1,71 @@
 var express = require('express');
-var mongoose = require('mongoose');
-var requestLanguage = require('express-request-language');
-var cookieParser = require('cookie-parser');
 var router = express.Router();
-
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
-
-var validationService = require('../_services/validation.service');
-var validate = new validationService.Validation();
-
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
-
-var FCM = require('../_services/fcm.service');
-var FCMService = new FCM.FCMService();
-
-var Mail = require('../_services/mail.service');
-var MailService = new Mail.MailService();
-
-var Owner = require('../_model/owner');
-var Session = require('../_model/session');
-var Term = require('../_model/term');
-
-var cloudinary = require('cloudinary');
-var bodyparser = require('body-parser');
-
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
+var contTerm = require('../_controller/term.controller');
+var termController = new contTerm.Term();
+var as = require('../_services/app.service');
+var AppService = new as.App();
+var messStatus = require('../_services/mess-status.service');
+var ms = messStatus.MessageStatus;
 
 router.use(multipartMiddleware)
 
 router.use(function (req, res, next) {
-    console.log('package_router is connecting');
-
     try {
         var baseUrl = req.baseUrl;
-        var language = baseUrl.substring(baseUrl.indexOf('/admin/') + 7, baseUrl.lastIndexOf('/'));
+        var language = AppService.getWebLanguage(baseUrl);
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            Term.setDefaultLanguage(language);
+            AppService.setLanguage(language);
             next();
         }
         else {
-            return msg.msgReturn(res, 6);
+            return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
         }
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
 router.route('/get').get((req, res) => {
     try {
-        Term.find({}).select('name content').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    var m = []
-                    data.map(a => {
-                        var d = {
-                            _id: a._id,
-                            name: a.name,
-                            content: a.get('content.all')
-                        }
-                        m.push(d)
-                    })
-                    return msg.msgReturn(res, 0, m);
-                }
-            }
+        termController.getAll4Admin((error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
-})
+});
 
 router.route('/getById').get((req, res) => {
     try {
         var id = req.query.id;
-        Term.findOne({ _id: id, status: true }).select('name content').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    var d = {
-                        _id: data._id,
-                        name: data.name,
-                        content: data.get('content.all')
-                    }
-                    return msg.msgReturn(res, 0, d);
-                }
-            }
+        termController.getInfo4Admin(id, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
-})
+});
 
 router.route('/update').post((req, res) => {
     try {
         var id = req.body.id;
+        var contentVi = req.body.contentVi || '';
+        var contentEn = req.body.contentEn || '';
 
-        var contentVi = req.body.contentVi;
-        var contentEn = req.body.contentEn;
-
-        Term.findOneAndUpdate(
-            {
-                _id: id,
-                status: true
-            },
-            {
-                $set: {
-                    content: {
-                        vi: contentVi,
-                        en: contentEn
-                    }
-                }
-            },
-            (error) => {
-                if (error) return msg.msgReturn(res, 3);
-                return msg.msgReturn(res, 0);
-            }
-        )
+        termController.update(id, contentVi, contentEn, (error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+        });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
-})
+});
 
 module.exports = router;

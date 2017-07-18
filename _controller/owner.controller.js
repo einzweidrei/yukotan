@@ -4,6 +4,8 @@ var mWork = require('../_model/work');
 var mTask = require('../_model/task');
 var mPackage = require('../_model/package');
 var mProcess = require('../_model/process');
+var mComment = require('../_model/comment');
+var mBill = require('../_model/bill');
 var async = require('promise-async');
 var as = require('../_services/app.service');
 var ObjectId = require('mongoose').Types.ObjectId;
@@ -41,14 +43,14 @@ var Owner = (function () {
                 return callback(null, data);
             }
         );
-    }
+    };
 
     Owner.prototype.findOne = (searchQuery, selectQuery, callback) => {
         mOwner.findOne(searchQuery).select(selectQuery).exec((error, data) => {
             if (error) return callback(ms.EXCEPTION_FAILED);
             return callback(null, data);
         });
-    }
+    };
 
     Owner.prototype.getById = (id, callback) => {
         mOwner
@@ -59,7 +61,7 @@ var Owner = (function () {
                 else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
                 return callback(null, data);
             });
-    }
+    };
 
     Owner.prototype.getMyInfo = (id, callback) => {
         mOwner
@@ -70,89 +72,23 @@ var Owner = (function () {
                 else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
                 return callback(null, data);
             });
-    }
+    };
 
     Owner.prototype.getAllTasks = (id, process, startAt, endAt, limit, sortByTaskTime, callback) => {
-        var findQuery = {
-            'stakeholders.owner': id,
-            status: true
+        try {
+
+        } catch (error) {
+
         }
-
-        if (process) {
-            if (process == '000000000000000000000001') {
-                findQuery['process'] = {
-                    $in: ['000000000000000000000001', '000000000000000000000006']
-                }
-            } else {
-                findQuery['process'] = process;
-            }
-        }
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            findQuery['info.time.startAt'] = timeQuery;
-        }
-
-        var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'stakeholders.received',
-            select: 'info work_info'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        }];
-
-        var sortQuery = { 'history.createAt': -1 };
-
-        if (sortByTaskTime) {
-            sortQuery = { 'info.time.endAt': 1 };
-        }
-
-        var selectQuery = '-location -status -__v';
-
-        taskController.find(findQuery, populateQuery, sortQuery, limit, selectQuery, (error, data) => {
-            if (error) return callback(ms.EXCEPTION_FAILED);
-            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-            else {
-                mWork.populate(data, { path: 'stakeholders.received.work_info.ability', select: 'name image' }, (error, data) => {
-                    if (error) return callback(ms.EXCEPTION_FAILED);
-                    return callback(null, data);
-                });
-            }
-        });
-    }
+    };
 
     Owner.prototype.getHistoryTasks = (id, process, startAt, endAt, limit, page, callback) => {
         var findQuery = {
             'stakeholders.owner': id,
             status: true
-        }
+        };
 
-        if (process) {
-            findQuery['process'] = process;
-        }
+        if (process) findQuery['process'] = process;
 
         if (startAt || endAt) {
             var timeQuery = {};
@@ -207,10 +143,10 @@ var Owner = (function () {
                 mWork.populate(data, { path: 'docs.stakeholders.received.work_info.ability', select: 'name image' }, (error, data) => {
                     if (error) return callback(ms.EXCEPTION_FAILED);
                     return callback(null, data);
-                })
+                });
             }
         });
-    }
+    };
 
     Owner.prototype.getAllWorkedMaid = (id, startAt, endAt, callback) => {
         var matchQuery = {
@@ -270,7 +206,7 @@ var Owner = (function () {
                 });
             }
         });
-    }
+    };
 
     Owner.prototype.getTaskOfMaid = (id, maidId, process, startAt, endAt, limit, page, callback) => {
         var findQuery = {
@@ -339,7 +275,7 @@ var Owner = (function () {
                 });
             }
         });
-    }
+    };
 
     Owner.prototype.updateInfo = (id, name, phone, age, address, gender, location, image, callback) => {
         var owner = new Owner();
@@ -409,7 +345,7 @@ var Owner = (function () {
                 }
             });
         }
-    }
+    };
 
     Owner.prototype.comment = (fromId, toId, task, content, evaluation_point, callback) => {
         var maidSearch = {
@@ -461,38 +397,42 @@ var Owner = (function () {
                 });
             }
         });
-    }
+    };
 
     Owner.prototype.getComment = (id, limit, page, callback) => {
-        var query = { toId: id };
-        var options = {
-            select: 'evaluation_point content task createAt fromId',
-            populate: { path: 'task', select: 'info' },
-            sort: {
-                createAt: -1
-            },
-            page: page,
-            limit: limit
-        };
+        try {
+            var query = { toId: id };
+            var options = {
+                select: 'evaluation_point content task createAt fromId',
+                populate: { path: 'task', select: 'info' },
+                sort: {
+                    createAt: -1
+                },
+                page: parseFloat(page),
+                limit: parseFloat(limit)
+            };
 
-        commentController.paginate(query, options, (error, data) => {
-            if (error) return callback(ms.EXCEPTION_FAILED);
-            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-            {
-                mMaid.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
-                    if (error) return callback(ms.EXCEPTION_FAILED);
-                    return callback(null, data);
-                });
-            }
-        })
-    }
+            commentController.paginate(query, options, (error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                {
+                    mMaid.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
+                        if (error) return callback(ms.EXCEPTION_FAILED);
+                        return callback(null, data);
+                    });
+                }
+            })
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
 
     Owner.prototype.report = (ownerId, maidId, content, callback) => {
         reportController.save(ownerId, maidId, 1, content, (error, data) => {
             if (error) return callback(ms.EXCEPTION_FAILED);
             return callback(null, data);
         });
-    }
+    };
 
     Owner.prototype.getWallet = (id, callback) => {
         var owner = new Owner();
@@ -508,7 +448,7 @@ var Owner = (function () {
             else if (validate.isNullorEmpty(data)) return callback(ms.DUPLICATED);
             return callback(null, data);
         });
-    }
+    };
 
     Owner.prototype.onAnnouncement = (id, device_token, callback) => {
         var owner = new Owner();
@@ -526,7 +466,7 @@ var Owner = (function () {
             else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
             return callback(null, data);
         });
-    }
+    };
 
     Owner.prototype.offAnnouncement = (id, callback) => {
         var owner = new Owner();
@@ -544,7 +484,7 @@ var Owner = (function () {
             else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
             return callback(null, data);
         });
-    }
+    };
 
     Owner.prototype.statistical = (id, startAt, endAt, callback) => {
         var own = new Owner();
@@ -659,7 +599,7 @@ var Owner = (function () {
                 }
             }
         );
-    }
+    };
 
     Owner.prototype.getDebt = (id, startAt, endAt, callback) => {
         var billQuery = {
@@ -732,7 +672,7 @@ var Owner = (function () {
                 });
             }
         });
-    }
+    };
 
     Owner.prototype.forgotPassword = (username, email, callback) => {
         var verifyToken = AppService.getVerifyToken();
@@ -772,7 +712,409 @@ var Owner = (function () {
                 });
             }
         });
-    }
+    };
+
+    Owner.prototype.checkAccountExist = (username, callback) => {
+        try {
+            mOwner
+                .findOne({ 'info.username': username, status: true })
+                .exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Owner.prototype.getAll4Admin = (page, limit, startAt, endAt, sort, email, username, name, gender, callback) => {
+        try {
+            if (startAt || endAt) {
+                var timeQuery = {};
+
+                if (startAt) {
+                    var date = new Date(startAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    timeQuery['$gte'] = date;
+                }
+
+                if (endAt) {
+                    var date = new Date(endAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                    timeQuery['$lt'] = date;
+                }
+
+                findQuery['history.createAt'] = timeQuery;
+            };
+
+            var sortQuery = {};
+
+            sort == 'asc' ? sortQuery = { 'history.createAt': 1 } : sortQuery = { 'history.createAt': -1 };
+
+            var query = { status: true };
+
+            if (email) query['info.email'] = new RegExp(email, 'i');
+            if (username) query['info.username'] = new RegExp(username, 'i');
+            if (name) query['info.name'] = new RegExp(name, 'i');
+            if (gender) query['info.gender'] = new RegExp(gender, 'i');
+
+            var options = {
+                select: 'evaluation_point info wallet history',
+                sort: sortQuery,
+                page: parseFloat(page),
+                limit: parseFloat(limit)
+            };
+
+            mOwner.paginate(query, options).then((data) => {
+                if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else return callback(null, data);
+            });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Owner.prototype.getById4Admin = (id, callback) => {
+        try {
+            mOwner.findOne({ _id: id, status: true })
+                .select('evaluation_point info wallet history')
+                .exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Owner.prototype.getAllTasks4Admin = (id, process, startAt, endAt, limit, page, sort, title, callback) => {
+        try {
+            var findQuery = {
+                'stakeholders.owner': id,
+                status: true
+            }
+
+            if (process) {
+                findQuery['process'] = process;
+            }
+
+            if (startAt || endAt) {
+                var timeQuery = {};
+
+                if (startAt) {
+                    var date = new Date(startAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    timeQuery['$gte'] = date;
+                }
+
+                if (endAt) {
+                    var date = new Date(endAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                    timeQuery['$lt'] = date;
+                }
+
+                findQuery['info.time.startAt'] = timeQuery;
+            }
+
+            var populateQuery = [
+                {
+                    path: 'info.package',
+                    select: 'name'
+                },
+                {
+                    path: 'info.work',
+                    select: 'name image'
+                },
+                {
+                    path: 'stakeholders.received',
+                    select: 'info work_info'
+                },
+                {
+                    path: 'process',
+                    select: 'name'
+                }];
+
+            var sortQuery = {};
+            sort == 'asc' ? sortQuery = { 'history.createAt': 1 } : sortQuery = { 'history.createAt': -1 };
+
+            if (title) findQuery['info.title'] = new RegExp(title, 'i');
+
+            var options = {
+                select: '-location -status -__v',
+                populate: populateQuery,
+                sort: sortQuery,
+                page: parseFloat(page),
+                limit: parseFloat(limit)
+            };
+
+            mTask.paginate(findQuery, options).then((data) => {
+                if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else return callback(null, data);
+            });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Owner.prototype.getInfo4Admin = (id, callback) => {
+        try {
+            mOwner
+                .findOne({ _id: id, status: true })
+                .select('evaluation_point info wallet history')
+                .exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Owner.prototype.create = (username, email, phone, name, image, age, addressName, lat, lng, gender, password, device_token, callback) => {
+        try {
+            var owner = new mOwner();
+
+            owner.info = {
+                username: username,
+                email: email,
+                phone: phone,
+                name: name,
+                image: image,
+                age: age,
+                address: {
+                    name: addressName,
+                    coordinates: {
+                        lat: lat,
+                        lng: lng
+                    }
+                },
+                gender: gender,
+            };
+
+            owner.evaluation_point = 3;
+
+            owner.wallet = 0;
+
+            owner.auth = {
+                password: AppService.hashString(password),
+                device_token: device_token
+            };
+
+            owner.history = {
+                createAt: new Date(),
+                updateAt: new Date()
+            };
+
+            owner.status = true;
+
+            owner.location = {
+                type: 'Point',
+                coordinates: [lng, lat]
+            };
+
+            mOwner.findOne(
+                {
+                    $or: [
+                        { 'info.username': username },
+                        { 'info.email': email }
+                    ]
+                }).exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) {
+                        owner.save((error) => {
+                            if (error) return callback(ms.EXCEPTION_FAILED);
+                            else return callback(null, owner);
+                        });
+                    } else return callback(ms.DUPLICATED);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Owner.prototype.update = (id, phone, name, age, image, addressName, lat, lng, gender, callback) => {
+        try {
+            var address = {
+                name: addressName,
+                coordinates: {
+                    lat: lat || 0,
+                    lng: lng || 0
+                }
+            };
+
+            var location = {
+                type: 'Point',
+                coordinates: [lng, lat]
+            };
+
+            mOwner.findOneAndUpdate(
+                {
+                    _id: id,
+                    status: true
+                },
+                {
+                    $set: {
+                        'info.phone': phone,
+                        'info.name': name,
+                        'info.age': age,
+                        'info.address': address,
+                        'info.gender': gender,
+                        'info.image': image,
+                        location: location,
+                        'history.updateAt': new Date()
+                    }
+                },
+                (error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                }
+            );
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Owner.prototype.delete = (id, callback) => {
+        try {
+            mOwner.findOneAndUpdate(
+                {
+                    _id: id,
+                    status: true
+                },
+                {
+                    $set: {
+                        'history.updateAt': new Date(),
+                        status: false
+                    }
+                }, (error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                }
+            );
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Owner.prototype.deleteComment = (id, callback) => {
+        try {
+            mComment.findByIdAndRemove(
+                {
+                    _id: id,
+                    status: true
+                },
+                (error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Owner.prototype.chargeWallet = (id, price, callback) => {
+        try {
+            mOwner.findOne(
+                {
+                    _id: id,
+                    status: true
+                },
+                (error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else {
+                        var wallet = data.wallet;
+                        wallet += price;
+                        mOwner.findOneAndUpdate(
+                            {
+                                _id: id,
+                                status: true
+                            },
+                            {
+                                $set: {
+                                    wallet: wallet
+                                }
+                            },
+                            (error, data) => {
+                                if (error) return callback(ms.EXCEPTION_FAILED);
+                                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                                else return callback(null, data);
+                            });
+                    }
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Owner.prototype.statistical4Admin = (id, startAt, endAt, isSolved, callback) => {
+        try {
+            var matchQuery = { 'owner': new ObjectId(id), isSolved: isSolved, status: true }
+
+            if (startAt || endAt) {
+                var timeQuery = {};
+
+                if (startAt) {
+                    var date = new Date(startAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    timeQuery['$gte'] = date;
+                }
+
+                if (endAt) {
+                    var date = new Date(endAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                    timeQuery['$lt'] = date;
+                }
+
+                matchQuery['date'] = timeQuery;
+            }
+
+            mBill.aggregate(
+                [
+                    {
+                        $match: matchQuery
+                    },
+                    {
+                        $group: {
+                            _id: '$method',
+                            taskNumber: {
+                                $sum: 1
+                            },
+                            price: {
+                                $sum: '$price'
+                            }
+                        }
+                    }
+                ], (error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else {
+                        var totalPrice = 0;
+                        data.map(a => {
+                            totalPrice += a.price
+                        });
+
+                        var d = {
+                            data: data,
+                            totalPrice: totalPrice
+                        }
+
+                        return callback(null, d);
+                    }
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
 
     return Owner;
 }());

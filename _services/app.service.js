@@ -8,11 +8,11 @@ const Term = require('../_model/term');
 
 const hash_key = 'LULULUL';
 const token_length = 64;
-const azure_key = 'b1726597dcc74171abf38be836846977'
+const azure_key = 'b1726597dcc74171abf38be836846977';
 const task_limit = 10;
 
-var App = (function() {
-    function App() {}
+var App = (function () {
+    function App() { }
 
     App.prototype.setLanguage = (language) => {
         Package.setDefaultLanguage(language);
@@ -35,6 +35,11 @@ var App = (function() {
 
     App.prototype.getAppLanguage = (baseUrl) => {
         var language = baseUrl.substring(baseUrl.indexOf('/') + 1, baseUrl.lastIndexOf('/'));
+        return language;
+    };
+
+    App.prototype.getWebLanguage = (baseUrl) => {
+        var language = baseUrl.substring(baseUrl.indexOf('/admin/') + 7, baseUrl.lastIndexOf('/'));
         return language;
     };
 

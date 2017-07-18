@@ -1,13 +1,11 @@
 var mSession = require('../_model/session');
-var as = require('../_services/app.service');
-var AppService = new as.App();
 var validationService = require('../_services/validation.service');
 var validate = new validationService.Validation();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-var Session = (function() {
-    function Session() {}
+var Session = (function () {
+    function Session() { }
 
     Session.prototype.verifyToken = (token, callback) => {
         mSession.findOne({ 'auth.token': token }).exec((error, data) => {

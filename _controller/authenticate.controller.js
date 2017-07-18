@@ -9,8 +9,8 @@ var validate = new validationService.Validation();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-var Authenticate = (function() {
-    function Authenticate() {}
+var Authenticate = (function () {
+    function Authenticate() { }
 
     Authenticate.prototype.login = (username, password, device_token, callback) => {
         var pw = AppService.hashString(password);
@@ -27,42 +27,42 @@ var Authenticate = (function() {
                         _id: data._id,
                         status: true
                     }, {
-                        $set: {
-                            'auth.device_token': device_token
-                        }
-                    }, (error) => {
-                        if (error) return callback(ms.EXCEPTION_FAILED);
-                        else {
-                            var newToken = AppService.getToken();
-                            mSession.findOneAndUpdate({
+                            $set: {
+                                'auth.device_token': device_token
+                            }
+                        }, (error) => {
+                            if (error) return callback(ms.EXCEPTION_FAILED);
+                            else {
+                                var newToken = AppService.getToken();
+                                mSession.findOneAndUpdate({
                                     'auth.userId': data._id,
                                     status: true
                                 }, {
-                                    $set: {
-                                        'auth.token': newToken,
-                                        loginAt: new Date()
-                                    }
-                                }, {
-                                    upsert: true
-                                },
-                                (error, result) => {
-                                    if (error) return callback(ms.EXCEPTION_FAILED);
-                                    else {
-                                        var dt = {
-                                            token: newToken,
-                                            user: {
-                                                _id: data._id,
-                                                info: data.info,
-                                                evaluation_point: data.evaluation_point,
-                                                wallet: data.wallet
-                                            }
+                                        $set: {
+                                            'auth.token': newToken,
+                                            loginAt: new Date()
                                         }
-                                        return callback(null, dt);
+                                    }, {
+                                        upsert: true
+                                    },
+                                    (error, result) => {
+                                        if (error) return callback(ms.EXCEPTION_FAILED);
+                                        else {
+                                            var dt = {
+                                                token: newToken,
+                                                user: {
+                                                    _id: data._id,
+                                                    info: data.info,
+                                                    evaluation_point: data.evaluation_point,
+                                                    wallet: data.wallet
+                                                }
+                                            }
+                                            return callback(null, dt);
+                                        }
                                     }
-                                }
-                            );
-                        }
-                    });
+                                );
+                            }
+                        });
                 }
             });
     };
@@ -164,41 +164,41 @@ var Authenticate = (function() {
                         _id: data._id,
                         status: true
                     }, {
-                        $set: {
-                            'auth.device_token': device_token
-                        }
-                    }, (error) => {
-                        if (error) return callback(ms.EXCEPTION_FAILED);
-                        else {
-                            var newToken = AppService.getToken();
-                            mSession.findOneAndUpdate({
+                            $set: {
+                                'auth.device_token': device_token
+                            }
+                        }, (error) => {
+                            if (error) return callback(ms.EXCEPTION_FAILED);
+                            else {
+                                var newToken = AppService.getToken();
+                                mSession.findOneAndUpdate({
                                     'auth.userId': data._id,
                                     status: true
                                 }, {
-                                    $set: {
-                                        'auth.token': newToken,
-                                        loginAt: new Date()
-                                    }
-                                }, {
-                                    upsert: true
-                                },
-                                (error, result) => {
-                                    if (error) return callback(ms.EXCEPTION_FAILED);
-                                    else {
-                                        var dt = {
-                                            token: newToken,
-                                            user: {
-                                                _id: data._id,
-                                                info: data.info,
-                                                work_info: data.work_info
-                                            }
+                                        $set: {
+                                            'auth.token': newToken,
+                                            loginAt: new Date()
                                         }
-                                        return callback(null, dt);
+                                    }, {
+                                        upsert: true
+                                    },
+                                    (error, result) => {
+                                        if (error) return callback(ms.EXCEPTION_FAILED);
+                                        else {
+                                            var dt = {
+                                                token: newToken,
+                                                user: {
+                                                    _id: data._id,
+                                                    info: data.info,
+                                                    work_info: data.work_info
+                                                }
+                                            }
+                                            return callback(null, dt);
+                                        }
                                     }
-                                }
-                            );
-                        }
-                    });
+                                );
+                            }
+                        });
                 }
             });
     };
@@ -210,42 +210,42 @@ var Authenticate = (function() {
             _id: realId,
             status: true
         }, {
-            $set: {
-                'auth.device_token': device_token
-            }
-        }, (error, data) => {
-            if (error) return callback(ms.EXCEPTION_FAILED);
-            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-            else {
-                mSession.findOneAndUpdate({
+                $set: {
+                    'auth.device_token': device_token
+                }
+            }, (error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else {
+                    mSession.findOneAndUpdate({
                         'auth.userId': data._id,
                         status: true
                     }, {
-                        $set: {
-                            'auth.token': token,
-                            loginAt: new Date()
-                        }
-                    }, {
-                        upsert: true
-                    },
-                    (error, result) => {
-                        if (error) return callback(ms.EXCEPTION_FAILED);
-                        else {
-                            var dt = {
-                                token: token,
-                                user: {
-                                    _id: data._id,
-                                    info: data.info,
-                                    evaluation_point: data.evaluation_point,
-                                    wallet: data.wallet
-                                }
+                            $set: {
+                                'auth.token': token,
+                                loginAt: new Date()
                             }
-                            return callback(null, dt);
+                        }, {
+                            upsert: true
+                        },
+                        (error, result) => {
+                            if (error) return callback(ms.EXCEPTION_FAILED);
+                            else {
+                                var dt = {
+                                    token: token,
+                                    user: {
+                                        _id: data._id,
+                                        info: data.info,
+                                        evaluation_point: data.evaluation_point,
+                                        wallet: data.wallet
+                                    }
+                                }
+                                return callback(null, dt);
+                            }
                         }
-                    }
-                );
-            }
-        });
+                    );
+                }
+            });
     };
 
     Authenticate.prototype.thirdRegister = (id, token, device_token, username, email, phone, name, age, addressName, lat, lng, gender, image, callback) => {

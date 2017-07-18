@@ -35,6 +35,69 @@ var Bill = (function () {
         });
     };
 
+    Bill.prototype.statistical = (startAt, endAt, isSolved, callback) => {
+        try {
+            var matchQuery = { status: true }
+
+            if (isSolved) matchQuery['isSolved'] = isSolved;
+
+            if (startAt || endAt) {
+                var timeQuery = {};
+
+                if (startAt) {
+                    var date = new Date(startAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    timeQuery['$gte'] = date;
+                }
+
+                if (endAt) {
+                    var date = new Date(endAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                    timeQuery['$lt'] = date;
+                }
+
+                matchQuery['date'] = timeQuery;
+            }
+
+            mBill.aggregate(
+                [
+                    {
+                        $match: matchQuery
+                    },
+                    {
+                        $group: {
+                            _id: '$maid',
+                            taskNumber: {
+                                $sum: 1
+                            },
+                            price: {
+                                $sum: '$price'
+                            }
+                        }
+                    }
+                ], (error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else {
+                        var totalPrice = 0;
+                        data.map(a => {
+                            totalPrice += a.price
+                        });
+
+                        var d = {
+                            data: data,
+                            totalPrice: totalPrice
+                        }
+
+                        return callback(null, d);
+                    }
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
     return Bill;
 }());
 

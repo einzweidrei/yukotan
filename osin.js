@@ -16,8 +16,8 @@ admin.initializeApp({
 });
 
 // connecting mongodb
-var mongodburi = 'mongodb://127.0.0.1:51292/NGV247';
-// var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
+// var mongodburi = 'mongodb://127.0.0.1:51292/NGV247';
+var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodburi);
 
@@ -29,7 +29,7 @@ cloudinary.config({
 });
 
 // Add headers
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization, hbbgvauth');
@@ -76,6 +76,6 @@ app.use('/admin/:language/content', require('./_admin-routes/content.router'));
 app.use('/admin/:language/more', require('./_admin-routes/more.router'));
 app.use('/admin/:language/web-contact', require('./_admin-routes/web-contact.router'));
 
-app.listen(process.env.PORT || 8000, function() {
+app.listen(process.env.PORT || 8000, function () {
     console.log('listening on 8000 <3')
 });

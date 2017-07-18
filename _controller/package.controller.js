@@ -12,7 +12,7 @@ var Package = (function () {
             if (error) return callback(ms.EXCEPTION_FAILED);
             return callback(null, data);
         });
-    }
+    };
 
     Package.prototype.getAll = (callback) => {
         var package = new Package();
@@ -28,7 +28,7 @@ var Package = (function () {
             else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
             return callback(null, data);
         });
-    }
+    };
 
     return Package;
 }());

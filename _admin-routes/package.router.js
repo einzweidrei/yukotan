@@ -1,73 +1,41 @@
 var express = require('express');
-var mongoose = require('mongoose');
-var requestLanguage = require('express-request-language');
-var cookieParser = require('cookie-parser');
 var router = express.Router();
-
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
-
-var validationService = require('../_services/validation.service');
-var validate = new validationService.Validation();
-
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
-
-var FCM = require('../_services/fcm.service');
-var FCMService = new FCM.FCMService();
-
-var Mail = require('../_services/mail.service');
-var MailService = new Mail.MailService();
-
-var Owner = require('../_model/owner');
-var Session = require('../_model/session');
-var Package = require('../_model/package');
-
-var cloudinary = require('cloudinary');
-var bodyparser = require('body-parser');
-
-// setting limit of FILE
-router.use(bodyparser.urlencoded({
-    extended: true
-}));
-
-// // parse application/json
-router.use(bodyparser.json());
+var contPackage = require('../_controller/package.controller');
+var packageController = new contPackage.Package();
+var as = require('../_services/app.service');
+var AppService = new as.App();
+var messStatus = require('../_services/mess-status.service');
+var ms = messStatus.MessageStatus;
 
 router.use(function (req, res, next) {
-    console.log('package_router is connecting');
-
     try {
         var baseUrl = req.baseUrl;
-        var language = baseUrl.substring(baseUrl.indexOf('/admin/') + 7, baseUrl.lastIndexOf('/'));
+        var language = AppService.getWebLanguage(baseUrl);
+
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            Package.setDefaultLanguage(language);
+            AppService.setLanguage(language);
             next();
         }
         else {
-            return msg.msgReturn(res, 6);
+            return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
         }
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
 router.route('/getAll').get((req, res) => {
     try {
-        Package.find({}).select('name').exec((error, data) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                } else {
-                    return msg.msgReturn(res, 0, data);
-                }
-            }
+        packageController.getAll((error, data) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
