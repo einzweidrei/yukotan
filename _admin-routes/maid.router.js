@@ -1,41 +1,13 @@
 var express = require('express');
-var mongoose = require('mongoose');
 var router = express.Router();
-
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
-
-var validationService = require('../_services/validation.service');
-var validate = new validationService.Validation();
-
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
-
-var logsService = require('../_services/log.service');
-var logs = new logsService.Logs();
-
 var as = require('../_services/app.service');
 var AppService = new as.App();
-
-var Owner = require('../_model/owner');
-var Session = require('../_model/session');
-var Package = require('../_model/package');
-var Work = require('../_model/work');
-var Task = require('../_model/task');
-var Process = require('../_model/process');
-var Maid = require('../_model/maid');
-var Comment = require('../_model/comment');
-var Bill = require('../_model/bill');
-
-var ObjectId = require('mongoose').Types.ObjectId;
-
-var bodyparser = require('body-parser');
-
-var cloudinary = require('cloudinary');
-
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
-
 var contMaid = require('../_controller/maid.controller');
 var maidController = new contMaid.Maid();
 var as = require('../_services/app.service');
