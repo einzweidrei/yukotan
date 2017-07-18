@@ -36,614 +36,158 @@ var cloudinary = require('cloudinary');
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 
+var contMaid = require('../_controller/maid.controller');
+var maidController = new contMaid.Maid();
+var as = require('../_services/app.service');
+var AppService = new as.App();
+var messStatus = require('../_services/mess-status.service');
+var ms = messStatus.MessageStatus;
+
 router.use(multipartMiddleware);
 
-/** Middle Ware
- * 
- */
-router.use(function (req, res, next) {
-    console.log('cms-maid_router is connecting');
+router.use(function(req, res, next) {
     try {
         var baseUrl = req.baseUrl;
-        var language = baseUrl.substring(baseUrl.indexOf('/admin/') + 7, baseUrl.lastIndexOf('/'));
+        var language = AppService.getWebLanguage(baseUrl);
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            Package.setDefaultLanguage(language);
-            Work.setDefaultLanguage(language);
-            Process.setDefaultLanguage(language);
-
+            AppService.setLanguage(language);
             next();
-            // if (req.headers.hbbgvauth) {
-            //     let token = req.headers.hbbgvauth;
-            //     Session.findOne({ 'auth.token': token }).exec((error, data) => {
-            //         if (error) {
-            //             return msg.msgReturn(res, 3);
-            //         } else {
-            //             if (validate.isNullorEmpty(data)) {
-            //                 return msg.msgReturn(res, 14);
-            //             } else {
-            //                 req.cookies['userId'] = data.auth.userId;
-            //                 next();
-            //             }
-            //         }
-            //     });
-            // } else {
-            //     return msg.msgReturn(res, 14);
-            // }
-        }
-        else {
-            return msg.msgReturn(res, 6);
+        } else {
+            return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
         }
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
 router.route('/check').get((req, res) => {
-    try {
-        var username = req.query.username;
+    var username = req.query.username;
 
-        Owner.findOne({ 'info.username': username, status: true }).exec((error, data) => {
-            if (error) return msg.msgReturn(res, 3);
-            else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
-            return msg.msgReturn(res, 0);
-        })
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-})
+    maidController.checkAccountExist(username, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
+});
 
 router.route('/getAll').get((req, res) => {
-    try {
-        var startAt = req.query.startAt;
-        var endAt = req.query.endAt;
-        var page = req.query.page || 1;
-        var limit = req.query.limit || 10;
-        var sort = req.query.sort || 'asc';
+    var startAt = req.query.startAt;
+    var endAt = req.query.endAt;
+    var page = req.query.page || 1;
+    var limit = req.query.limit || 10;
+    var sort = req.query.sort || 'asc';
+    var email = req.query.email;
+    var username = req.query.username;
+    var name = req.query.name;
+    var gender = req.query.gender;
 
-        var email = req.query.email;
-        var username = req.query.username;
-        var name = req.query.name;
-        var gender = req.query.gender;
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            findQuery['history.createAt'] = timeQuery;
-        }
-
-        var sortQuery = {};
-        sort == 'asc' ? sortQuery = { 'history.createAt': 1 } : sortQuery = { 'history.createAt': -1 };
-
-        var query = { status: true };
-
-        if (email) query['info.email'] = new RegExp(email, 'i');
-        if (username) query['info.username'] = new RegExp(username, 'i');
-        if (name) query['info.name'] = new RegExp(name, 'i');
-        if (gender) query['info.gender'] = new RegExp(gender, 'i');
-
-        var options = {
-            select: 'info work_info history',
-            sort: sortQuery,
-            page: parseFloat(page),
-            limit: parseFloat(limit)
-        };
-
-        Maid.paginate(query, options).then((data) => {
-            if (validate.isNullorEmpty(data)) {
-                return msg.msgReturn(res, 4);
-            } else {
-                return msg.msgReturn(res, 0, data);
-            }
+    maidController.getAll4Admin(page, limit, startAt, endAt, sort,
+        email, username, name, gender, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
 });
 
-/** GET - Get Owner By Owner ID
- * info {
- *      type: GET
- *      url: /getById
- *      name: Get Owner By Owner ID
- *      description: Get one owner's information by Owner's ID
- * }
- * 
- * params {
- *      id: owner_ID
- * }
- * 
- * body {
- *      null
- * } 
- */
 router.route('/getById').get((req, res) => {
-    try {
-        var id = req.query.id;
+    var id = req.query.id;
 
-        Maid.findOne({ _id: id, status: true })
-            .select('info work_info history')
-            .exec((error, data) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        return msg.msgReturn(res, 0, data);
-                    }
-                }
-            });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
+    maidController.getById4Admin(id, (error, data) => {
+        return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+    });
 });
 
-/** GET - Get All Tasks By Owner ID
- * info {
- *      type: GET
- *      url: /getAllTasks
- *      name: Get All Tasks By Owner ID
- *      description: Get tasks by Owner's ID
- * }
- * 
- * params {
- *      id: owner_ID
- *      process: process_ID
- * }
- * 
- * body {
- *      null
- * } 
- */
 router.route('/getAllTasks').get((req, res) => {
-    try {
-        var id = req.query.id;
-        var process = req.query.process;
+    var id = req.query.id;
+    var process = req.query.process;
+    var startAt = req.query.startAt;
+    var endAt = req.query.endAt;
+    var limit = req.query.limit || 10;
+    var page = req.query.page || 1;
+    var sort = req.query.sort || 'asc';
+    var title = req.query.title;
 
-        var startAt = req.query.startAt;
-        var endAt = req.query.endAt;
-        var limit = req.query.limit || 10;
-        var page = req.query.page || 1;
-        var sort = req.query.sort || 'asc';
-
-        var title = req.query.title;
-
-        var findQuery = {
-            'stakeholders.request.maid': id,
-            status: true
-        }
-
-        if (process) {
-            findQuery['process'] = process;
-        }
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            findQuery['info.time.startAt'] = timeQuery;
-        }
-
-        var populateQuery = [
-            {
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }
-        ];
-
-        var sortQuery = {};
-        sort == 'asc' ? sortQuery = { 'history.createAt': 1 } : sortQuery = { 'history.createAt': -1 };
-
-        if (title) findQuery['info.title'] = new RegExp(title, 'i');
-
-        var options = {
-            select: '-location -status -__v',
-            populate: populateQuery,
-            sort: sortQuery,
-            page: parseFloat(page),
-            limit: parseFloat(limit)
-        };
-
-        Task.paginate(findQuery, options).then((data) => {
-            if (validate.isNullorEmpty(data)) {
-                return msg.msgReturn(res, 4);
-            } else {
-                return msg.msgReturn(res, 0, data)
-            }
+    maidController.getAllTasks4Admin(id, process, startAt, endAt, limit,
+        page, sort, title, (error, data) => {
+            return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
         });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
 });
 
 router.route('/create').post((req, res) => {
-    try {
-        var maid = new Maid();
+    var username = req.body.username;
+    var email = req.body.email || '';
+    var phone = req.body.phone || '';
+    var name = req.body.name || '';
+    var image = req.body.image || '';
+    var age = req.body.age || 18;
+    var addressName = req.body.addressName || '';
+    var lat = req.body.lat || 1;
+    var lng = req.body.lng || 1;
+    var gender = req.body.gender || 0;
+    var password = req.body.password || '';
+    var device_token = '';
+    var ability = req.body.ability || '';
+    var price = req.body.price || 0;
 
-        maid.info = {
-            username: req.body.username || '',
-            email: req.body.email || '',
-            phone: req.body.phone || '',
-            name: req.body.name || '',
-            image: req.body.image || '',
-            age: req.body.age || 18,
-            address: {
-                name: req.body.addressName || '',
-                coordinates: {
-                    lat: req.body.lat || 0,
-                    lng: req.body.lng || 0
-                }
-            },
-            gender: req.body.gender || 0,
-        };
-
-        var temp = []
-        var ability = req.body.ability || [];
-        temp = ability.split(',')
-
-        maid.work_info = {
-            ability: temp,
-            evaluation_point: 3,
-            price: req.body.price
-        }
-
-        maid.auth = {
-            password: AppService.hashString(req.body.password),
-            device_token: req.body.device_token || ''
-        };
-
-        maid.history = {
-            createAt: new Date(),
-            updateAt: new Date()
-        };
-
-        maid.status = true;
-
-        maid.location = {
-            type: 'Point',
-            coordinates: [req.body.lng || 0, req.body.lat || 0]
-        };
-
-        console.log(maid)
-
-        Maid.findOne({ $or: [{ 'info.username': req.body.username }, { 'info.email': req.body.email }] })
-            .exec((error, data) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    if (validate.isNullorEmpty(data)) {
-                        maid.save((error) => {
-                            if (error) {
-                                // console.log(error)
-                                return msg.msgReturn(res, 3);
-                            }
-
-
-                            return msg.msgReturn(res, 0);
-                        });
-                    } else {
-                        return msg.msgReturn(res, 2);
-                    }
-                }
-            });
-    } catch (error) {
-        console.log(error)
-        return msg.msgReturn(res, 3);
-    }
+    maidController.create(username, password, email, phone, name, image,
+        age, addressName, lat, lng, gender, ability, price, device_token, (error) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+        });
 });
 
 router.route('/update').post((req, res) => {
-    try {
-        var id = req.body.id;
+    var id = req.body.id;
+    var email = req.body.email || '';
+    var phone = req.body.phone || '';
+    var name = req.body.name || '';
+    var image = req.body.image || '';
+    var age = req.body.age || 18;
+    var addressName = req.body.addressName || '';
+    var lat = req.body.lat || 1;
+    var lng = req.body.lng || 1;
+    var gender = req.body.gender || 0;
+    var ability = req.body.ability || '';
+    var price = req.body.price || 0;
 
-        var email = req.body.email || '';
-        var phone = req.body.phone || '';
-        var name = req.body.name || '';
-        var age = req.body.age || 18;
-        var image = req.body.image || '';
-        var address = {
-            name: req.body.addressName || '',
-            coordinates: {
-                lat: req.body.lat || 0,
-                lng: req.body.lng || 0
-            }
-        };
-        var gender = req.body.gender || 0;
-
-        var temp = []
-        var ability = req.body.ability || [];
-        temp = ability.split(',')
-
-        var price = req.body.price || 0;
-        var location = {
-            type: 'Point',
-            coordinates: [req.body.lng || 0, req.body.lat || 0]
-        }
-
-        Maid.findOne({ 'info.email': email, status: true }, (error, maid) => {
-            if (error) {
-                return msg.msgReturn(res, 3);
-            } else {
-                if (validate.isNullorEmpty(maid)) {
-                    Maid.findOneAndUpdate(
-                        {
-                            _id: id,
-                            status: true
-                        },
-                        {
-                            $set: {
-                                'info.email': email,
-                                'info.phone': phone,
-                                'info.name': name,
-                                'info.age': age,
-                                'info.address': address,
-                                'info.gender': gender,
-                                'info.image': image,
-                                'work_info.ability': temp,
-                                'work_info.price': price,
-                                location: location,
-                                'history.updateAt': new Date()
-                            }
-                        },
-                        (error, data) => {
-                            if (error) return msg.msgReturn(res, 3);
-                            else {
-                                if (validate.isNullorEmpty(data)) {
-                                    return msg.msgReturn(res, 4);
-                                } else {
-                                    return msg.msgReturn(res, 0);
-                                }
-                            }
-                        }
-                    );
-                } else {
-                    var m = maid._id;
-                    if (m == id) {
-                        Maid.findOneAndUpdate(
-                            {
-                                _id: id,
-                                status: true
-                            },
-                            {
-                                $set: {
-                                    'info.phone': phone,
-                                    'info.name': name,
-                                    'info.age': age,
-                                    'info.address': address,
-                                    'info.gender': gender,
-                                    'info.image': image,
-                                    'work_info.ability': temp,
-                                    'work_info.price': price,
-                                    location: location,
-                                    'history.updateAt': new Date()
-                                }
-                            },
-                            (error, data) => {
-                                if (error) return msg.msgReturn(res, 3);
-                                else {
-                                    if (validate.isNullorEmpty(data)) {
-                                        return msg.msgReturn(res, 4);
-                                    } else {
-                                        return msg.msgReturn(res, 0);
-                                    }
-                                }
-                            }
-                        );
-                    } else {
-                        return msg.msgReturn(res, 2);
-                    }
-                }
-            }
-        })
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
+    maidController.update(id, email, phone, name, age, image, addressName,
+        lat, lng, gender, ability, price, (error) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+        });
 });
 
 router.route('/delete').post((req, res) => {
-    try {
-        var id = req.query.id;
+    var id = req.query.id;
 
-        Maid.findOneAndUpdate(
-            {
-                _id: id,
-                status: true
-            },
-            {
-                $set: {
-                    'history.updateAt': new Date(),
-                    status: false
-                }
-            },
-            (error, data) => {
-                if (error) return msg.msgReturn(res, 3);
-                else {
-                    if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        return msg.msgReturn(res, 0);
-                    }
-                }
-
-            }
-        );
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
+    maidController.delete(id, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
 });
 
 router.route('/getComment').get((req, res) => {
-    try {
-        var id = req.query.id;
+    var id = req.query.id;
+    var limit = req.query.limit || 10;
+    var page = req.query.page || 1;
 
-        var limit = req.query.limit || 20;
-        var page = req.query.page || 1;
-
-        var query = { toId: id };
-        var options = {
-            select: 'evaluation_point content task createAt fromId',
-            populate: { path: 'task', select: 'info' },
-            sort: {
-                createAt: -1
-            },
-            page: parseFloat(page),
-            limit: parseFloat(limit)
-        };
-
-        Comment.paginate(query, options).then((data) => {
-            if (validate.isNullorEmpty(data)) {
-                return msg.msgReturn(res, 4);
-            } else {
-                Owner.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
-                    if (error) {
-                        return msg.msgReturn(res, 3);
-                    } else {
-                        if (validate.isNullorEmpty(data)) {
-                            return msg.msgReturn(res, 4);
-                        } else {
-                            return msg.msgReturn(res, 0, data);
-                        }
-                    }
-                });
-            }
-        });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
+    maidController.getComment(id, limit, page, (error, data) => {
+        return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+    });
 });
 
 router.route('/deleteComment').post((req, res) => {
-    try {
-        var id = req.query.id;
+    var id = req.query.id;
 
-        Comment.findByIdAndRemove(
-            {
-                _id: id,
-                status: true
-            },
-            (error, data) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                } else {
-                    if (validate.isNullorEmpty(data)) {
-                        return msg.msgReturn(res, 4);
-                    } else {
-                        return msg.msgReturn(res, 0);
-                    }
-                }
-            }
-        )
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-})
+    maidController.deleteComment(id, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
+});
 
 router.route('/statistical').get((req, res) => {
-    try {
-        var id = req.query.id;
-        var startAt = req.query.startAt;
-        var endAt = req.query.endAt;
-        var isSolved = req.query.isSolved;
+    var id = req.query.id;
+    var startAt = req.query.startAt;
+    var endAt = req.query.endAt;
+    var isSolved = req.query.isSolved;
 
-        var matchQuery = { 'maid': new ObjectId(id), status: true }
-
-        if (isSolved) matchQuery['isSolved'] = isSolved;
-
-        if (startAt || endAt) {
-            var timeQuery = {};
-
-            if (startAt) {
-                var date = new Date(startAt);
-                date.setUTCHours(0, 0, 0, 0);
-                timeQuery['$gte'] = date;
-            }
-
-            if (endAt) {
-                var date = new Date(endAt);
-                date.setUTCHours(0, 0, 0, 0);
-                date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
-                timeQuery['$lt'] = date;
-            }
-
-            matchQuery['date'] = timeQuery;
-        }
-
-        Bill.aggregate(
-            [
-                {
-                    $match: matchQuery
-                },
-                {
-                    $group: {
-                        _id: '$method',
-                        taskNumber: {
-                            $sum: 1
-                        },
-                        price: {
-                            $sum: '$price'
-                        }
-                    }
-                }
-            ], (error, data) => {
-                if (error) {
-                    return msg.msgReturn(res, 3);
-                }
-                else if (validate.isNullorEmpty(data)) {
-                    return msg.msgReturn(res, 4);
-                }
-                else {
-                    var totalPrice = 0;
-                    data.map(a => {
-                        totalPrice += a.price
-                    });
-
-                    var d = {
-                        data: data,
-                        totalPrice: totalPrice
-                    }
-
-                    return msg.msgReturn(res, 0, d);
-                }
-            }
-        )
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
-})
+    maidController.statistical4Admin(id, startAt, endAt, isSolved, (error, data) => {
+        return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+    });
+});
 
 module.exports = router;

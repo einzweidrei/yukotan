@@ -29,13 +29,12 @@ var sessionController = new contSession.Session();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-var Owner = (function () {
-    function Owner() { }
+var Owner = (function() {
+    function Owner() {}
 
     Owner.prototype.findOneAndUpdate = (searchQuery, setQuery, callback) => {
         mOwner.findOneAndUpdate(
-            searchQuery,
-            {
+            searchQuery, {
                 $set: setQuery
             },
             (error, data) => {
@@ -110,21 +109,21 @@ var Owner = (function () {
         }
 
         var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'stakeholders.received',
-            select: 'info work_info'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        }
+                path: 'info.package',
+                select: 'name'
+            },
+            {
+                path: 'info.work',
+                select: 'name image'
+            },
+            {
+                path: 'stakeholders.received',
+                select: 'info work_info'
+            },
+            {
+                path: 'process',
+                select: 'name'
+            }
         ];
 
         var options = {
@@ -181,8 +180,7 @@ var Owner = (function () {
             }
         };
 
-        var taskAggregate = [
-            {
+        var taskAggregate = [{
                 $match: matchQuery
             },
             {
@@ -239,21 +237,21 @@ var Owner = (function () {
         }
 
         var populateQuery = [{
-            path: 'info.package',
-            select: 'name'
-        },
-        {
-            path: 'info.work',
-            select: 'name image'
-        },
-        {
-            path: 'stakeholders.received',
-            select: 'info work_info'
-        },
-        {
-            path: 'process',
-            select: 'name'
-        }
+                path: 'info.package',
+                select: 'name'
+            },
+            {
+                path: 'info.work',
+                select: 'name image'
+            },
+            {
+                path: 'stakeholders.received',
+                select: 'info work_info'
+            },
+            {
+                path: 'process',
+                select: 'name'
+            }
         ];
 
         var options = {
@@ -414,8 +412,7 @@ var Owner = (function () {
 
             commentController.paginate(query, options, (error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
-                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                {
+                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST); {
                     mMaid.populate(data, { path: 'docs.fromId', select: 'info' }, (error, data) => {
                         if (error) return callback(ms.EXCEPTION_FAILED);
                         return callback(null, data);
@@ -519,9 +516,8 @@ var Owner = (function () {
             taskQuery['history.createAt'] = timeQuery;
         };
 
-        async.parallel(
-            {
-                owner: function (callback) {
+        async.parallel({
+                owner: function(callback) {
                     var ownerSearch = {
                         _id: id,
                         status: true
@@ -533,9 +529,8 @@ var Owner = (function () {
                         return callback(null, data);
                     });
                 },
-                bill: function (callback) {
-                    var billAggregate = [
-                        {
+                bill: function(callback) {
+                    var billAggregate = [{
                             $match: billQuery
                         },
                         {
@@ -556,13 +551,11 @@ var Owner = (function () {
                                 totalPrice: 0
                             }
                             callback(null, data);
-                        }
-                        else return callback(null, data[0]);
+                        } else return callback(null, data[0]);
                     });
                 },
-                task: function (callback) {
-                    var taskAggregate = [
-                        {
+                task: function(callback) {
+                    var taskAggregate = [{
                             $match: taskQuery
                         },
                         {
@@ -628,8 +621,7 @@ var Owner = (function () {
             billQuery['createAt'] = timeQuery;
         };
 
-        var billAggregate = [
-            {
+        var billAggregate = [{
                 $match: billQuery
             },
             {
@@ -655,9 +647,9 @@ var Owner = (function () {
                     mMaid.populate(result, { path: 'task.stakeholders.received', select: 'info work_info' }, (error, result) => {
                         if (error) return callback(ms.EXCEPTION_FAILED);
                         mWork.populate(result, [
-                            { path: 'task.info.work', select: 'name image' },
-                            { path: 'task.stakeholders.received.work_info.ability', select: 'name image' }
-                        ],
+                                { path: 'task.info.work', select: 'name image' },
+                                { path: 'task.stakeholders.received.work_info.ability', select: 'name image' }
+                            ],
                             (error, result) => {
                                 if (error) return callback(ms.EXCEPTION_FAILED);
                                 mPackage.populate(result, { path: 'task.info.package', select: 'name' }, (error, result) => {
@@ -820,8 +812,7 @@ var Owner = (function () {
                 findQuery['info.time.startAt'] = timeQuery;
             }
 
-            var populateQuery = [
-                {
+            var populateQuery = [{
                     path: 'info.package',
                     select: 'name'
                 },
@@ -836,7 +827,8 @@ var Owner = (function () {
                 {
                     path: 'process',
                     select: 'name'
-                }];
+                }
+            ];
 
             var sortQuery = {};
             sort == 'asc' ? sortQuery = { 'history.createAt': 1 } : sortQuery = { 'history.createAt': -1 };
@@ -917,21 +909,20 @@ var Owner = (function () {
                 coordinates: [lng, lat]
             };
 
-            mOwner.findOne(
-                {
-                    $or: [
-                        { 'info.username': username },
-                        { 'info.email': email }
-                    ]
-                }).exec((error, data) => {
-                    if (error) return callback(ms.EXCEPTION_FAILED);
-                    else if (validate.isNullorEmpty(data)) {
-                        owner.save((error) => {
-                            if (error) return callback(ms.EXCEPTION_FAILED);
-                            else return callback(null, owner);
-                        });
-                    } else return callback(ms.DUPLICATED);
-                });
+            mOwner.findOne({
+                $or: [
+                    { 'info.username': username },
+                    { 'info.email': email }
+                ]
+            }).exec((error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                else if (validate.isNullorEmpty(data)) {
+                    owner.save((error) => {
+                        if (error) return callback(ms.EXCEPTION_FAILED);
+                        else return callback(null, owner);
+                    });
+                } else return callback(ms.DUPLICATED);
+            });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
         }
@@ -952,12 +943,10 @@ var Owner = (function () {
                 coordinates: [lng, lat]
             };
 
-            mOwner.findOneAndUpdate(
-                {
+            mOwner.findOneAndUpdate({
                     _id: id,
                     status: true
-                },
-                {
+                }, {
                     $set: {
                         'info.phone': phone,
                         'info.name': name,
@@ -982,22 +971,19 @@ var Owner = (function () {
 
     Owner.prototype.delete = (id, callback) => {
         try {
-            mOwner.findOneAndUpdate(
-                {
-                    _id: id,
-                    status: true
-                },
-                {
-                    $set: {
-                        'history.updateAt': new Date(),
-                        status: false
-                    }
-                }, (error, data) => {
-                    if (error) return callback(ms.EXCEPTION_FAILED);
-                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                    else return callback(null, data);
+            mOwner.findOneAndUpdate({
+                _id: id,
+                status: true
+            }, {
+                $set: {
+                    'history.updateAt': new Date(),
+                    status: false
                 }
-            );
+            }, (error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else return callback(null, data);
+            });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
         }
@@ -1005,8 +991,7 @@ var Owner = (function () {
 
     Owner.prototype.deleteComment = (id, callback) => {
         try {
-            mComment.findByIdAndRemove(
-                {
+            mComment.findByIdAndRemove({
                     _id: id,
                     status: true
                 },
@@ -1022,8 +1007,7 @@ var Owner = (function () {
 
     Owner.prototype.chargeWallet = (id, price, callback) => {
         try {
-            mOwner.findOne(
-                {
+            mOwner.findOne({
                     _id: id,
                     status: true
                 },
@@ -1033,12 +1017,10 @@ var Owner = (function () {
                     else {
                         var wallet = data.wallet;
                         wallet += price;
-                        mOwner.findOneAndUpdate(
-                            {
+                        mOwner.findOneAndUpdate({
                                 _id: id,
                                 status: true
-                            },
-                            {
+                            }, {
                                 $set: {
                                     wallet: wallet
                                 }
@@ -1079,8 +1061,7 @@ var Owner = (function () {
             }
 
             mBill.aggregate(
-                [
-                    {
+                [{
                         $match: matchQuery
                     },
                     {

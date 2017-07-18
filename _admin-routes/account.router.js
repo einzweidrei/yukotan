@@ -169,16 +169,16 @@ router.route('/create').post((req, res) => {
 
         account.status = true
 
-        var acc = req.body.account || false;
-        var owner = req.body.owner || false;
-        var maid = req.body.maid || false;
-        var task = req.body.task || false;
-        var bill = req.body.bill || false;
-        var giftcode = req.body.giftcode || false;
-        var work = req.body.work || false;
-        var aboutus = req.body.aboutus || false;
-        var report = req.body.report || false;
-        var contact = req.body.contact || false;
+        var acc = req.body.Account || false;
+        var owner = req.body.Owner || false;
+        var maid = req.body.Maid || false;
+        var task = req.body.Task || false;
+        var bill = req.body.Bill || false;
+        var giftcode = req.body.Giftcode || false;
+        var work = req.body.Work || false;
+        var aboutus = req.body.Aboutus || false;
+        var report = req.body.Report || false;
+        var contact = req.body.Contact || false;
 
         var perm = []
         perm = AppService.getPerm(acc, owner, maid, task, bill,
@@ -216,16 +216,16 @@ router.route('/update').post((req, res) => {
         var address = req.body.address || '';
         var gender = req.body.gender || 0;
 
-        var acc = req.body.account || false;
-        var owner = req.body.owner || false;
-        var maid = req.body.maid || false;
-        var task = req.body.task || false;
-        var bill = req.body.bill || false;
-        var giftcode = req.body.giftcode || false;
-        var work = req.body.work || false;
-        var aboutus = req.body.aboutus || false;
-        var report = req.body.report || false;
-        var contact = req.body.contact || false;
+        var acc = req.body.Account || false;
+        var owner = req.body.Owner || false;
+        var maid = req.body.Maid || false;
+        var task = req.body.Task || false;
+        var bill = req.body.Bill || false;
+        var giftcode = req.body.Giftcode || false;
+        var work = req.body.Work || false;
+        var aboutus = req.body.Aboutus || false;
+        var report = req.body.Report || false;
+        var contact = req.body.Contact || false;
 
         var perm = []
         perm = AppService.getPerm(acc, owner, maid, task, bill,
