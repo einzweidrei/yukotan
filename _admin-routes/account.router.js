@@ -227,7 +227,7 @@ router.route('/update').post((req, res) => {
         var report = req.body.Report || false;
         var contact = req.body.Contact || false;
 
-        var perm = []
+        var perm = [];
         perm = AppService.getPerm(acc, owner, maid, task, bill,
             giftcode, work, aboutus, report, contact);
 
@@ -272,16 +272,16 @@ router.route('/update').post((req, res) => {
                     }, (error) => {
                         if (error) return msg.msgReturn(res, 3);
                         return msg.msgReturn(res, 0);
-                    })
+                    });
                 } else {
                     return msg.msgReturn(res, 2);
                 }
             }
-        })
+        });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
-})
+});
 
 router.route('/delete').post((req, res) => {
     try {
