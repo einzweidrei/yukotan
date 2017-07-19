@@ -18,8 +18,10 @@ var contTerm = require('../_controller/term.controller');
 var termController = new contTerm.Term();
 var contAppInfo = require('../_controller/app-info.controller');
 var appInfoController = new contAppInfo.AppInfo();
+var contContact = require('../_controller/contact.controller');
+var contactController = new contContact.Contact();
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getAppLanguage(baseUrl);
@@ -173,6 +175,16 @@ router.route('/getContact').get((req, res) => {
     } catch (error) {
         return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
+});
+
+router.route('/createContact').post((req, res) => {
+    var name = req.body.name;
+    var email = req.body.email;
+    var content = req.body.content;
+
+    contactController.create(name, email, content, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
 });
 
 module.exports = router;

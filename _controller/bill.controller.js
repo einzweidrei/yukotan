@@ -98,6 +98,171 @@ var Bill = (function () {
         }
     };
 
+    Bill.prototype.getAll = (page, limit, isSolved, startAt, endAt, sort, callback) => {
+        try {
+            var findQuery = {
+                status: true
+            }
+
+            if (isSolved) findQuery['isSolved'] = isSolved;
+
+            if (startAt || endAt) {
+                var timeQuery = {};
+
+                if (startAt) {
+                    var date = new Date(startAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    timeQuery['$gte'] = date;
+                }
+
+                if (endAt) {
+                    var date = new Date(endAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                    timeQuery['$lt'] = date;
+                }
+
+                findQuery['createAt'] = timeQuery;
+            }
+
+            var sortQuery = {}
+            sort == 'asc' ? sortQuery['createAt'] = 1 : sortQuery['createAt'] = -1
+
+            var options = {
+                select: '-status -__v',
+                sort: sortQuery,
+                page: parseFloat(page),
+                limit: parseFloat(limit)
+            };
+
+            mBill.paginate(findQuery, options).then((data) => {
+                if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else return callback(null, data);
+            });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Bill.prototype.getById = (id, callback) => {
+        try {
+            mBill.findOne({ _id: id, status: true })
+                .populate(
+                [
+                    {
+                        path: 'task', select: 'info'
+                    },
+                    {
+                        path: 'owner', select: 'info'
+                    },
+                    {
+                        path: 'maid', select: 'info'
+                    }
+                ])
+                .select('-status -__v').exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Bill.prototype.update = (id, isSolved, method, callback) => {
+        try {
+            mBill.findOneAndUpdate(
+                {
+                    _id: id,
+                    status: true
+                },
+                {
+                    $set: {
+                        isSolved: isSolved,
+                        method: method,
+                        date: new Date()
+                    }
+                },
+                (error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Bill.prototype.delete = (id, callback) => {
+        try {
+            mBill.findOneAndUpdate(
+                {
+                    _id: id,
+                    status: true
+                },
+                {
+                    $set: {
+                        status: false
+                    }
+                },
+                (error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Bill.prototype.getUserBills = (id, user, page, limit, isSolved, startAt, endAt, sort, callback) => {
+        try {
+            var findQuery = {
+                status: true
+            }
+
+            user == 1 ? findQuery['owner'] = new ObjectId(id) : findQuery['maid'] = new ObjectId(id);
+
+            if (isSolved) findQuery['isSolved'] = isSolved;
+
+            if (startAt || endAt) {
+                var timeQuery = {};
+
+                if (startAt) {
+                    var date = new Date(startAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    timeQuery['$gte'] = date;
+                }
+
+                if (endAt) {
+                    var date = new Date(endAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                    timeQuery['$lt'] = date;
+                }
+
+                findQuery['date'] = timeQuery;
+            }
+
+            var sortQuery = {}
+            sort == 'asc' ? sortQuery['date'] = 1 : sortQuery['date'] = -1
+
+            var options = {
+                select: '-status -__v',
+                sort: sortQuery,
+                page: parseFloat(page),
+                limit: parseFloat(limit)
+            };
+
+            mBill.paginate(findQuery, options).then((data) => {
+                if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else return callback(null, data);
+            })
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
     return Bill;
 }());
 

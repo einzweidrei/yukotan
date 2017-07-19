@@ -16,8 +16,8 @@ admin.initializeApp({
 });
 
 // connecting mongodb
-var mongodburi = 'mongodb://127.0.0.1:58254/NGV247';
-// var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
+// var mongodburi = 'mongodb://127.0.0.1:58254/NGV247';
+var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodburi);
 
@@ -71,7 +71,7 @@ app.use('/admin/:language/account', require('./_admin-routes/account.router'));
 app.use('/admin/:language/auth', require('./_admin-routes/authenticate.router'));
 app.use('/admin/:language/statistical', require('./_admin-routes/statistical.router'));
 app.use('/admin/:language/content', require('./_admin-routes/content.router'));
-app.use('/admin/:language/more', require('./_admin-routes/more.router'));
+// app.use('/admin/:language/more', require('./_admin-routes/more.router'));
 app.use('/admin/:language/web-contact', require('./_admin-routes/web-contact.router'));
 
 app.listen(process.env.PORT || 8000, function () {
