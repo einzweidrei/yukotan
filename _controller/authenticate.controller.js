@@ -1,6 +1,7 @@
 var mSession = require('../_model/session');
 var mOwner = require('../_model/owner');
 var mMaid = require('../_model/maid');
+var mAccount = require('../_model/account');
 var ObjectId = require('mongoose').Types.ObjectId;
 var as = require('../_services/app.service');
 var AppService = new as.App();
@@ -321,6 +322,51 @@ var Authenticate = (function () {
                     });
                 } else return callback(ms.DUPLICATED);
             });
+    };
+
+    Authenticate.prototype.login4Admin = (username, password, callback) => {
+        try {
+            var pw = AppService.hashString(password);
+
+            mAccount
+                .findOne({ 'info.username': username, status: true })
+                .exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else if (data.auth.password != pw) return callback(ms.INVALID_PASSWORD);
+                    else {
+                        var newToken = AppService.getToken();
+                        mSession.findOneAndUpdate(
+                            {
+                                'auth.userId': data._id,
+                                status: true
+                            }, {
+                                $set: {
+                                    'auth.token': newToken,
+                                    loginAt: new Date()
+                                }
+                            }, {
+                                upsert: true
+                            },
+                            (error, result) => {
+                                if (error) return callback(ms.EXCEPTION_FAILED);
+                                else {
+                                    var dt = {
+                                        token: newToken,
+                                        user: {
+                                            _id: data._id,
+                                            info: data.info,
+                                            permission: data.permission
+                                        }
+                                    };
+                                    return callback(null, dt);
+                                }
+                            });
+                    }
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
     };
 
     return Authenticate;
