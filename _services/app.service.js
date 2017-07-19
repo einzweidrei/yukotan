@@ -5,14 +5,15 @@ const Package = require('../_model/package');
 const Process = require('../_model/process');
 const AppInfo = require('../_model/app-info');
 const Term = require('../_model/term');
+const Content = require('../_model/content');
 
 const hash_key = 'LULULUL';
 const token_length = 64;
 const azure_key = 'b1726597dcc74171abf38be836846977';
 const task_limit = 10;
 
-var App = (function() {
-    function App() {}
+var App = (function () {
+    function App() { }
 
     App.prototype.setLanguage = (language) => {
         Package.setDefaultLanguage(language);
@@ -20,6 +21,7 @@ var App = (function() {
         Process.setDefaultLanguage(language);
         AppInfo.setDefaultLanguage(language);
         Term.setDefaultLanguage(language);
+        Content.setDefaultLanguage(language);
     };
 
     App.prototype.remakeId = (id) => {

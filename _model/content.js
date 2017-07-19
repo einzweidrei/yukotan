@@ -7,7 +7,7 @@ var ObjectId = Schema.ObjectId;
 var ContentSchema = new Schema(
     {
         type: { type: Number },
-        image: { type: String },
+        image: { type: String, intl: true },
         title: { type: String, intl: true },
         body: { type: String, intl: true },
         history: {

@@ -1,235 +1,102 @@
 var express = require('express');
-var mongoose = require('mongoose');
-var requestLanguage = require('express-request-language');
-var cookieParser = require('cookie-parser');
 var router = express.Router();
-
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
-
-var validationService = require('../_services/validation.service');
-var validate = new validationService.Validation();
-
 var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
-
-var FCM = require('../_services/fcm.service');
-var FCMService = new FCM.FCMService();
-
-var Mail = require('../_services/mail.service');
-var MailService = new Mail.MailService();
-
 var as = require('../_services/app.service');
 var AppService = new as.App();
-
-var Owner = require('../_model/owner');
-var Session = require('../_model/session');
-var Package = require('../_model/package');
-var Work = require('../_model/work');
-var Task = require('../_model/task');
-var Process = require('../_model/process');
-var Maid = require('../_model/maid');
-var Comment = require('../_model/comment');
-var GiftCode = require('../_model/giftcode');
-var Content = require('../_model/content');
-
-var cloudinary = require('cloudinary');
-var bodyparser = require('body-parser');
-
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
+var contContent = require('../_controller/content.controller');
+var contentController = new contContent.Content();
+var as = require('../_services/app.service');
+var AppService = new as.App();
+var messStatus = require('../_services/mess-status.service');
+var ms = messStatus.MessageStatus;
 
 router.use(multipartMiddleware);
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
-        var language = baseUrl.substring(baseUrl.indexOf('/admin/') + 7, baseUrl.lastIndexOf('/'));
+        var language = AppService.getWebLanguage(baseUrl);
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            Content.setDefaultLanguage(language);
+            AppService.setLanguage(language);
             next();
-        } else {
-            return msg.msgReturn(res, 6);
+        }
+        else {
+            return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
         }
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 
 router.route('/getAll').get((req, res) => {
-    try {
-        var type = req.query.type;
-        Content
-            .find({ type: type, status: true })
-            .select('-status -__v')
-            .exec((error, data) => {
-                if (error) return msg.msgReturn(res, 3);
-                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
-                else return msg.msgReturn(res, 0, data);
-            });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
+    var type = req.query.type;
+    contentController.getAll(type, (error, data) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
+    });
 });
 
 router.route('/getWebAll').get((req, res) => {
-    try {
-        var type = req.query.type;
-        var searchQuery = { status: true };
-        if (type) searchQuery['type'] = type;
-
-        Content
-            .find(searchQuery)
-            .select('-status -__v')
-            .exec((error, data) => {
-                if (error) return msg.msgReturn(res, 3);
-                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
-                else {
-                    var m = []
-                    data.map(a => {
-                        var d = {
-                            _id: a._id,
-                            image: a.image,
-                            title: a.get('title.all'),
-                            body: a.get('body.all'),
-                            type: a.type,
-                            history: a.history,
-                        };
-                        m.push(d);
-                    });
-                    return msg.msgReturn(res, 0, m);
-                }
-            });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
+    var type = req.query.type;
+    contentController.getAll4Admin(type, (error, data) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
+    });
 });
 
 router.route('/getById').get((req, res) => {
-    try {
-        var id = req.query.id;
-        Content
-            .findOne({ _id: id, status: true })
-            .select('-status -__v')
-            .exec((error, data) => {
-                if (error) return msg.msgReturn(res, 3);
-                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
-                else {
-                    var g = {
-                        _id: data._id,
-                        image: data.image,
-                        title: data.get('title.all'),
-                        body: data.get('body.all'),
-                        type: data.type,
-                        history: data.history
-                    };
+    var id = req.query.id;
 
-                    return msg.msgReturn(res, 0, g);
-                }
-            });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
+    contentController.getById(id, (error, data) => {
+        return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+    });
 });
 
 router.route('/create').post((req, res) => {
-    try {
-        var type = req.body.type;
-        var image = req.body.image || '';
+    var type = req.body.type;
+    var imageVi = req.body.imageVi || '';
+    var imageEn = req.body.imageEn || '';
 
-        var titleVi = req.body.titleVi || '';
-        var titleEn = req.body.titleEn || '';
+    var titleVi = req.body.titleVi || '';
+    var titleEn = req.body.titleEn || '';
 
-        var contentVi = req.body.contentVi || '';
-        var contentEn = req.body.contentEn || '';
+    var contentVi = req.body.contentVi || '';
+    var contentEn = req.body.contentEn || '';
 
-        var ct = new Content();
-        ct.type = type;
-        ct.image = image;
-
-        ct.set('title.all', {
-            en: titleEn,
-            vi: titleVi
+    contentController.create(type, imageVi, imageEn, titleVi, titleEn,
+        contentVi, contentEn, (error) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
-
-        ct.set('body.all', {
-            en: contentEn,
-            vi: contentVi
-        });
-
-        ct.history = {
-            createAt: new Date(),
-            updateAt: new Date()
-        };
-
-        ct.status = true
-        ct.save((error) => {
-            if (error) return msg.msgReturn(res, 3);
-            return msg.msgReturn(res, 0);
-        });
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
 });
 
 router.route('/update').post((req, res) => {
-    try {
-        var id = req.body.id;
-        var image = req.body.image || '';
+    var id = req.body.id;
+    var imageVi = req.body.imageVi || '';
+    var imageEn = req.body.imageEn || '';
 
-        var titleVi = req.body.titleVi || '';
-        var titleEn = req.body.titleEn || '';
+    var titleVi = req.body.titleVi || '';
+    var titleEn = req.body.titleEn || '';
 
-        var contentVi = req.body.contentVi || '';
-        var contentEn = req.body.contentEn || '';
+    var contentVi = req.body.contentVi || '';
+    var contentEn = req.body.contentEn || '';
 
-        Content.findOneAndUpdate({
-                _id: id,
-                status: true
-            }, {
-                $set: {
-                    image: image,
-                    title: {
-                        vi: titleVi,
-                        en: titleEn
-                    },
-                    body: {
-                        vi: contentVi,
-                        en: contentEn
-                    },
-                    'history.updateAt': new Date()
-                }
-            },
-            (error, data) => {
-                if (error) return msg.msgReturn(res, 3);
-                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
-                else return msg.msgReturn(res, 0);
-            }
-        )
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
+    contentController.update(id, imageVi, imageEn, titleVi, titleEn,
+        contentVi, contentEn, (error) => {
+            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+        });
 });
 
 router.route('/delete').post((req, res) => {
-    try {
-        var id = req.query.id;
+    var id = req.query.id;
 
-        Content.findOneAndRemove({
-                _id: id,
-                status: true
-            },
-            (error, data) => {
-                if (error) return msg.msgReturn(res, 3);
-                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
-                else return msg.msgReturn(res, 0);
-            }
-        )
-    } catch (error) {
-        return msg.msgReturn(res, 3);
-    }
+    contentController.delete(id, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
 });
 
 module.exports = router;
