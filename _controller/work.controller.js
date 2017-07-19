@@ -21,7 +21,7 @@ var Work = (function () {
             status: true
         };
 
-        var selectQuery = 'name';
+        var selectQuery = '-status -history -__v';
 
         work.find(searchQuery, selectQuery, (error, data) => {
             if (error) return callback(ms.EXCEPTION_FAILED);
@@ -30,7 +30,7 @@ var Work = (function () {
         });
     };
 
-    Work.prototype.create = (nameVi, nameEn, image, callback) => {
+    Work.prototype.create = (nameVi, nameEn, image, titleVi, titleEn, descriptionVi, descriptionEn, price, callback) => {
         var work = new mWork();
         work.image = image;
         work.status = true;
@@ -42,13 +42,25 @@ var Work = (function () {
             vi: nameVi
         });
 
+        work.set('title.all', {
+            en: titleEn,
+            vi: titleVi
+        });
+
+        work.set('description.all', {
+            en: descriptionEn,
+            vi: descriptionVi
+        });
+
+        work.price = price;
+
         work.save((error) => {
             if (error) return callback(ms.EXCEPTION_FAILED);
             else return callback(null, work);
         });
     };
 
-    Work.prototype.update = (id, nameVi, nameEn, image, callback) => {
+    Work.prototype.update = (id, nameVi, nameEn, image, titleVi, titleEn, descriptionVi, descriptionEn, price, callback) => {
         mWork.findOneAndUpdate(
             {
                 _id: id,
@@ -59,6 +71,15 @@ var Work = (function () {
                         vi: nameVi,
                         en: nameEn
                     },
+                    title: {
+                        vi: titleVi,
+                        en: titleEn
+                    },
+                    description: {
+                        vi: descriptionVi,
+                        en: descriptionEn
+                    },
+                    price: price,
                     image: image,
                     'history.updateAt': new Date()
                 }
@@ -90,7 +111,7 @@ var Work = (function () {
     Work.prototype.getAll4Admin = (callback) => {
         mWork
             .find({ status: true })
-            .select('name image')
+            .select('-history -__v')
             .exec((error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
                 else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
@@ -100,6 +121,9 @@ var Work = (function () {
                         var d = {
                             _id: a._id,
                             name: a.get('name.all'),
+                            title: a.get('title.all'),
+                            description: a.get('description.all'),
+                            price: a.price,
                             image: a.image
                         };
                         m.push(d);
@@ -112,7 +136,7 @@ var Work = (function () {
     Work.prototype.getInfo4Admin = (id, callback) => {
         mWork
             .findOne({ _id: id, status: true })
-            .select('name image')
+            .select('-history -__v')
             .exec((error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
                 else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
@@ -120,6 +144,9 @@ var Work = (function () {
                     var g = {
                         _id: data._id,
                         name: data.get('name.all'),
+                        title: data.get('title.all'),
+                        description: data.get('description.all'),
+                        price: data.price,
                         image: data.image
                     };
                     return callback(null, g);

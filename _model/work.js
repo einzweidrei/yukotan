@@ -10,6 +10,9 @@ var ObjectId = Schema.ObjectId;
 var WorkSchema = new Schema(
     {
         name: { type: String, intl: true },
+        title: { type: String, intl: true },
+        description: { type: String, intl: true },
+        price: { type: Number },
         status: { type: Boolean },
         image: { type: String },
         history: {

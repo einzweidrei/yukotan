@@ -38,8 +38,14 @@ router.route('/create').post((req, res) => {
         var nameVi = req.body.nameVi;
         var nameEn = req.body.nameEn;
         var image = req.body.image;
+        var titleVi = req.body.titleVi || '';
+        var titleEn = req.body.titleEn || '';
+        var descriptionVi = req.body.descriptionVi || '';
+        var descriptionEn = req.body.descriptionEn || '';
+        var price = req.body.price || 0;
 
-        workController.create(nameVi, nameEn, image, (error, data) => {
+        workController.create(nameVi, nameEn, image, titleVi, titleEn,
+            descriptionVi, descriptionEn, price, (error, data) => {
             return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
     } catch (error) {
@@ -53,8 +59,14 @@ router.route('/update').post((req, res) => {
         var nameVi = req.body.nameVi || '';
         var nameEn = req.body.nameEn || '';
         var image = req.body.image || '';
+        var titleVi = req.body.titleVi || '';
+        var titleEn = req.body.titleEn || '';
+        var descriptionVi = req.body.descriptionVi || '';
+        var descriptionEn = req.body.descriptionEn || '';
+        var price = req.body.price || 0;
 
-        workController.update(id, nameVi, nameEn, image, (error, data) => {
+        workController.update(id, nameVi, nameEn, image, titleVi, titleEn, 
+            descriptionVi, descriptionEn, price, (error, data) => {
             return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
     } catch (error) {
