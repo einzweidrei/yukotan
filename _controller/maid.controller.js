@@ -3,6 +3,7 @@ var mTask = require('../_model/task');
 var mOwner = require('../_model/owner');
 var mComment = require('../_model/comment');
 var mBill = require('../_model/bill');
+var mWork = require('../_model/work');
 var mReport = require('../_model/report');
 var async = require('promise-async');
 var as = require('../_services/app.service');
@@ -104,7 +105,12 @@ var Maid = (function() {
         maid.aggregate(aggregateQuery, (error, data) => {
             if (error) return callback(ms.EXCEPTION_FAILED);
             else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-            return callback(null, data);
+            else {
+                mWork.populate(data, { path: 'work_info.ability', select: 'name image' }, (error, result) => {
+                    return callback(null, result);
+                });
+                // return callback(null, data);
+            }
         });
     };
 
