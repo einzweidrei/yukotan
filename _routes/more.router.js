@@ -20,8 +20,10 @@ var contAppInfo = require('../_controller/app-info.controller');
 var appInfoController = new contAppInfo.AppInfo();
 var contContact = require('../_controller/contact.controller');
 var contactController = new contContact.Contact();
+var contMaidRegister = require('../_controller/maid-register.controller');
+var maidRegisterController = new contMaidRegister.MaidRegister();
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getAppLanguage(baseUrl);
@@ -183,6 +185,17 @@ router.route('/createContact').post((req, res) => {
     var content = req.body.content;
 
     contactController.create(name, email, content, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
+});
+
+router.route('/maidRegister').post((req, res) => {
+    var name = req.body.name;
+    var address = req.body.address;
+    var phone = req.body.phone;
+    var note = req.body.note;
+
+    maidRegisterController.register(name, address, phone, note, (error) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
     });
 });

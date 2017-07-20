@@ -137,7 +137,7 @@ router.route('/getComment').get((req, res) => {
 });
 
 router.route('/deleteComment').post((req, res) => {
-    var id = req.body.id;
+    var id = req.query.id;
 
     ownerController.deleteComment(id, (error) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
