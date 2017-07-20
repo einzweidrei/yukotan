@@ -893,8 +893,7 @@ var Task = (function() {
                                         else return callback(null, data);
                                     });
                                 }
-                            }
-                        );
+                            });
                     }
                 });
             }

@@ -4,9 +4,9 @@ var msg = new messageService.Message();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-var title = 'NGV247'
-var bodyVi = 'Bạn nhận được một thông báo.'
-var bodyEn = 'You receive a notification.'
+const title = 'NGV247';
+const bodyVi = 'Bạn nhận được một thông báo.';
+const bodyEn = 'You receive a notification.';
 
 var FCMService = (function() {
     function FCMService() {}

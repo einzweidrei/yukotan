@@ -41,7 +41,7 @@ var multipartMiddleware = multipart();
 
 router.use(multipartMiddleware);
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     console.log('giftcode_router is connecting');
 
     try {
@@ -52,8 +52,7 @@ router.use(function (req, res, next) {
             req.cookies['language'] = language;
             GiftCode.setDefaultLanguage(language);
             next();
-        }
-        else {
+        } else {
             return msg.msgReturn(res, 6);
         }
     } catch (error) {
@@ -212,12 +211,10 @@ router.route('/update').post((req, res) => {
         var endAt = req.body.endAt || new Date();
         var count = req.body.count || 0;
 
-        GiftCode.findOneAndUpdate(
-            {
+        GiftCode.findOneAndUpdate({
                 _id: id,
                 status: true
-            },
-            {
+            }, {
                 $set: {
                     name: name,
                     value: value,
@@ -244,14 +241,12 @@ router.route('/update').post((req, res) => {
 
 router.route('/delete').post((req, res) => {
     try {
-        var id = req.body.id;
+        var id = req.query.id;
 
-        GiftCode.findOneAndUpdate(
-            {
+        GiftCode.findOneAndUpdate({
                 _id: id,
                 status: true
-            },
-            {
+            }, {
                 $set: {
                     status: false,
                     'history.updateAt': new Date()

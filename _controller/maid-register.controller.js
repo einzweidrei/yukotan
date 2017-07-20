@@ -30,6 +30,25 @@ var MaidRegister = (function() {
         }
     };
 
+    MaidRegister.prototype.getAll = (page, limit, callback) => {
+        try {
+            var options = {
+                select: '-status -__v',
+                sort: { 'history.createAt': -1 },
+                page: parseFloat(page),
+                limit: parseFloat(limit)
+            };
+
+            mMaidRegister.paginate({}, options, (error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else return callback(null, data);
+            });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
     MaidRegister.prototype.update = (id, name, address, phone, note, process, callback) => {
         try {
             mMaidRegister.findOneAndUpdate({
