@@ -22,8 +22,8 @@ var ms = messStatus.MessageStatus;
 var pushStatus = require('../_services/push-status.service');
 var ps = pushStatus.PushStatus;
 
-var Task = (function () {
-    function Task() { }
+var Task = (function() {
+    function Task() {}
 
     Task.prototype.find = (findQuery, populateQuery, sortQuery, limit, selectQuery, callback) => {
         mTask
@@ -85,28 +85,28 @@ var Task = (function () {
         };
 
         var aggregateQuery = [{
-            $geoNear: {
-                near: location,
-                distanceField: 'dist.calculated',
-                minDistance: parseFloat(minDistance),
-                maxDistance: parseFloat(maxDistance) * 1000,
-                spherical: true
-            }
-        },
-        {
-            $match: matchQuery
-        },
-        {
-            $group: {
-                _id: '$info.work',
-                count: {
-                    $sum: 1
+                $geoNear: {
+                    near: location,
+                    distanceField: 'dist.calculated',
+                    minDistance: parseFloat(minDistance),
+                    maxDistance: parseFloat(maxDistance) * 1000,
+                    spherical: true
                 }
+            },
+            {
+                $match: matchQuery
+            },
+            {
+                $group: {
+                    _id: '$info.work',
+                    count: {
+                        $sum: 1
+                    }
+                }
+            },
+            {
+                $sort: sortQuery
             }
-        },
-        {
-            $sort: sortQuery
-        }
         ];
 
         var task = new Task();
@@ -146,29 +146,29 @@ var Task = (function () {
         var task = new Task();
 
         var aggregateQuery = [{
-            $geoNear: {
-                near: location,
-                distanceField: 'dist.calculated',
-                minDistance: parseFloat(minDistance),
-                maxDistance: parseFloat(maxDistance) * 1000,
-                spherical: true
+                $geoNear: {
+                    near: location,
+                    distanceField: 'dist.calculated',
+                    minDistance: parseFloat(minDistance),
+                    maxDistance: parseFloat(maxDistance) * 1000,
+                    spherical: true
+                }
+            },
+            {
+                $match: matchQuery
+            },
+            {
+                $sort: sortQuery
+            },
+            {
+                $project: {
+                    process: 1,
+                    history: 1,
+                    stakeholders: 1,
+                    info: 1,
+                    dist: 1
+                }
             }
-        },
-        {
-            $match: matchQuery
-        },
-        {
-            $sort: sortQuery
-        },
-        {
-            $project: {
-                process: 1,
-                history: 1,
-                stakeholders: 1,
-                info: 1,
-                dist: 1
-            }
-        }
         ];
 
         task.aggregate(aggregateQuery, (error, data) => {
@@ -204,29 +204,30 @@ var Task = (function () {
     Task.prototype.getById = (id, callback) => {
         try {
             var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.owner',
-                select: 'info'
-            },
-            {
-                path: 'stakeholders.received',
-                select: 'info'
-            },
-            {
-                path: 'stakeholders.request.maid',
-                select: 'info'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }];
+                    path: 'info.package',
+                    select: 'name'
+                },
+                {
+                    path: 'info.work',
+                    select: 'name image'
+                },
+                {
+                    path: 'stakeholders.owner',
+                    select: 'info'
+                },
+                {
+                    path: 'stakeholders.received',
+                    select: 'info'
+                },
+                {
+                    path: 'stakeholders.request.maid',
+                    select: 'info'
+                },
+                {
+                    path: 'process',
+                    select: 'name'
+                }
+            ];
 
             mTask
                 .findOne({ _id: id, status: true })
@@ -340,11 +341,11 @@ var Task = (function () {
             return callback(ms.TIME_NOT_VALID);
         } else {
             mTask.findOneAndUpdate({
-                _id: id,
-                'stakeholders.owner': ownerId,
-                process: new ObjectId('000000000000000000000001'),
-                status: true
-            }, {
+                    _id: id,
+                    'stakeholders.owner': ownerId,
+                    process: new ObjectId('000000000000000000000001'),
+                    status: true
+                }, {
                     $set: {
                         info: info,
                         location: location,
@@ -362,10 +363,10 @@ var Task = (function () {
 
     Task.prototype.delete = (id, ownerId, language, callback) => {
         mTask.findOneAndUpdate({
-            _id: id,
-            'stakeholders.owner': ownerId,
-            status: true
-        }, {
+                _id: id,
+                'stakeholders.owner': ownerId,
+                status: true
+            }, {
                 $set: {
                     'history.updateAt': new Date(),
                     status: false
@@ -406,11 +407,11 @@ var Task = (function () {
             else {
                 if (data.process == '000000000000000000000001') {
                     mTask.findOneAndUpdate({
-                        _id: id,
-                        'stakeholders.request.maid': maidId,
-                        process: '000000000000000000000001',
-                        status: true
-                    }, {
+                            _id: id,
+                            'stakeholders.request.maid': maidId,
+                            process: '000000000000000000000001',
+                            status: true
+                        }, {
                             $pull: {
                                 'stakeholders.request': { maid: maidId }
                             }
@@ -427,11 +428,11 @@ var Task = (function () {
                         .select('auth')
                         .exec((error, owner) => {
                             mTask.findOneAndUpdate({
-                                _id: id,
-                                'stakeholders.received': maidId,
-                                process: '000000000000000000000003',
-                                status: true
-                            }, {
+                                    _id: id,
+                                    'stakeholders.received': maidId,
+                                    process: '000000000000000000000003',
+                                    status: true
+                                }, {
                                     $set: {
                                         process: new ObjectId('000000000000000000000001')
                                     },
@@ -459,7 +460,7 @@ var Task = (function () {
         });
     };
 
-    Task.prototype.reverse = (id, maidId, callback) => {
+    Task.prototype.reserve = (id, maidId, callback) => {
         mTask.findOne({
             _id: id,
             process: '000000000000000000000001',
@@ -474,10 +475,10 @@ var Task = (function () {
                 };
 
                 mTask.findOneAndUpdate({
-                    _id: id,
-                    process: '000000000000000000000001',
-                    status: true
-                }, {
+                        _id: id,
+                        process: '000000000000000000000001',
+                        status: true
+                    }, {
                         $push: {
                             'stakeholders.request': maid
                         }
@@ -534,7 +535,7 @@ var Task = (function () {
 
     Task.prototype.submit = (id, ownerId, maidId, language, callback) => {
         async.parallel({
-            maid: function (callback) {
+            maid: function(callback) {
                 mMaid
                     .findOne({ _id: maidId, status: true })
                     .exec((error, data) => {
@@ -543,7 +544,7 @@ var Task = (function () {
                         else return callback(null, data);
                     });
             },
-            task: function (callback) {
+            task: function(callback) {
                 mTask.findOne({
                     _id: id,
                     'stakeholders.owner': ownerId,
@@ -568,11 +569,11 @@ var Task = (function () {
             if (error) return callback(error);
             else {
                 mTask.findOneAndUpdate({
-                    _id: id,
-                    'stakeholders.owner': ownerId,
-                    process: new ObjectId('000000000000000000000001'),
-                    status: true
-                }, {
+                        _id: id,
+                        'stakeholders.owner': ownerId,
+                        process: new ObjectId('000000000000000000000001'),
+                        status: true
+                    }, {
                         $set: {
                             'stakeholders.received': maidId,
                             process: new ObjectId('000000000000000000000003')
@@ -607,13 +608,13 @@ var Task = (function () {
                 else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
                 else {
                     async.parallel({
-                        faceId1: function (callback) {
+                        faceId1: function(callback) {
                             microsoftAPIService.detectFace(imageUrl, (error, faceId) => {
                                 if (error) return callback(error);
                                 else return callback(null, faceId);
                             });
                         },
-                        faceId2: function (callback) {
+                        faceId2: function(callback) {
                             mMaid
                                 .findOne({ _id: data.stakeholders.received, status: true })
                                 .exec((error, maid) => {
@@ -628,12 +629,12 @@ var Task = (function () {
                                     }
                                 });
                         },
-                        task: function (callback) {
+                        task: function(callback) {
                             mTask.findOne({
-                                process: '000000000000000000000004',
-                                'stakeholders.received': data.stakeholders.received,
-                                status: true
-                            },
+                                    process: '000000000000000000000004',
+                                    'stakeholders.received': data.stakeholders.received,
+                                    status: true
+                                },
                                 (error, res) => {
                                     if (error) return callback(ms.EXCEPTION_FAILED);
                                     else if (validate.isNullorEmpty(res)) return callback(null, res);
@@ -648,11 +649,11 @@ var Task = (function () {
                                 else {
                                     if (data.isIdentical) {
                                         mTask.findOneAndUpdate({
-                                            _id: id,
-                                            'stakeholders.owner': ownerId,
-                                            process: '000000000000000000000003',
-                                            status: true
-                                        }, {
+                                                _id: id,
+                                                'stakeholders.owner': ownerId,
+                                                process: '000000000000000000000003',
+                                                status: true
+                                            }, {
                                                 $set: {
                                                     process: new ObjectId('000000000000000000000004'),
                                                     'check.check_in': new Date()
@@ -679,25 +680,25 @@ var Task = (function () {
             process: '000000000000000000000003',
             status: true
         }, {
-                $set: {
-                    process: new ObjectId('000000000000000000000004'),
-                    'check.check_in': new Date()
-                }
-            }, (error, data) => {
-                if (error) return callback(ms.EXCEPTION_FAILED);
-                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                else return callback(null, data);
-            });
+            $set: {
+                process: new ObjectId('000000000000000000000004'),
+                'check.check_in': new Date()
+            }
+        }, (error, data) => {
+            if (error) return callback(ms.EXCEPTION_FAILED);
+            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+            else return callback(null, data);
+        });
     };
 
     Task.prototype.checkOut = (id, ownerId, language, callback) => {
         var timeCheckOut = new Date();
         mTask.findOneAndUpdate({
-            _id: id,
-            'stakeholders.owner': ownerId,
-            process: '000000000000000000000004',
-            status: true
-        }, {
+                _id: id,
+                'stakeholders.owner': ownerId,
+                process: '000000000000000000000004',
+                status: true
+            }, {
                 $set: {
                     process: new ObjectId('000000000000000000000005'),
                     'check.check_out': timeCheckOut
@@ -801,7 +802,7 @@ var Task = (function () {
             return callback(ms.TIME_NOT_VALID);
         } else {
             async.parallel({
-                maid: function (callback) {
+                maid: function(callback) {
                     mMaid
                         .findOne({ _id: maidId, status: true })
                         .exec((error, data) => {
@@ -810,7 +811,7 @@ var Task = (function () {
                             else return callback(null, data);
                         });
                 },
-                task: function (callback) {
+                task: function(callback) {
                     mTask.find({
                         'stakeholders.owner': ownerId,
                         process: { $in: ['000000000000000000000001', '000000000000000000000006'] },
@@ -851,7 +852,7 @@ var Task = (function () {
             else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
             else {
                 async.parallel({
-                    owner: function (callback) {
+                    owner: function(callback) {
                         mOwner
                             .findOne({ _id: ownerId, status: true })
                             .exec((error, owner) => {
@@ -860,7 +861,7 @@ var Task = (function () {
                                 else return callback(null, owner);
                             });
                     },
-                    task: function (callback) {
+                    task: function(callback) {
                         var task = new Task();
                         var startAt = data.info.time.startAt;
                         var endAt = data.info.time.endAt;
@@ -873,11 +874,11 @@ var Task = (function () {
                     if (error) return callback(error);
                     else {
                         mTask.findOneAndUpdate({
-                            _id: id,
-                            'stakeholders.owner': ownerId,
-                            process: '000000000000000000000006',
-                            status: true
-                        }, {
+                                _id: id,
+                                'stakeholders.owner': ownerId,
+                                process: '000000000000000000000006',
+                                status: true
+                            }, {
                                 $set: {
                                     'stakeholders.received': maidId,
                                     process: new ObjectId('000000000000000000000003')
@@ -906,10 +907,10 @@ var Task = (function () {
             else if (validate.isNullorEmpty(owner)) return callback(ms.DATA_NOT_EXIST);
             else {
                 mTask.findOneAndUpdate({
-                    _id: id,
-                    process: '000000000000000000000006',
-                    'stakeholders.owner': ownerId
-                }, {
+                        _id: id,
+                        process: '000000000000000000000006',
+                        'stakeholders.owner': ownerId
+                    }, {
                         status: false
                     },
                     (error, data) => {
@@ -934,13 +935,13 @@ var Task = (function () {
         };
 
         mTask.aggregate([{
-            $match: matchQuery
-        },
-        {
-            $project: {
-                request: '$stakeholders.request'
+                $match: matchQuery
+            },
+            {
+                $project: {
+                    request: '$stakeholders.request'
+                }
             }
-        }
         ], (error, data) => {
             if (error) return callback(ms.EXCEPTION_FAILED);
             else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
@@ -967,8 +968,7 @@ var Task = (function () {
 
     Task.prototype.getAll4Admin = (page, limit, title, process, package, work, sort, callback) => {
         try {
-            var populateQuery = [
-                {
+            var populateQuery = [{
                     path: 'info.package',
                     select: 'name'
                 },
@@ -1116,12 +1116,10 @@ var Task = (function () {
                 ]
             };
 
-            mTask.findOneAndUpdate(
-                {
+            mTask.findOneAndUpdate({
                     _id: id,
                     status: true
-                },
-                {
+                }, {
                     $set: {
                         info: info,
                         location: location,
@@ -1141,12 +1139,10 @@ var Task = (function () {
 
     Task.prototype.delete4Admin = (id, callback) => {
         try {
-            mTask.findOneAndUpdate(
-                {
+            mTask.findOneAndUpdate({
                     _id: id,
                     status: true
-                },
-                {
+                }, {
                     $set: {
                         status: false
                     }
@@ -1163,8 +1159,7 @@ var Task = (function () {
 
     Task.prototype.getAllDeletedTasks = (page, limit, title, process, package, work, sort, callback) => {
         try {
-            var populateQuery = [
-                {
+            var populateQuery = [{
                     path: 'info.package',
                     select: 'name'
                 },
@@ -1187,7 +1182,8 @@ var Task = (function () {
                 {
                     path: 'process',
                     select: 'name'
-                }];
+                }
+            ];
 
             var searchQuery = {
                 status: false
@@ -1221,15 +1217,14 @@ var Task = (function () {
 
     Task.prototype.removeById = (id, callback) => {
         try {
-            mTask.findByIdAndRemove(
-                {
-                    _id: id,
-                    status: false
-                }, (error, data) => {
-                    if (error) return callback(ms.EXCEPTION_FAILED);
-                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                    return callback(null, data);
-                });
+            mTask.findByIdAndRemove({
+                _id: id,
+                status: false
+            }, (error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                return callback(null, data);
+            });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
         }

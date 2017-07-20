@@ -126,7 +126,7 @@ router.route('/reserve').post((req, res) => {
         var id = req.body.id;
         var maidId = req.cookies.userId;
 
-        taskController.reverse(id, maidId, (error, data) => {
+        taskController.reserve(id, maidId, (error, data) => {
             return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
     } catch (error) {

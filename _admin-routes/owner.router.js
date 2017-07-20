@@ -15,7 +15,7 @@ var ms = messStatus.MessageStatus;
 
 router.use(multipartMiddleware);
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getWebLanguage(baseUrl);
@@ -24,8 +24,7 @@ router.use(function (req, res, next) {
             req.cookies['language'] = language;
             AppService.setLanguage(language);
             next();
-        }
-        else {
+        } else {
             return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
         }
     } catch (error) {
@@ -96,7 +95,7 @@ router.route('/create').post((req, res) => {
     var password = req.body.password || '';
     var device_token = '';
 
-    ownerController.create(username, email, phone, name, image, age, adressName,
+    ownerController.create(username, email, phone, name, image, age, addressName,
         lat, lng, gender, password, device_token, (error) => {
             return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
