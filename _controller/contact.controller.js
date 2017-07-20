@@ -4,8 +4,8 @@ var validate = new validationService.Validation();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-var Contact = (function () {
-    function Contact() { }
+var Contact = (function() {
+    function Contact() {}
 
     Contact.prototype.getAll = (page, limit, process, sort, callback) => {
         try {
@@ -32,12 +32,13 @@ var Contact = (function () {
         }
     };
 
-    Contact.prototype.create = (name, email, content, callback) => {
+    Contact.prototype.create = (name, email, content, phone, callback) => {
         try {
             var contact = new mContact();
             contact.name = name;
             contact.email = email;
             contact.content = content;
+            contact.phone = phone;
             contact.process = false;
             contact.history = {
                 createAt: new Date(),
@@ -55,8 +56,7 @@ var Contact = (function () {
 
     Contact.prototype.update = (id, process, callback) => {
         try {
-            mContact.findOneAndUpdate(
-                {
+            mContact.findOneAndUpdate({
                     _id: id,
                     status: true
                 }, {
@@ -77,15 +77,14 @@ var Contact = (function () {
 
     Contact.prototype.delete = (id, callback) => {
         try {
-            mContact.findOneAndRemove(
-                {
-                    _id: id,
-                    status: true
-                }, (error, data) => {
-                    if (error) return callback(ms.EXCEPTION_FAILED);
-                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                    else return callback(null, data);
-                });
+            mContact.findOneAndRemove({
+                _id: id,
+                status: true
+            }, (error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else return callback(null, data);
+            });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
         }

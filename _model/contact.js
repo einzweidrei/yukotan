@@ -7,28 +7,18 @@ var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
 //create Account
-var ContactSchema = new Schema(
-    {
-        name: { type: String },
-        email: { type: String },
-        content: { type: String },
-        process: { type: Boolean },
-        history: {
-            createAt: { type: Date },
-            updateAt: { type: Date }
-        },
-        status: { type: Boolean }
-    }
-    // ,
-    // {
-    //     toJSON: {
-    //         virtuals: true,
-    //         transform: function (doc, ret) {
-    //             delete ret.id;
-    //         }
-    //     }
-    // }
-);
+var ContactSchema = new Schema({
+    name: { type: String },
+    email: { type: String },
+    content: { type: String },
+    process: { type: Boolean },
+    phone: { type: String },
+    history: {
+        createAt: { type: Date },
+        updateAt: { type: Date }
+    },
+    status: { type: Boolean }
+});
 
 ContactSchema.plugin(mongoosePaginate);
-module.exports = mongoose.model('Contact', ContactSchema);		
+module.exports = mongoose.model('Contact', ContactSchema);

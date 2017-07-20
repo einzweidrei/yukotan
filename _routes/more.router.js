@@ -183,8 +183,9 @@ router.route('/createContact').post((req, res) => {
     var name = req.body.name;
     var email = req.body.email;
     var content = req.body.content;
+    var phone = req.body.phone;
 
-    contactController.create(name, email, content, (error) => {
+    contactController.create(name, email, content, phone, (error) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
     });
 });
