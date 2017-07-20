@@ -495,6 +495,8 @@ var Task = (function() {
     Task.prototype.checkTaskTimeExist = (maidId, startAt, endAt, callback) => {
         mTask.findOne({
             'stakeholders.received': maidId,
+            process: '000000000000000000000003',
+            status: true,
             $or: [
                 //x >= s & y <= e
                 {
@@ -865,6 +867,7 @@ var Task = (function() {
                         var task = new Task();
                         var startAt = data.info.time.startAt;
                         var endAt = data.info.time.endAt;
+                        console.log(startAt, endAt);
                         task.checkTaskTimeExist(maidId, startAt, endAt, (error, res) => {
                             if (error) return callback(error);
                             else return callback(null, res);
