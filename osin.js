@@ -71,8 +71,8 @@ app.use('/admin/:language/account', require('./_admin-routes/account.router'));
 app.use('/admin/:language/auth', require('./_admin-routes/authenticate.router'));
 app.use('/admin/:language/statistical', require('./_admin-routes/statistical.router'));
 app.use('/admin/:language/content', require('./_admin-routes/content.router'));
-// app.use('/admin/:language/more', require('./_admin-routes/more.router'));
 app.use('/admin/:language/web-contact', require('./_admin-routes/web-contact.router'));
+app.use('/admin/:language/maid-register', require('./_admin-routes/maid-register.router'));
 
 app.listen(process.env.PORT || 8000, function() {
     console.log('listening on 8000 <3')
