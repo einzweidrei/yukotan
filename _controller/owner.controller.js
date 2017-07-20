@@ -937,7 +937,7 @@ var Owner = (function() {
         }
     };
 
-    Owner.prototype.create = (username, email, phone, name, image, age, addressName, lat, lng, gender, password, device_token, callback) => {
+    Owner.prototype.create = (username, email, phone, name, image, addressName, lat, lng, gender, password, device_token, callback) => {
         try {
             var owner = new mOwner();
 
@@ -947,7 +947,6 @@ var Owner = (function() {
                 phone: phone,
                 name: name,
                 image: image,
-                age: age,
                 address: {
                     name: addressName,
                     coordinates: {
@@ -998,7 +997,7 @@ var Owner = (function() {
         }
     };
 
-    Owner.prototype.update = (id, phone, name, age, image, addressName, lat, lng, gender, callback) => {
+    Owner.prototype.update = (id, phone, name, image, addressName, lat, lng, gender, callback) => {
         try {
             var address = {
                 name: addressName,
@@ -1020,7 +1019,6 @@ var Owner = (function() {
                     $set: {
                         'info.phone': phone,
                         'info.name': name,
-                        'info.age': age,
                         'info.address': address,
                         'info.gender': gender,
                         'info.image': image,

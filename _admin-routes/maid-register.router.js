@@ -6,8 +6,8 @@ var languageService = require('../_services/language.service');
 var lnService = new languageService.Language();
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
-var contContact = require('../_controller/contact.controller');
-var contactController = new contContact.Contact();
+var contMaidRegister = require('../_controller/maid-register.controller');
+var maidRegisterController = new contMaidRegister.MaidRegister();
 var as = require('../_services/app.service');
 var AppService = new as.App();
 var messStatus = require('../_services/mess-status.service');
@@ -35,10 +35,9 @@ router.use(function(req, res, next) {
 router.route('/getAll').get((req, res) => {
     var page = req.query.page || 1;
     var limit = req.query.limit || 10;
-    var process = req.query.process;
     var sort = req.query.sort || 'asc';
 
-    contactController.getAll(page, limit, process, sort, (error, data) => {
+    maidRegisterController.getAll(page, limit, sort, (error, data) => {
         return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
     });
 });
@@ -47,15 +46,15 @@ router.route('/update').post((req, res) => {
     var id = req.body.id;
     var process = req.body.process || false;
 
-    contactController.update(id, process, (error) => {
-        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
+    maidRegisterController.update(id, process, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
     });
 });
 
 router.route('/delete').post((req, res) => {
     var id = req.query.id;
 
-    contactController.delete(id, (error) => {
+    maidRegisterController.delete(id, (error) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
     });
 });

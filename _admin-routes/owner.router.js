@@ -87,7 +87,6 @@ router.route('/create').post((req, res) => {
     var phone = req.body.phone || '';
     var name = req.body.name || '';
     var image = req.body.image || '';
-    var age = req.body.age || 18;
     var addressName = req.body.addressName || '';
     var lat = req.body.lat || 1;
     var lng = req.body.lng || 1;
@@ -95,7 +94,7 @@ router.route('/create').post((req, res) => {
     var password = req.body.password || '';
     var device_token = '';
 
-    ownerController.create(username, email, phone, name, image, age, addressName,
+    ownerController.create(username, email, phone, name, image, addressName,
         lat, lng, gender, password, device_token, (error) => {
             return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
@@ -106,13 +105,12 @@ router.route('/update').post((req, res) => {
     var phone = req.body.phone || '';
     var name = req.body.name || '';
     var image = req.body.image || '';
-    var age = req.body.age || 18;
     var addressName = req.body.addressName || '';
     var lat = req.body.lat || 1;
     var lng = req.body.lng || 1;
     var gender = req.body.gender || 0;
 
-    ownerController.update(id, phone, name, age, image,
+    ownerController.update(id, phone, name, image,
         addressName, lat, lng, gender, (error) => {
             return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
