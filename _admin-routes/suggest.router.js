@@ -73,7 +73,7 @@ router.route('/update').post((req, res) => {
 });
 
 router.route('/delete').post((req, res) => {
-    var id = req.body.id;
+    var id = req.query.id;
 
     suggestController.delete(id, (error) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
