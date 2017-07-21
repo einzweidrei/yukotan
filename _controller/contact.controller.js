@@ -4,8 +4,8 @@ var validate = new validationService.Validation();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-var Contact = (function() {
-    function Contact() {}
+var Contact = (function () {
+    function Contact() { }
 
     Contact.prototype.getAll = (page, limit, process, sort, callback) => {
         try {
@@ -22,9 +22,8 @@ var Contact = (function() {
                 limit: parseFloat(limit)
             };
 
-            mContact.paginate(query, options).exec((error, data) => {
-                if (error) return callback(ms.EXCEPTION_FAILED);
-                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+            mContact.paginate(query, options).then((data) => {
+                if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
                 else return callback(null, data);
             });
         } catch (error) {
@@ -57,9 +56,9 @@ var Contact = (function() {
     Contact.prototype.update = (id, process, callback) => {
         try {
             mContact.findOneAndUpdate({
-                    _id: id,
-                    status: true
-                }, {
+                _id: id,
+                status: true
+            }, {
                     $set: {
                         process: process,
                         'history.updateAt': new Date()
