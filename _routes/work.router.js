@@ -11,7 +11,7 @@ var AppService = new as.App();
 var contWork = require('../_controller/work.controller');
 var workController = new contWork.Work();
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getAppLanguage(baseUrl);
@@ -28,6 +28,7 @@ router.use(function(req, res, next) {
 
 router.route('/getAll').get((req, res) => {
     try {
+        var sort = req.query.sort || 'desc'; // asc | desc
         workController.getAll((error, data) => {
             return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
         });

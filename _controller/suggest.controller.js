@@ -86,7 +86,7 @@ var Suggest = (function () {
 
     Suggest.prototype.update = (id, nameVi, nameEn, callback) => {
         try {
-            mSuggest.findOneandUpdate(
+            mSuggest.findOneAndUpdate(
                 {
                     _id: id,
                     status: true
@@ -105,13 +105,14 @@ var Suggest = (function () {
                     else return callback(null, data);
                 });
         } catch (error) {
+            console.log(error);
             return callback(ms.EXCEPTION_FAILED);
         }
     };
 
     Suggest.prototype.delete = (id, callback) => {
         try {
-            mSuggest.findOneandUpdate(
+            mSuggest.findOneAndUpdate(
                 {
                     _id: id,
                     status: true
