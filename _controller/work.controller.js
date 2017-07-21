@@ -14,7 +14,7 @@ var Work = (function () {
         });
     }
 
-    Work.prototype.getAll = (callback) => {
+    Work.prototype.getAll = (sort, callback) => {
         try {
             var searchQuery = {
                 status: true
@@ -22,10 +22,13 @@ var Work = (function () {
 
             var selectQuery = '-status -history -__v';
 
+            var sortQuery = { 'weight': sort };
+
             mWork
                 .find(searchQuery)
                 .populate({ path: 'suggest', select: 'name' })
                 .select(selectQuery)
+                .sort(sortQuery)
                 .exec((error, data) => {
                     if (error) return callback(ms.EXCEPTION_FAILED);
                     else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
