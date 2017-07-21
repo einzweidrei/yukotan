@@ -74,6 +74,7 @@ app.use('/admin/:language/content', require('./_admin-routes/content.router'));
 app.use('/admin/:language/web-contact', require('./_admin-routes/web-contact.router'));
 app.use('/admin/:language/maid-register', require('./_admin-routes/maid-register.router'));
 app.use('/admin/:language/suggest', require('./_admin-routes/suggest.router'));
+app.use('/admin/:language/bill-charge', require('./_admin-routes/bill-charge.router'));
 
 app.listen(process.env.PORT || 8000, function () {
     console.log('listening on 8000 <3')

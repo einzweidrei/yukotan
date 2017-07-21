@@ -225,4 +225,10 @@ router.route('/maidRegister4Web').post(multipartMiddleware, (req, res) => {
     });
 });
 
+router.route('/getAppStatistic').get((req, res) => {
+    appInfoController.getStatistical((error, data) => {
+        return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+    });
+});
+
 module.exports = router;
