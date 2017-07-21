@@ -41,7 +41,7 @@ var multipartMiddleware = multipart();
 
 router.use(multipartMiddleware);
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     console.log('giftcode_router is connecting');
 
     try {
@@ -212,9 +212,9 @@ router.route('/update').post((req, res) => {
         var count = req.body.count || 0;
 
         GiftCode.findOneAndUpdate({
-                _id: id,
-                status: true
-            }, {
+            _id: id,
+            status: true
+        }, {
                 $set: {
                     name: name,
                     value: value,
@@ -244,9 +244,9 @@ router.route('/delete').post((req, res) => {
         var id = req.query.id;
 
         GiftCode.findOneAndUpdate({
-                _id: id,
-                status: true
-            }, {
+            _id: id,
+            status: true
+        }, {
                 $set: {
                     status: false,
                     'history.updateAt': new Date()
@@ -261,6 +261,6 @@ router.route('/delete').post((req, res) => {
     } catch (error) {
         return msg.msgReturn(res, 3)
     }
-})
+});
 
 module.exports = router;
