@@ -192,11 +192,11 @@ router.route('/createContact').post((req, res) => {
 
 router.route('/maidRegister').post((req, res) => {
     var name = req.body.name || '';
-    var address = req.body.address || '';
+    var email = req.body.email || '';
     var phone = req.body.phone || '';
     var note = req.body.note || '';
 
-    maidRegisterController.register(name, address, phone, note, (error) => {
+    maidRegisterController.register(name, email, phone, note, (error) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
     });
 });

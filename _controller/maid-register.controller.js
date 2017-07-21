@@ -4,14 +4,14 @@ var validate = new validationService.Validation();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-var MaidRegister = (function() {
-    function MaidRegister() {}
+var MaidRegister = (function () {
+    function MaidRegister() { }
 
-    MaidRegister.prototype.register = (name, address, phone, note, callback) => {
+    MaidRegister.prototype.register = (name, email, phone, note, callback) => {
         try {
             var maidRegister = new mMaidRegister();
             maidRegister.name = name;
-            maidRegister.address = address;
+            maidRegister.email = email;
             maidRegister.phone = phone;
             maidRegister.note = note;
             maidRegister.process = false;
@@ -55,9 +55,9 @@ var MaidRegister = (function() {
     MaidRegister.prototype.update = (id, process, callback) => {
         try {
             mMaidRegister.findOneAndUpdate({
-                    _id: id,
-                    status: true
-                }, {
+                _id: id,
+                status: true
+            }, {
                     $set: {
                         process: process,
                         'history.updateAt': new Date()

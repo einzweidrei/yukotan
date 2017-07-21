@@ -6,7 +6,7 @@ var ObjectId = Schema.ObjectId;
 
 var MaidRegisterSchema = new Schema({
     name: { type: String },
-    address: { type: String },
+    email: { type: String },
     phone: { type: String },
     note: { type: String },
     process: { type: Boolean },
