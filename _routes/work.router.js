@@ -29,7 +29,7 @@ router.use(function (req, res, next) {
 router.route('/getAll').get((req, res) => {
     try {
         var sort = req.query.sort || 'desc'; // asc | desc
-        workController.getAll((error, data) => {
+        workController.getAll(sort, (error, data) => {
             return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {

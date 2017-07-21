@@ -20,8 +20,8 @@ var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 var ObjectId = require('mongoose').Types.ObjectId;
 
-var Maid = (function() {
-    function Maid() {}
+var Maid = (function () {
+    function Maid() { }
 
     Maid.prototype.findOne = (searchQuery, callback) => {
         mMaid.findOne(searchQuery).exec((error, data) => {
@@ -80,26 +80,26 @@ var Maid = (function() {
         var maid = new Maid();
 
         var aggregateQuery = [{
-                $geoNear: {
-                    near: location,
-                    distanceField: 'dist.calculated',
-                    minDistance: parseFloat(minDistance),
-                    maxDistance: parseFloat(maxDistance) * 1000,
-                    spherical: true
-                }
-            },
-            {
-                $match: matchQuery
-            },
-            {
-                $sort: sortQuery
-            },
-            {
-                $project: {
-                    info: 1,
-                    work_info: 1
-                }
+            $geoNear: {
+                near: location,
+                distanceField: 'dist.calculated',
+                minDistance: parseFloat(minDistance),
+                maxDistance: parseFloat(maxDistance) * 1000,
+                spherical: true
             }
+        },
+        {
+            $match: matchQuery
+        },
+        {
+            $sort: sortQuery
+        },
+        {
+            $project: {
+                info: 1,
+                work_info: 1
+            }
+        }
         ];
 
         maid.aggregate(aggregateQuery, (error, data) => {
@@ -194,21 +194,21 @@ var Maid = (function() {
         }
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            },
-            {
-                path: 'stakeholders.owner',
-                select: 'info evaluation_point'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'process',
+            select: 'name'
+        },
+        {
+            path: 'stakeholders.owner',
+            select: 'info evaluation_point'
+        }
         ]
 
         if (startAt || endAt) {
@@ -302,21 +302,21 @@ var Maid = (function() {
         }
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.owner',
-                select: 'info evaluation_point'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'stakeholders.owner',
+            select: 'info evaluation_point'
+        },
+        {
+            path: 'process',
+            select: 'name'
+        }
         ];
 
         var options = {
@@ -363,22 +363,22 @@ var Maid = (function() {
         };
 
         mTask.aggregate([{
-                    $match: matchQuery
-                },
-                {
-                    $sort: {
-                        'info.time.startAt': -1
-                    },
-                },
-                {
-                    $group: {
-                        _id: '$stakeholders.owner',
-                        times: {
-                            $push: '$info.time.startAt'
-                        }
-                    }
+            $match: matchQuery
+        },
+        {
+            $sort: {
+                'info.time.startAt': -1
+            },
+        },
+        {
+            $group: {
+                _id: '$stakeholders.owner',
+                times: {
+                    $push: '$info.time.startAt'
                 }
-            ],
+            }
+        }
+        ],
             (error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
                 else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
@@ -434,21 +434,21 @@ var Maid = (function() {
         }
 
         var populateQuery = [{
-                path: 'info.package',
-                select: 'name'
-            },
-            {
-                path: 'info.work',
-                select: 'name image'
-            },
-            {
-                path: 'stakeholders.owner',
-                select: 'info evaluation_point'
-            },
-            {
-                path: 'process',
-                select: 'name'
-            }
+            path: 'info.package',
+            select: 'name'
+        },
+        {
+            path: 'info.work',
+            select: 'name image'
+        },
+        {
+            path: 'stakeholders.owner',
+            select: 'info evaluation_point'
+        },
+        {
+            path: 'process',
+            select: 'name'
+        }
         ];
 
         var options = {
@@ -498,19 +498,19 @@ var Maid = (function() {
         };
 
         async.parallel({
-            bill: function(callback) {
+            bill: function (callback) {
                 mBill.aggregate([{
-                            $match: billQuery
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                totalPrice: {
-                                    $sum: '$price'
-                                }
-                            }
+                    $match: billQuery
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalPrice: {
+                            $sum: '$price'
                         }
-                    ],
+                    }
+                }
+                ],
                     (error, data) => {
                         if (error) return callback(ms.EXCEPTION_FAILED);
                         else {
@@ -526,19 +526,19 @@ var Maid = (function() {
                         }
                     });
             },
-            task: function(callback) {
+            task: function (callback) {
                 mTask.aggregate([{
-                            $match: taskQuery
-                        },
-                        {
-                            $group: {
-                                _id: '$process',
-                                count: {
-                                    $sum: 1
-                                }
-                            }
+                    $match: taskQuery
+                },
+                {
+                    $group: {
+                        _id: '$process',
+                        count: {
+                            $sum: 1
                         }
-                    ],
+                    }
+                }
+                ],
                     (error, data) => {
                         if (error) return callback(ms.EXCEPTION_FAILED);
                         else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
@@ -568,9 +568,9 @@ var Maid = (function() {
 
     Maid.prototype.onAnnouncement = (id, device_token, callback) => {
         mMaid.findOneAndUpdate({
-                _id: id,
-                status: true
-            }, {
+            _id: id,
+            status: true
+        }, {
                 $set: {
                     'auth.device_token': device_token
                 }
@@ -585,9 +585,9 @@ var Maid = (function() {
 
     Maid.prototype.offAnnouncement = (id, callback) => {
         mMaid.findOneAndUpdate({
-                _id: id,
-                status: true
-            }, {
+            _id: id,
+            status: true
+        }, {
                 $set: {
                     'auth.device_token': ''
                 }
@@ -706,17 +706,17 @@ var Maid = (function() {
             }
 
             var populateQuery = [{
-                    path: 'info.package',
-                    select: 'name'
-                },
-                {
-                    path: 'info.work',
-                    select: 'name image'
-                },
-                {
-                    path: 'process',
-                    select: 'name'
-                }
+                path: 'info.package',
+                select: 'name'
+            },
+            {
+                path: 'info.work',
+                select: 'name image'
+            },
+            {
+                path: 'process',
+                select: 'name'
+            }
             ];
 
             var sortQuery = {};
@@ -829,9 +829,9 @@ var Maid = (function() {
                 if (error) return callback(ms.EXCEPTION_FAILED);
                 else if (validate.isNullorEmpty(maid)) {
                     mMaid.findOneAndUpdate({
-                            _id: id,
-                            status: true
-                        }, {
+                        _id: id,
+                        status: true
+                    }, {
                             $set: {
                                 'info.email': email,
                                 'info.phone': phone,
@@ -856,9 +856,9 @@ var Maid = (function() {
                     var m = maid._id;
                     if (m == id) {
                         mMaid.findOneAndUpdate({
-                                _id: id,
-                                status: true
-                            }, {
+                            _id: id,
+                            status: true
+                        }, {
                                 $set: {
                                     'info.phone': phone,
                                     'info.name': name,
@@ -891,9 +891,9 @@ var Maid = (function() {
     Maid.prototype.delete = (id, callback) => {
         try {
             mMaid.findOneAndUpdate({
-                    _id: id,
-                    status: true
-                }, {
+                _id: id,
+                status: true
+            }, {
                     $set: {
                         'history.updateAt': new Date(),
                         status: false
@@ -950,19 +950,19 @@ var Maid = (function() {
             }
 
             mBill.aggregate([{
-                    $match: matchQuery
-                },
-                {
-                    $group: {
-                        _id: '$method',
-                        taskNumber: {
-                            $sum: 1
-                        },
-                        price: {
-                            $sum: '$price'
-                        }
+                $match: matchQuery
+            },
+            {
+                $group: {
+                    _id: '$method',
+                    taskNumber: {
+                        $sum: 1
+                    },
+                    price: {
+                        $sum: '$price'
                     }
                 }
+            }
             ], (error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
                 else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
@@ -980,6 +980,59 @@ var Maid = (function() {
                     return callback(null, d);
                 }
             });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Maid.prototype.getStatisticalTasks = (id, method, startAt, endAt, isSolved, callback) => {
+        try {
+            var matchQuery = { 'maid': new ObjectId(id), method: parseFloat(method), status: true }
+
+            if (isSolved) matchQuery['isSolved'] = isSolved;
+
+            if (startAt || endAt) {
+                var timeQuery = {};
+
+                if (startAt) {
+                    var date = new Date(startAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    timeQuery['$gte'] = date;
+                }
+
+                if (endAt) {
+                    var date = new Date(endAt);
+                    date.setUTCHours(0, 0, 0, 0);
+                    date = new Date(date.getTime() + 1000 * 3600 * 24 * 1);
+                    timeQuery['$lt'] = date;
+                }
+
+                matchQuery['date'] = timeQuery;
+            }
+
+            mBill.aggregate(
+                [
+                    {
+                        $match: matchQuery
+                    },
+                    {
+                        $project: {
+                            task: 1
+                        }
+                    }
+                ], (error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else {
+                        if (error) return callback(ms.EXCEPTION_FAILED);
+                        else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                        else {
+                            mTask.populate(data, { path: 'task', select: 'info' }, (error, data) => {
+                                return callback(null, data);
+                            });
+                        }
+                    }
+                });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
         }

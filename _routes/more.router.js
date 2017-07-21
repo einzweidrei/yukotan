@@ -1,5 +1,7 @@
 var express = require('express');
 var router = express.Router();
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
 var languageService = require('../_services/language.service');
@@ -191,6 +193,28 @@ router.route('/createContact').post((req, res) => {
 });
 
 router.route('/maidRegister').post((req, res) => {
+    var name = req.body.name || '';
+    var email = req.body.email || '';
+    var phone = req.body.phone || '';
+    var note = req.body.note || '';
+
+    maidRegisterController.register(name, email, phone, note, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
+});
+
+router.route('/createContact4Web').post(multipartMiddleware, (req, res) => {
+    var name = req.body.name || '';
+    var email = req.body.email || '';
+    var content = req.body.content || '';
+    var phone = req.body.phone || '';
+
+    contactController.create(name, email, content, phone, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
+});
+
+router.route('/maidRegister4Web').post(multipartMiddleware, (req, res) => {
     var name = req.body.name || '';
     var email = req.body.email || '';
     var phone = req.body.phone || '';

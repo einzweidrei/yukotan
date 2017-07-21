@@ -17,7 +17,7 @@ var ms = messStatus.MessageStatus;
 
 router.use(multipartMiddleware);
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getWebLanguage(baseUrl);
@@ -159,6 +159,18 @@ router.route('/statistical').get((req, res) => {
 
     maidController.statistical4Admin(id, startAt, endAt, isSolved, (error, data) => {
         return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+    });
+});
+
+router.route('/taskStatistic').get((req, res) => {
+    var id = req.query.id;
+    var startAt = req.query.startAt;
+    var endAt = req.query.endAt;
+    var method = req.query.method;
+    var isSolved = req.query.isSolved;
+
+    maidController.getStatisticalTasks(id, method, startAt, endAt, isSolved, (error, data) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
     });
 });
 
