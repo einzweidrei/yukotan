@@ -15,22 +15,28 @@ var Work = (function () {
     }
 
     Work.prototype.getAll = (callback) => {
-        var work = new Work();
+        try {
+            var searchQuery = {
+                status: true
+            };
 
-        var searchQuery = {
-            status: true
-        };
+            var selectQuery = '-status -history -__v';
 
-        var selectQuery = '-status -history -__v';
-
-        work.find(searchQuery, selectQuery, (error, data) => {
-            if (error) return callback(ms.EXCEPTION_FAILED);
-            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-            return callback(null, data);
-        });
+            mWork
+                .find(searchQuery)
+                .populate({ path: 'suggest', select: 'name' })
+                .select(selectQuery)
+                .exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
     };
 
-    Work.prototype.create = (nameVi, nameEn, image, titleVi, titleEn, descriptionVi, descriptionEn, price, callback) => {
+    Work.prototype.create = (nameVi, nameEn, image, titleVi, titleEn, descriptionVi, descriptionEn, price, suggest, weight, callback) => {
         var work = new mWork();
         work.image = image;
         work.status = true;
@@ -52,6 +58,11 @@ var Work = (function () {
             vi: descriptionVi
         });
 
+        var temp = [];
+        temp = suggest.split(',');
+
+        work.suggest = temp;
+        work.weight = weight;
         work.price = price;
 
         work.save((error) => {
@@ -60,35 +71,44 @@ var Work = (function () {
         });
     };
 
-    Work.prototype.update = (id, nameVi, nameEn, image, titleVi, titleEn, descriptionVi, descriptionEn, price, callback) => {
-        mWork.findOneAndUpdate(
-            {
-                _id: id,
-                status: true
-            }, {
-                $set: {
-                    name: {
-                        vi: nameVi,
-                        en: nameEn
-                    },
-                    title: {
-                        vi: titleVi,
-                        en: titleEn
-                    },
-                    description: {
-                        vi: descriptionVi,
-                        en: descriptionEn
-                    },
-                    price: price,
-                    image: image,
-                    'history.updateAt': new Date()
-                }
-            },
-            (error, data) => {
-                if (error) return callback(ms.EXCEPTION_FAILED);
-                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                else return callback(null, data);
-            });
+    Work.prototype.update = (id, nameVi, nameEn, image, titleVi, titleEn, descriptionVi, descriptionEn, price, suggest, weight, callback) => {
+        try {
+            var temp = [];
+            temp = suggest.split(',');
+
+            mWork.findOneAndUpdate(
+                {
+                    _id: id,
+                    status: true
+                }, {
+                    $set: {
+                        name: {
+                            vi: nameVi,
+                            en: nameEn
+                        },
+                        title: {
+                            vi: titleVi,
+                            en: titleEn
+                        },
+                        description: {
+                            vi: descriptionVi,
+                            en: descriptionEn
+                        },
+                        suggest: temp,
+                        weight: weight,
+                        price: price,
+                        image: image,
+                        'history.updateAt': new Date()
+                    }
+                },
+                (error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
     };
 
     Work.prototype.delete = (id, callback) => {
@@ -111,6 +131,7 @@ var Work = (function () {
     Work.prototype.getAll4Admin = (callback) => {
         mWork
             .find({ status: true })
+            .populate({ path: 'suggest', select: 'name' })
             .select('-history -__v')
             .exec((error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
@@ -123,8 +144,10 @@ var Work = (function () {
                             name: a.get('name.all'),
                             title: a.get('title.all'),
                             description: a.get('description.all'),
+                            suggest: a.suggest,
                             price: a.price,
-                            image: a.image
+                            image: a.image,
+                            weight: a.weight
                         };
                         m.push(d);
                     });
@@ -136,6 +159,7 @@ var Work = (function () {
     Work.prototype.getInfo4Admin = (id, callback) => {
         mWork
             .findOne({ _id: id, status: true })
+            .populate({ path: 'suggest', select: 'name' })
             .select('-history -__v')
             .exec((error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
@@ -146,6 +170,8 @@ var Work = (function () {
                         name: data.get('name.all'),
                         title: data.get('title.all'),
                         description: data.get('description.all'),
+                        suggest: data.suggest,
+                        weight: data.weight,
                         price: data.price,
                         image: data.image
                     };

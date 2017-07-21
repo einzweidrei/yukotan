@@ -6,6 +6,7 @@ const Process = require('../_model/process');
 const AppInfo = require('../_model/app-info');
 const Term = require('../_model/term');
 const Content = require('../_model/content');
+const Suggest = require('../_model/suggest');
 
 const hash_key = 'LULULUL';
 const token_length = 64;
@@ -22,6 +23,7 @@ var App = (function () {
         AppInfo.setDefaultLanguage(language);
         Term.setDefaultLanguage(language);
         Content.setDefaultLanguage(language);
+        Suggest.setDefaultLanguage(language);
     };
 
     App.prototype.remakeId = (id) => {

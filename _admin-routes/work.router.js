@@ -43,11 +43,13 @@ router.route('/create').post((req, res) => {
         var descriptionVi = req.body.descriptionVi || '';
         var descriptionEn = req.body.descriptionEn || '';
         var price = req.body.price || 0;
+        var suggest = req.body.suggest || '';
+        var weight = req.body.weight || 0;
 
         workController.create(nameVi, nameEn, image, titleVi, titleEn,
-            descriptionVi, descriptionEn, price, (error, data) => {
-            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
-        });
+            descriptionVi, descriptionEn, price, suggest, weight, (error, data) => {
+                return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+            });
     } catch (error) {
         return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
@@ -64,11 +66,13 @@ router.route('/update').post((req, res) => {
         var descriptionVi = req.body.descriptionVi || '';
         var descriptionEn = req.body.descriptionEn || '';
         var price = req.body.price || 0;
+        var suggest = req.body.suggest || '';
+        var weight = req.body.weight || 0;
 
-        workController.update(id, nameVi, nameEn, image, titleVi, titleEn, 
-            descriptionVi, descriptionEn, price, (error, data) => {
-            return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
-        });
+        workController.update(id, nameVi, nameEn, image, titleVi, titleEn,
+            descriptionVi, descriptionEn, price, suggest, weight, (error, data) => {
+                return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+            });
     } catch (error) {
         return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }

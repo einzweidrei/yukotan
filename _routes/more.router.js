@@ -23,7 +23,7 @@ var contactController = new contContact.Contact();
 var contMaidRegister = require('../_controller/maid-register.controller');
 var maidRegisterController = new contMaidRegister.MaidRegister();
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getAppLanguage(baseUrl);
@@ -180,10 +180,10 @@ router.route('/getContact').get((req, res) => {
 });
 
 router.route('/createContact').post((req, res) => {
-    var name = req.body.name;
-    var email = req.body.email;
-    var content = req.body.content;
-    var phone = req.body.phone;
+    var name = req.body.name || '';
+    var email = req.body.email || '';
+    var content = req.body.content || '';
+    var phone = req.body.phone || '';
 
     contactController.create(name, email, content, phone, (error) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
@@ -191,10 +191,10 @@ router.route('/createContact').post((req, res) => {
 });
 
 router.route('/maidRegister').post((req, res) => {
-    var name = req.body.name;
-    var address = req.body.address;
-    var phone = req.body.phone;
-    var note = req.body.note;
+    var name = req.body.name || '';
+    var address = req.body.address || '';
+    var phone = req.body.phone || '';
+    var note = req.body.note || '';
 
     maidRegisterController.register(name, address, phone, note, (error) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
