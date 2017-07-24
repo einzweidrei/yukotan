@@ -3,9 +3,11 @@ var validationService = require('../_services/validation.service');
 var validate = new validationService.Validation();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
+var as = require('../_services/app.service');
+var AppService = new as.App();
 
-var Account = (function () {
-    function Account() { }
+var Account = (function() {
+    function Account() {}
 
     Account.prototype.getAll = (page, limit, startAt, endAt, sort, email, username, name, gender, callback) => {
         try {
@@ -120,8 +122,28 @@ var Account = (function () {
             mAccount.findOne({ 'info.email': email, status: true }, (error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
                 else if (validate.isNullorEmpty(data)) {
-                    mAccount.findOneAndUpdate(
-                        {
+                    mAccount.findOneAndUpdate({
+                        _id: id,
+                        status: true
+                    }, {
+                        $set: {
+                            'info.email': email,
+                            'info.name': name,
+                            'info.phone': phone,
+                            'info.image': image,
+                            'info.address': address,
+                            'info.gender': gender,
+                            permission: permission,
+                            'history.updateAt': new Date()
+                        }
+                    }, (error, data) => {
+                        if (error) return callback(ms.EXCEPTION_FAILED);
+                        else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                        else return callback(null, data);
+                    });
+                } else {
+                    if (id == data._id) {
+                        mAccount.findOneAndUpdate({
                             _id: id,
                             status: true
                         }, {
@@ -140,28 +162,6 @@ var Account = (function () {
                             else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
                             else return callback(null, data);
                         });
-                } else {
-                    if (id == data._id) {
-                        mAccount.findOneAndUpdate(
-                            {
-                                _id: id,
-                                status: true
-                            }, {
-                                $set: {
-                                    'info.email': email,
-                                    'info.name': name,
-                                    'info.phone': phone,
-                                    'info.image': image,
-                                    'info.address': address,
-                                    'info.gender': gender,
-                                    permission: permission,
-                                    'history.updateAt': new Date()
-                                }
-                            }, (error, data) => {
-                                if (error) return callback(ms.EXCEPTION_FAILED);
-                                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                                else return callback(null, data);
-                            });
                     } else {
                         return callback(ms.DUPLICATED);
                     }
@@ -174,8 +174,7 @@ var Account = (function () {
 
     Account.prototype.delete = (id, callback) => {
         try {
-            mAccount.findOneAndUpdate(
-                {
+            mAccount.findOneAndUpdate({
                     _id: id,
                     status: true
                 }, {
