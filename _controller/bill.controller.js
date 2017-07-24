@@ -6,6 +6,7 @@ var validationService = require('../_services/validation.service');
 var validate = new validationService.Validation();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
+var ObjectId = require('mongoose').Types.ObjectId;
 
 var Bill = (function () {
     function Bill() { }
@@ -220,10 +221,7 @@ var Bill = (function () {
 
     Bill.prototype.getUserBills = (id, user, page, limit, isSolved, startAt, endAt, sort, callback) => {
         try {
-            var findQuery = {
-                status: true
-            }
-
+            var findQuery = { status: true };
             user == 1 ? findQuery['owner'] = new ObjectId(id) : findQuery['maid'] = new ObjectId(id);
 
             if (isSolved) findQuery['isSolved'] = isSolved;
@@ -260,7 +258,7 @@ var Bill = (function () {
             mBill.paginate(findQuery, options).then((data) => {
                 if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
                 else return callback(null, data);
-            })
+            });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
         }
