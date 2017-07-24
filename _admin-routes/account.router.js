@@ -17,7 +17,7 @@ var ms = messStatus.MessageStatus;
 
 router.use(multipartMiddleware);
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getWebLanguage(baseUrl);
@@ -26,8 +26,7 @@ router.use(function (req, res, next) {
             req.cookies['language'] = language;
             AppService.setLanguage(language);
             next();
-        }
-        else {
+        } else {
             return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
         }
     } catch (error) {
@@ -75,9 +74,9 @@ router.route('/create').post((req, res) => {
     var maid = req.body.Maid || false;
     var task = req.body.Task || false;
     var bill = req.body.Bill || false;
-    var giftcode = req.body.Giftcode || false;
+    var giftcode = req.body.GiftCode || false;
     var work = req.body.Work || false;
-    var aboutus = req.body.Aboutus || false;
+    var aboutus = req.body.AboutUs || false;
     var report = req.body.Report || false;
     var contact = req.body.Contact || false;
     var billCharge = req.body.BillCharge || false;
@@ -107,9 +106,9 @@ router.route('/update').post((req, res) => {
     var maid = req.body.Maid || false;
     var task = req.body.Task || false;
     var bill = req.body.Bill || false;
-    var giftcode = req.body.Giftcode || false;
+    var giftcode = req.body.GiftCode || false;
     var work = req.body.Work || false;
-    var aboutus = req.body.Aboutus || false;
+    var aboutus = req.body.AboutUs || false;
     var report = req.body.Report || false;
     var contact = req.body.Contact || false;
     var billCharge = req.body.BillCharge || false;
