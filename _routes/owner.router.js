@@ -72,7 +72,6 @@ router.route('/getById').get((req, res) => {
 
 router.route('/update').put(multipartMiddleware, (req, res) => {
     try {
-        var owner = new Owner();
         var id = req.cookies.userId;
 
         var image = '';

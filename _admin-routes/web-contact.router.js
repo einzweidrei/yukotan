@@ -15,7 +15,7 @@ var ms = messStatus.MessageStatus;
 
 router.use(multipartMiddleware);
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getWebLanguage(baseUrl);
@@ -39,6 +39,14 @@ router.route('/getAll').get((req, res) => {
     var sort = req.query.sort || 'asc';
 
     contactController.getAll(page, limit, process, sort, (error, data) => {
+        return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+    });
+});
+
+router.route('/getById').get((req, res) => {
+    var id = req.query.id;
+
+    contactController.getById(id, (error, data) => {
         return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
     });
 });

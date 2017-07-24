@@ -52,6 +52,21 @@ var MaidRegister = (function () {
         }
     };
 
+    MaidRegister.prototype.getById = (id, callback) => {
+        try {
+            mMaidRegister
+                .findOne({ _id: id, status: true })
+                .select('-status -__v')
+                .exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
     MaidRegister.prototype.update = (id, process, callback) => {
         try {
             mMaidRegister.findOneAndUpdate({

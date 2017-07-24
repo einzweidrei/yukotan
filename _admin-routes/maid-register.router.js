@@ -42,6 +42,14 @@ router.route('/getAll').get((req, res) => {
     });
 });
 
+router.route('/getById').get((req, res) => {
+    var id = req.query.id;
+
+    maidRegisterController.getById(id, (error, data) => {
+        return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+    });
+});
+
 router.route('/update').post((req, res) => {
     var id = req.body.id;
     var process = req.body.process || false;

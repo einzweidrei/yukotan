@@ -31,6 +31,21 @@ var Contact = (function () {
         }
     };
 
+    Contact.prototype.getById = (id, callback) => {
+        try {
+            mContact
+                .findOne({ _id: id, status: true })
+                .select('-status -__v')
+                .exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
     Contact.prototype.create = (name, email, content, phone, callback) => {
         try {
             var contact = new mContact();

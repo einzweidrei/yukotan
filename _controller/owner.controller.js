@@ -356,7 +356,6 @@ var Owner = (function () {
             setQuery = {
                 'info.phone': phone,
                 'info.name': name,
-                'info.age': age,
                 'info.address': address,
                 'info.gender': gender,
                 location: location,
@@ -385,7 +384,6 @@ var Owner = (function () {
             setQuery = {
                 'info.phone': phone,
                 'info.name': name,
-                'info.age': age,
                 'info.address': address,
                 'info.gender': gender,
                 'info.image': image,
@@ -1002,8 +1000,8 @@ var Owner = (function () {
             var address = {
                 name: addressName,
                 coordinates: {
-                    lat: lat || 0,
-                    lng: lng || 0
+                    lat: lat,
+                    lng: lng
                 }
             };
 
