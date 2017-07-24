@@ -32,31 +32,38 @@ var Maid = require('../_model/maid');
 var Comment = require('../_model/comment');
 var GiftCode = require('../_model/giftcode');
 
-
 var cloudinary = require('cloudinary');
 var bodyparser = require('body-parser');
 
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 
+var contGiftCode = require('../_controller/giftcode.controller');
+var giftCodeController = new contGiftCode.Giftcode();
+var as = require('../_services/app.service');
+var AppService = new as.App();
+var validationService = require('../_services/validation.service');
+var validate = new validationService.Validation();
+var messStatus = require('../_services/mess-status.service');
+var ms = messStatus.MessageStatus;
+
 router.use(multipartMiddleware);
 
 router.use(function (req, res, next) {
-    console.log('giftcode_router is connecting');
-
     try {
         var baseUrl = req.baseUrl;
-        var language = baseUrl.substring(baseUrl.indexOf('/admin/') + 7, baseUrl.lastIndexOf('/'));
+        var language = AppService.getWebLanguage(baseUrl);
 
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
-            GiftCode.setDefaultLanguage(language);
+            AppService.setLanguage(language);
             next();
-        } else {
-            return msg.msgReturn(res, 6);
+        }
+        else {
+            return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
         }
     } catch (error) {
-        return msg.msgReturn(res, 3);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
 });
 

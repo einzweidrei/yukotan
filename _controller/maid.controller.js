@@ -1017,7 +1017,9 @@ var Maid = (function () {
                     },
                     {
                         $project: {
-                            task: 1
+                            task: 1,
+                            period: 1,
+                            price: 1
                         }
                     }
                 ], (error, data) => {
