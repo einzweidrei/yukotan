@@ -987,9 +987,10 @@ var Maid = (function () {
 
     Maid.prototype.getStatisticalTasks = (id, method, startAt, endAt, isSolved, callback) => {
         try {
-            var matchQuery = { 'maid': new ObjectId(id), method: parseFloat(method), status: true }
+            var matchQuery = { 'maid': new ObjectId(id), status: true }
 
             if (isSolved) matchQuery['isSolved'] = isSolved;
+            if (method) matchQuery['method'] = parseFloat(method);
 
             if (startAt || endAt) {
                 var timeQuery = {};

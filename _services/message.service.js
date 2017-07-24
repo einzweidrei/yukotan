@@ -1,4 +1,4 @@
-var Message = (function() {
+var Message = (function () {
     Message.SUCCESS = "SUCCESS";
     Message.FAILED = "FAILED";
     Message.DUPLICATED = "DUPLICATED";
@@ -20,8 +20,9 @@ var Message = (function() {
     Message.PAYMENT_FAILED = "WALLET_NOT_ENOUGH";
     Message.FACE_IDENTICAL_FAILED = "FACE_IDENTICAL_FAILED";
     Message.INVALID_KEY = "INVALID_KEY";
+    Message.KEY_EXPIRED = "KEY_EXPIRED";
 
-    function Message() {}
+    function Message() { }
 
     Message.prototype.msgData = (status, msg, data) => {
         return JSON.stringify({
@@ -76,6 +77,8 @@ var Message = (function() {
                 return res.status(200).send(Message.prototype.msgData(false, Message.FACE_IDENTICAL_FAILED, data));
             case 20:
                 return res.status(200).send(Message.prototype.msgData(false, Message.INVALID_KEY, data));
+            case 21:
+                return res.status(200).send(Message.prototype.msgData(false, Message.KEY_EXPIRED, data));
             default:
                 break;
         }

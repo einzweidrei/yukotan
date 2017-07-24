@@ -6,6 +6,7 @@ var mPackage = require('../_model/package');
 var mProcess = require('../_model/process');
 var mComment = require('../_model/comment');
 var mBill = require('../_model/bill');
+var mSession = require('../_model/session');
 var async = require('promise-async');
 var as = require('../_services/app.service');
 var ObjectId = require('mongoose').Types.ObjectId;
@@ -774,6 +775,74 @@ var Owner = (function () {
         });
     };
 
+    Owner.prototype.resetPassword = (url, callback) => {
+        try {
+            var m = url.split('-');
+            var id = m[0];
+            var key = m[1];
+
+            mSession
+                .findOne({ 'auth.userId': id, status: true })
+                .exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else {
+                        var verifyKey = data.verification.password.key;
+
+                        if (key == verifyKey) {
+                            var time = new Date(data.verification.password.date);
+                            var now = new Date();
+
+                            var diff = now - time;
+                            var hours = ~~(Math.abs(diff) / 36e5);
+
+                            if (hours > 168) {
+                                return callback(ms.KEY_EXPIRED);
+                            } else {
+                                var newPw = AppService.randomString(7);
+                                mOwner.findOneAndUpdate(
+                                    {
+                                        _id: id,
+                                        status: true
+                                    },
+                                    {
+                                        $set: {
+                                            'auth.password': newPw,
+                                            'history.updateAt': new Date()
+                                        }
+                                    }, (error, owner) => {
+                                        if (error) return callback(ms.EXCEPTION_FAILED);
+                                        else if (validate.isNullorEmpty(owner)) return callback(ms.DATA_NOT_EXIST);
+                                        else {
+                                            mSession.findOneAndUpdate(
+                                                {
+                                                    'auth.userId': id,
+                                                    status: true
+                                                },
+                                                {
+                                                    'verification.password.key': ''
+                                                }, (error, data) => {
+                                                    if (error) return callback(ms.EXCEPTION_FAILED);
+                                                    else {
+                                                        mailService.sendNewPassword(owner, newPw, (error, data) => {
+                                                            if (error) return callback(error);
+                                                            else return callback(null, data);
+                                                        });
+                                                    }
+                                                });
+                                        }
+                                    });
+                            }
+                        } else {
+                            return callback(ms.INVALID_KEY);
+                        }
+                    }
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
     Owner.prototype.checkAccountExist = (username, callback) => {
         try {
             mOwner
@@ -1165,7 +1234,9 @@ var Owner = (function () {
 
     Owner.prototype.getStatisticalTasks = (id, method, startAt, endAt, isSolved, callback) => {
         try {
-            var matchQuery = { 'owner': new ObjectId(id), isSolved: isSolved, method: parseFloat(method), status: true };
+            var matchQuery = { 'owner': new ObjectId(id), isSolved: isSolved, status: true };
+
+            if (method) matchQuery['method'] = parseFloat(method);
 
             if (startAt || endAt) {
                 var timeQuery = {};

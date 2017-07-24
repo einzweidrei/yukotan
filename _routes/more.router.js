@@ -231,4 +231,12 @@ router.route('/getAppStatistic').get((req, res) => {
     });
 });
 
+router.route('/ownerResetPassword').get((req, res) => {
+    var url = req.query.url;
+
+    ownerController.resetPassword(url, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
+});
+
 module.exports = router;

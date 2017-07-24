@@ -1,4 +1,5 @@
 var mBill = require('../_model/bill');
+var mMaid = require('../_model/maid');
 var as = require('../_services/app.service');
 var AppService = new as.App();
 var validationService = require('../_services/validation.service');
@@ -85,12 +86,14 @@ var Bill = (function () {
                             totalPrice += a.price
                         });
 
-                        var d = {
-                            data: data,
-                            totalPrice: totalPrice
-                        }
+                        mMaid.populate(data, { path: '_id', select: 'info' }, (error, data) => {
+                            var d = {
+                                data: data,
+                                totalPrice: totalPrice
+                            }
 
-                        return callback(null, d);
+                            return callback(null, d);
+                        });
                     }
                 });
         } catch (error) {
