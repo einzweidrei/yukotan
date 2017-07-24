@@ -21,6 +21,7 @@ var AccountSchema = new Schema(
         permission: [
             {
                 name: { type: String },
+                value: { type: String },
                 isActivated: { type: Boolean }
             }
         ],

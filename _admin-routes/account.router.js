@@ -80,10 +80,13 @@ router.route('/create').post((req, res) => {
     var aboutus = req.body.Aboutus || false;
     var report = req.body.Report || false;
     var contact = req.body.Contact || false;
+    var billCharge = req.body.BillCharge || false;
+    var suggest = req.body.Suggest || false;
+    var cms = req.body.CMS || false;
 
     var perm = []
     perm = AppService.getPerm(acc, owner, maid, task, bill,
-        giftcode, work, aboutus, report, contact);
+        giftcode, work, aboutus, report, contact, billCharge, suggest, cms);
 
     accountController.create(username, password, email, name, phone, image,
         address, gender, perm, (error) => {
@@ -109,10 +112,13 @@ router.route('/update').post((req, res) => {
     var aboutus = req.body.Aboutus || false;
     var report = req.body.Report || false;
     var contact = req.body.Contact || false;
+    var billCharge = req.body.BillCharge || false;
+    var suggest = req.body.Suggest || false;
+    var cms = req.body.CMS || false;
 
     var perm = [];
     perm = AppService.getPerm(acc, owner, maid, task, bill,
-        giftcode, work, aboutus, report, contact);
+        giftcode, work, aboutus, report, contact, billCharge, suggest, cms);
 
     accountController.update(id, email, name, phone, image, address,
         gender, perm, (error) => {

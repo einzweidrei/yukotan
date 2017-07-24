@@ -106,18 +106,21 @@ var App = (function () {
         return price;
     };
 
-    App.prototype.getPerm = (account, owner, maid, task, bill, giftcode, work, aboutus, report, contact) => {
+    App.prototype.getPerm = (account, owner, maid, task, bill, giftcode, work, aboutus, report, contact, billcharge, suggest, cms) => {
         var perm = [];
-        perm.push({ name: 'Account', isActivated: account });
-        perm.push({ name: 'Owner', isActivated: owner });
-        perm.push({ name: 'Maid', isActivated: maid });
-        perm.push({ name: 'Task', isActivated: task });
-        perm.push({ name: 'Bill', isActivated: bill });
-        perm.push({ name: 'GiftCode', isActivated: giftcode });
-        perm.push({ name: 'Work', isActivated: work });
-        perm.push({ name: 'AboutUs', isActivated: aboutus });
-        perm.push({ name: 'Report', isActivated: report });
-        perm.push({ name: 'Contact', isActivated: contact });
+        perm.push({ name: 'Account', value: 'Tài khoản', isActivated: account });
+        perm.push({ name: 'Owner', value: 'Chủ nhà', isActivated: owner });
+        perm.push({ name: 'Maid', value: 'Người giúp việc', isActivated: maid });
+        perm.push({ name: 'Task', value: 'Công việc', isActivated: task });
+        perm.push({ name: 'Bill', value: 'Hóa đơn thanh toán', isActivated: bill });
+        perm.push({ name: 'BillCharge', value: 'Hóa đơn nạp tiền', isActivated: billcharge });
+        perm.push({ name: 'GiftCode', value: 'Mã quà tặng', isActivated: giftcode });
+        perm.push({ name: 'Work', value: 'Loại công việc', isActivated: work });
+        perm.push({ name: 'AboutUs', value: 'Về chúng tôi', isActivated: aboutus });
+        perm.push({ name: 'Report', value: 'Báo cáo', isActivated: report });
+        perm.push({ name: 'Contact', value: 'Liên hệ', isActivated: contact });
+        perm.push({ name: 'Suggest', value: 'Gợi ý loại công việc', isActivated: suggest });
+        perm.push({ name: 'CMS', value: 'Quản lý mặt trang', isActivated: cms });
 
         return perm;
     };
