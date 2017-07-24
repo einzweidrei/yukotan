@@ -70,7 +70,7 @@ var Giftcode = (function () {
         }
     };
 
-    GiftCode.prototype.getById = (id, callback) => {
+    Giftcode.prototype.getById = (id, callback) => {
         try {
             mGiftCode.findOne({ _id: id, status: true }, (error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
@@ -82,7 +82,7 @@ var Giftcode = (function () {
         }
     };
 
-    GiftCode.prototype.create = (name, value, descriptionVi, descriptionEn, startAt, endAt, count, callback) => {
+    Giftcode.prototype.create = (name, value, descriptionVi, descriptionEn, startAt, endAt, count, callback) => {
         try {
             var giftcode = new mGiftCode();
             giftcode.name = name;
@@ -114,7 +114,7 @@ var Giftcode = (function () {
         }
     };
 
-    GiftCode.prototype.update = (id, name, value, descriptionVi, descriptionEn, startAt, endAt, count, callback) => {
+    Giftcode.prototype.update = (id, name, value, descriptionVi, descriptionEn, startAt, endAt, count, callback) => {
         try {
             mGiftCode.findOneAndUpdate(
                 {
@@ -143,7 +143,7 @@ var Giftcode = (function () {
         }
     };
 
-    GiftCode.prototype.delete = (id, callback) => {
+    Giftcode.prototype.delete = (id, callback) => {
         try {
             mGiftCode.findOneAndUpdate(
                 {
