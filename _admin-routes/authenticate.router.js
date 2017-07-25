@@ -30,7 +30,7 @@ router.use(function (req, res, next) {
             AppService.setLanguage(language);
             if (req.headers.token) {
                 var token = req.headers.token;
-                sessionController.verifyToken(token, (error, data) => {
+                sessionController.verifyWebToken(token, (error, data) => {
                     if (error) return msg.msgReturn(res, error);
                     else {
                         req.cookies['userId'] = data.auth.userId;

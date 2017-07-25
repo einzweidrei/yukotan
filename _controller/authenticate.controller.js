@@ -1,4 +1,5 @@
 var mSession = require('../_model/session');
+var mWebSession = require('../_model/web-session');
 var mOwner = require('../_model/owner');
 var mMaid = require('../_model/maid');
 var mAccount = require('../_model/account');
@@ -336,7 +337,7 @@ var Authenticate = (function () {
                     else if (data.auth.password != pw) return callback(ms.INVALID_PASSWORD);
                     else {
                         var newToken = AppService.getToken();
-                        mSession.findOneAndUpdate(
+                        mWebSession.findOneAndUpdate(
                             {
                                 'auth.userId': data._id,
                                 status: true

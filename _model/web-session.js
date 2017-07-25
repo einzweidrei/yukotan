@@ -3,7 +3,7 @@ var mongoosePaginate = require('mongoose-paginate');
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
-var SessionSchema = new Schema(
+var WebSessionSchema = new Schema(
     {
         auth: {
             userId: { type: ObjectId },
@@ -14,6 +14,6 @@ var SessionSchema = new Schema(
     }
 );
 
-SessionSchema.plugin(mongoosePaginate);
+WebSessionSchema.plugin(mongoosePaginate);
 
-module.exports = mongoose.model('Session', SessionSchema);		
+module.exports = mongoose.model('WebSession', WebSessionSchema);		
