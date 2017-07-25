@@ -109,9 +109,10 @@ router.route('/update').post((req, res) => {
     var lat = req.body.lat || 1;
     var lng = req.body.lng || 1;
     var gender = req.body.gender || 0;
+    var email = req.body.email || '';
 
     ownerController.update(id, phone, name, image,
-        addressName, lat, lng, gender, (error) => {
+        addressName, lat, lng, gender, email, (error) => {
             return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
         });
 });
