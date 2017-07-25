@@ -15,6 +15,9 @@ var AppService = new as.App();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
+var contSession = require('../_controller/session.controller');
+var sessionController = new contSession.Session();
+
 router.use(multipartMiddleware);
 
 router.use(function (req, res, next) {
@@ -25,11 +28,17 @@ router.use(function (req, res, next) {
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
             AppService.setLanguage(language);
-            next();
-        }
-        else {
-            return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
-        }
+            if (req.headers.token) {
+                var token = req.headers.token;
+                sessionController.verifyToken(token, (error, data) => {
+                    if (error) return msg.msgReturn(res, error);
+                    else {
+                        req.cookies['userId'] = data.auth.userId;
+                        next();
+                    }
+                });
+            } else return msg.msgReturn(res, ms.UNAUTHORIZED);
+        } else return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
     } catch (error) {
         return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
