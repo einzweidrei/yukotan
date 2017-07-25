@@ -1047,7 +1047,7 @@ var Maid = (function () {
 
             mMaid.findOneAndUpdate(
                 {
-                    _id: id,
+                    _id: new ObjectId(id),
                     status: true
                 },
                 {

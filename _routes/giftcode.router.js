@@ -60,7 +60,7 @@ router.use(function (req, res, next) {
 
 router.route('/getShareGift').get((req, res) => {
     try {
-        var id = '000000000000000000000001'
+        var id = '000000000000000000000001';
 
         GiftCode.findOne({ _id: id, status: true }, (error, data) => {
             if (error) return msg.msgReturn(res, 3);
@@ -80,7 +80,7 @@ router.route('/getById').get((req, res) => {
             if (error) return msg.msgReturn(res, 3);
             else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
             return msg.msgReturn(res, 0, data);
-        })
+        });
     } catch (error) {
         return msg.msgReturn(res, 3);
     }
