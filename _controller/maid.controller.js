@@ -1041,6 +1041,30 @@ var Maid = (function () {
         }
     };
 
+    Maid.prototype.changePassword = (id, password, callback) => {
+        try {
+            var password = AppService.hashString(password);
+
+            mMaid.findOneAndUpdate(
+                {
+                    _id: id,
+                    status: true
+                },
+                {
+                    $set: {
+                        'auth.password': password,
+                        'history.updateAt': new Date()
+                    }
+                }, (error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else return callback(null, data);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
     return Maid;
 }());
 

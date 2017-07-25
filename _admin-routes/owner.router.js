@@ -174,4 +174,13 @@ router.route('/taskStatistic').get((req, res) => {
     });
 });
 
+router.route('/changePassword').post((req, res) => {
+    var id = req.body.id;
+    var password = req.body.password;
+
+    ownerController.changePassword(id, password, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
+});
+
 module.exports = router;
