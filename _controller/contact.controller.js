@@ -3,6 +3,7 @@ var validationService = require('../_services/validation.service');
 var validate = new validationService.Validation();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
+var async = require('promise-async');
 
 var Contact = (function () {
     function Contact() { }
@@ -99,6 +100,37 @@ var Contact = (function () {
                 else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
                 else return callback(null, data);
             });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Contact.prototype.statistical = (callback) => {
+        try {
+            async.parallel(
+                {
+                    process_1: function (callback) {
+                        mContact.find({ process: true, status: true }).exec((error, data) => {
+                            if (error) return callback(ms.EXCEPTION_FAILED);
+                            else return callback(null, data.length);
+                        })
+                    },
+                    process_2: function (callback) {
+                        mContact.find({ process: false, status: true }).exec((error, data) => {
+                            if (error) return callback(ms.EXCEPTION_FAILED);
+                            else return callback(null, data.length);
+                        })
+                    }
+                }, (error, result) => {
+                    if (error) return callback(error);
+                    else {
+                        var d = {
+                            read: result.process_1,
+                            unread: result.process_2
+                        };
+                        return callback(null, d);
+                    }
+                });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
         }

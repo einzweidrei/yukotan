@@ -67,4 +67,10 @@ router.route('/delete').post((req, res) => {
     });
 });
 
+router.route('/statistical').get((req, res) => {
+    maidRegisterController.statistical((error, data) => {
+        return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+    });
+});
+
 module.exports = router;
