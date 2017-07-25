@@ -1041,7 +1041,45 @@ var Maid = (function () {
         }
     };
 
-    Maid.prototype.changePassword = (id, password, callback) => {
+    Maid.prototype.changePassword = (id, oldpw, newpw, callback) => {
+        try {
+            var oldPw_1 = AppService.hashString(oldpw);
+            var newPw = AppService.hashString(newpw);
+
+            mMaid
+                .findOne({ _id: id, status: true })
+                .exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                    else {
+                        var oldPw_2 = data.auth.password;
+                        if (oldPw_1 == oldPw_2) {
+                            mMaid.findOneAndUpdate(
+                                {
+                                    _id: id,
+                                    status: true
+                                },
+                                {
+                                    $set: {
+                                        'auth.password': newPw,
+                                        'history.updateAt': new Date()
+                                    }
+                                }, (error, data) => {
+                                    if (error) return callback(ms.EXCEPTION_FAILED);
+                                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                                    else return callback(null, data);
+                                });
+                        } else {
+                            return callback(ms.INVALID_PASSWORD);
+                        }
+                    }
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Maid.prototype.changePassword4Admin = (id, password, callback) => {
         try {
             var password = AppService.hashString(password);
 

@@ -179,7 +179,7 @@ router.route('/changePassword').post((req, res) => {
     var id = req.body.id;
     var password = req.body.password;
 
-    ownerController.changePassword(id, password, (error) => {
+    ownerController.changePassword4Admin(id, password, (error) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
     });
 });

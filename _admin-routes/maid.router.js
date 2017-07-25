@@ -178,7 +178,7 @@ router.route('/changePassword').post((req, res) => {
     var id = req.body.id;
     var password = req.body.password;
 
-    maidController.changePassword(id, password, (error) => {
+    maidController.changePassword4Admin(id, password, (error) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
     });
 });

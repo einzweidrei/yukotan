@@ -219,4 +219,14 @@ router.route('/offAnnouncement').post((req, res) => {
     }
 });
 
+router.route('/changePassword').post((req, res) => {
+    var id = req.body.id;
+    var oldpw = req.body.oldpw;
+    var newpw = req.body.newpw;
+
+    maidController.changePassword(id, oldpw, newpw, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
+});
+
 module.exports = router;
