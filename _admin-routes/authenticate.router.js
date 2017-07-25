@@ -44,4 +44,17 @@ router.route('/login').post((req, res) => {
     });
 });
 
+router.route('/testToken').get((req, res) => {
+    try {
+        if (req.headers.token) {
+            var token = req.headers.token;
+            return msg.msgReturn(res, ms.SUCCESS, { token: token });
+        } else {
+            return msg.msgReturn(res, ms.DATA_NOT_EXIST);
+        }
+    } catch (error) {
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
+    }
+});
+
 module.exports = router;
