@@ -5,7 +5,8 @@ var ms = messStatus.MessageStatus;
 var messageService = require('../_services/message.service');
 var msg = new messageService.Message();
 
-const url = 'http://localhost:8000/vi/more/ownerResetPassword?url=';
+// const url = 'http://localhost:8000/vi/more/ownerResetPassword?url=';
+const url = 'http://api.ngv247.com/vi/more/ownerResetPassword?url=';
 const senderAddress = '"NGV247"';
 
 var transporter = nodemailer.createTransport(smtpTransport({

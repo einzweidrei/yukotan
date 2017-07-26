@@ -16,16 +16,16 @@ admin.initializeApp({
 });
 
 // connecting mongodb
-// var mongodburi = 'mongodb://127.0.0.1:58017/NGV247';
-var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
+var mongodburi = 'mongodb://127.0.0.1:58017/NGV247';
+// var mongodburi = 'mongodb://yuko001:yuko001@ds111771.mlab.com:11771/yukosama';
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodburi);
 
 // config cdn
 cloudinary.config({
-    cloud_name: 'einzweidrei2',
-    api_key: '923252816135765',
-    api_secret: '5bBDapVrya9p73sXqvZNZc029lE'
+    cloud_name: 'hbb-solutions',
+    api_key: '989658115789769',
+    api_secret: '6Zq2WvcWE1atUaIrr90ywmUXcrc'
 });
 
 // Add headers

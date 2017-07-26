@@ -748,29 +748,34 @@ var Owner = (function () {
             if (error) return callback(ms.EXCEPTION_FAILED);
             else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
             else {
-                var sessionSearch = {
-                    'auth.userId': data._id,
-                    status: true
-                };
-
-                var sessionSet = {
-                    verification: {
-                        password: {
-                            key: verifyToken,
-                            date: new Date()
+                mSession.findOneAndUpdate(
+                    {
+                        'auth.userId': data._id,
+                        status: true
+                    },
+                    {
+                        $set: {
+                            verification: {
+                                password: {
+                                    key: verifyToken,
+                                    date: new Date()
+                                }
+                            }
+                        }
+                    },
+                    {
+                        upsert: true
+                    },
+                    (error, session) => {
+                        if (error) return callback(ms.EXCEPTION_FAILED);
+                        else {
+                            mailService.sendConfirmForgotPwMail(data, verifyToken, (error, data) => {
+                                if (error) return callback(ms.EXCEPTION_FAILED);
+                                return callback(null, data);
+                            });
                         }
                     }
-                };
-
-                sessionController.findOneAndUpdate(sessionSearch, sessionSet, true, (error, sess) => {
-                    if (error) return callback(ms.EXCEPTION_FAILED);
-                    else {
-                        mailService.sendConfirmForgotPwMail(data, verifyToken, (error, data) => {
-                            if (error) return callback(ms.EXCEPTION_FAILED);
-                            return callback(null, data);
-                        });
-                    }
-                });
+                );
             }
         });
     };

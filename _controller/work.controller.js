@@ -39,7 +39,7 @@ var Work = (function () {
         }
     };
 
-    Work.prototype.create = (nameVi, nameEn, image, titleVi, titleEn, descriptionVi, descriptionEn, price, suggest, weight, callback) => {
+    Work.prototype.create = (nameVi, nameEn, image, titleVi, titleEn, descriptionVi, descriptionEn, price, suggest, weight, tools, callback) => {
         var work = new mWork();
         work.image = image;
         work.status = true;
@@ -62,11 +62,13 @@ var Work = (function () {
         });
 
         var temp = [];
-        temp = suggest.split(',');
+
+        if (suggest) temp = suggest.split(',');
 
         work.suggest = temp;
         work.weight = weight;
         work.price = price;
+        work.tools = tools;
 
         work.save((error) => {
             if (error) return callback(ms.EXCEPTION_FAILED);
@@ -74,10 +76,11 @@ var Work = (function () {
         });
     };
 
-    Work.prototype.update = (id, nameVi, nameEn, image, titleVi, titleEn, descriptionVi, descriptionEn, price, suggest, weight, callback) => {
+    Work.prototype.update = (id, nameVi, nameEn, image, titleVi, titleEn, descriptionVi, descriptionEn, price, suggest, weight, tools, callback) => {
         try {
             var temp = [];
-            temp = suggest.split(',');
+
+            if (suggest) temp = suggest.split(',');
 
             mWork.findOneAndUpdate(
                 {
@@ -101,6 +104,7 @@ var Work = (function () {
                         weight: weight,
                         price: price,
                         image: image,
+                        tools: tools,
                         'history.updateAt': new Date()
                     }
                 },
@@ -131,11 +135,14 @@ var Work = (function () {
             });
     };
 
-    Work.prototype.getAll4Admin = (callback) => {
+    Work.prototype.getAll4Admin = (sort, callback) => {
+        var sortQuery = { 'weight': sort };
+
         mWork
             .find({ status: true })
             .populate({ path: 'suggest', select: 'name' })
             .select('-history -__v')
+            .sort(sortQuery)
             .exec((error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
                 else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);

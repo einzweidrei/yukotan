@@ -41,14 +41,14 @@ router.use(function (req, res, next) {
     }
 });
 
-router.route('/getAll').get((req, res) => {
+router.route('/getAll').post((req, res) => {
     var page = req.query.page || 1;
     var limit = req.query.limit || 10;
-    var title = req.query.title;
-    var process = req.query.process;
-    var package = req.query.package;
-    var work = req.query.work;
-    var sort = req.query.sort || 'asc';
+    var title = req.body.title;
+    var process = req.body.process;
+    var package = req.body.package;
+    var work = req.body.work;
+    var sort = req.body.sort || 'asc';
 
     taskController.getAll4Admin(page, limit, title, process,
         package, work, sort, (error, data) => {

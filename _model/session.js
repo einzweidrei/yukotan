@@ -9,6 +9,12 @@ var SessionSchema = new Schema(
             userId: { type: ObjectId },
             token: { type: String }
         },
+        verification: {
+            password: {
+                date: { type: Date },
+                key: { type: String }
+            }
+        },
         loginAt: { type: Date },
         status: { type: Boolean }
     }

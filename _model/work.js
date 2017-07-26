@@ -17,6 +17,7 @@ var WorkSchema = new Schema(
         image: { type: String },
         weight: { type: Number },
         suggest: [{ type: ObjectId, ref: 'Suggest' }],
+        tools: { type: Boolean, default: false },
         history: {
             createAt: { type: Date },
             updateAt: { type: Date }

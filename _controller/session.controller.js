@@ -26,9 +26,11 @@ var Session = (function () {
 
     Session.prototype.findOneAndUpdate = (searchQuery, setQuery, upsert, callback) => {
         mSession.findOneAndUpdate(
-            searchQuery, {
+            searchQuery,
+            {
                 $set: setQuery
-            }, {
+            },
+            {
                 upsert: upsert
             },
             (error, data) => {

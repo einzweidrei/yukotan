@@ -53,9 +53,10 @@ router.route('/create').post((req, res) => {
         var price = req.body.price || 0;
         var suggest = req.body.suggest || '';
         var weight = req.body.weight || 0;
+        var tools = req.body.tools || false;
 
         workController.create(nameVi, nameEn, image, titleVi, titleEn,
-            descriptionVi, descriptionEn, price, suggest, weight, (error, data) => {
+            descriptionVi, descriptionEn, price, suggest, weight, tools, (error, data) => {
                 return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
             });
     } catch (error) {
@@ -76,9 +77,10 @@ router.route('/update').post((req, res) => {
         var price = req.body.price || 0;
         var suggest = req.body.suggest || '';
         var weight = req.body.weight || 0;
+        var tools = req.body.tools || false;
 
         workController.update(id, nameVi, nameEn, image, titleVi, titleEn,
-            descriptionVi, descriptionEn, price, suggest, weight, (error, data) => {
+            descriptionVi, descriptionEn, price, suggest, weight, tools, (error, data) => {
                 return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
             });
     } catch (error) {
@@ -112,7 +114,9 @@ router.route('/getById').get((req, res) => {
 
 router.route('/getAll').get((req, res) => {
     try {
-        workController.getAll4Admin((error, data) => {
+        var sort = req.query.sort || 'desc';
+
+        workController.getAll4Admin(sort, (error, data) => {
             return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
         });
     } catch (error) {

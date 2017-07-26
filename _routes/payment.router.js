@@ -15,7 +15,7 @@ var AppService = new as.App();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getAppLanguage(baseUrl);
@@ -157,10 +157,10 @@ router.route('/chargeOnlineSecConfirm').post((req, res) => {
                 return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
             });
         } else {
-            return msg.msgReturn(res, ms.INVALID_KEY);
+            return msg.msgReturn(res, ms.INVALID_KEY, {});
         }
     } catch (error) {
-        return msg.msgReturn(res, ms.EXCEPTION_FAILED);
+        return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
     }
 });
 
