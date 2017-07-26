@@ -15,19 +15,19 @@ var ms = messStatus.MessageStatus;
 var pushStatus = require('../_services/push-status.service');
 var ps = pushStatus.PushStatus;
 
-var Payment = (function() {
-    function Payment() {}
+var Payment = (function () {
+    function Payment() { }
 
     Payment.prototype.payByNGV247 = (userId, billId, callback) => {
         async.parallel({
-            bill: function(callback) {
+            bill: function (callback) {
                 mBill.findOne({ _id: billId, owner: userId, isSolved: false, status: true }).exec((error, data) => {
                     if (error) return callback(ms.EXCEPTION_FAILED);
                     else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
                     else return callback(null, data);
                 });
             },
-            owner: function(callback) {
+            owner: function (callback) {
                 mOwner.findOne({ _id: userId, status: true }).exec((error, data) => {
                     if (error) return callback(ms.EXCEPTION_FAILED);
                     else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
@@ -44,11 +44,11 @@ var Payment = (function() {
                 if (ownerWallet < billWallet) return callback(ms.PAYMENT_FAILED);
                 else {
                     mBill.findOneAndUpdate({
-                            _id: billId,
-                            owner: userId,
-                            isSolved: false,
-                            status: true
-                        }, {
+                        _id: billId,
+                        owner: userId,
+                        isSolved: false,
+                        status: true
+                    }, {
                             $set: {
                                 method: 1,
                                 isSolved: true,
@@ -60,9 +60,9 @@ var Payment = (function() {
                             else {
                                 var newWallet = ownerWallet - billWallet;
                                 mOwner.findOneAndUpdate({
-                                        _id: userId,
-                                        status: true
-                                    }, {
+                                    _id: userId,
+                                    status: true
+                                }, {
                                         $set: {
                                             wallet: newWallet
                                         }
@@ -94,20 +94,20 @@ var Payment = (function() {
                             isSolved: false,
                             status: true
                         }, {
-                            $set: {
-                                method: 3,
-                                date: new Date()
-                            }
-                        }, (error, data) => {
-                            if (error) return callback(ms.EXCEPTION_FAILED);
-                            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                            else {
-                                FCMService.pushNotify(maid, language, ps.PAY_DIRECTLY, billId, (error, data) => {
-                                    if (error) return callback(error);
-                                    else return callback(null, data);
-                                });
-                            }
-                        });
+                                $set: {
+                                    method: 3,
+                                    date: new Date()
+                                }
+                            }, (error, data) => {
+                                if (error) return callback(ms.EXCEPTION_FAILED);
+                                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                                else {
+                                    FCMService.pushNotify(maid, language, ps.PAY_DIRECTLY, billId, (error, data) => {
+                                        if (error) return callback(error);
+                                        else return callback(null, data);
+                                    });
+                                }
+                            });
                     }
                 });
             }
@@ -139,35 +139,35 @@ var Payment = (function() {
             isSolved: false,
             status: true
         }, {
-            $set: {
-                isSolved: true,
-                date: new Date()
-            }
-        }, (error, data) => {
-            if (error) return callback(ms.EXCEPTION_FAILED);
-            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-            else {
-                mOwner.findOne({ _id: data.owner, status: true }, (error, owner) => {
-                    if (error || validate.isNullorEmpty(owner)) return callback(ms.PUSH_NOTIFY_FAILED);
-                    else {
-                        FCMService.pushNotify(owner, language, ps.CONFIRM_DIRECT, '', (error, data) => {
-                            if (error) return callback(error);
-                            else return callback(null, data);
-                        });
-                    }
-                });
-            }
-        });
+                $set: {
+                    isSolved: true,
+                    date: new Date()
+                }
+            }, (error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else {
+                    mOwner.findOne({ _id: data.owner, status: true }, (error, owner) => {
+                        if (error || validate.isNullorEmpty(owner)) return callback(ms.PUSH_NOTIFY_FAILED);
+                        else {
+                            FCMService.pushNotify(owner, language, ps.CONFIRM_DIRECT, '', (error, data) => {
+                                if (error) return callback(error);
+                                else return callback(null, data);
+                            });
+                        }
+                    });
+                }
+            });
     };
 
     Payment.prototype.cancelDirectConfirm = (userId, billId, language, callback) => {
         mBill.findOne({
-                _id: billId,
-                maid: userId,
-                method: 3,
-                isSolved: false,
-                status: true
-            })
+            _id: billId,
+            maid: userId,
+            method: 3,
+            isSolved: false,
+            status: true
+        })
             .exec((error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
                 else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
@@ -187,11 +187,11 @@ var Payment = (function() {
 
     Payment.prototype.payOnlineConfirm = (userId, billId, callback) => {
         mBill.findOneAndUpdate({
-                _id: billId,
-                owner: userId,
-                isSolved: false,
-                status: true
-            }, {
+            _id: billId,
+            owner: userId,
+            isSolved: false,
+            status: true
+        }, {
                 $set: {
                     method: 2
                 }
@@ -205,12 +205,12 @@ var Payment = (function() {
 
     Payment.prototype.payOnline = (userId, billId, callback) => {
         mBill.findOneAndUpdate({
-                _id: billId,
-                owner: userId,
-                method: 2,
-                isSolved: false,
-                status: true
-            }, {
+            _id: billId,
+            owner: userId,
+            method: 2,
+            isSolved: false,
+            status: true
+        }, {
                 $set: {
                     isSolved: true,
                     date: new Date()
@@ -258,27 +258,27 @@ var Payment = (function() {
             isSolved: false,
             status: true
         }, {
-            $set: {
-                verify: {
-                    key: newKey,
-                    date: new Date()
+                $set: {
+                    verify: {
+                        key: newKey,
+                        date: new Date()
+                    }
                 }
-            }
-        }, (error, data) => {
-            if (error) return callback(ms.EXCEPTION_FAILED);
-            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-            else {
-                var d = {
-                    key: newKey
+            }, (error, data) => {
+                if (error) return callback(ms.EXCEPTION_FAILED);
+                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else {
+                    var d = {
+                        key: newKey
+                    }
+                    return callback(null, d);
                 }
-                return callback(null, d);
-            }
-        });
+            });
     };
 
     Payment.prototype.chargeOnlineThird = (ownerId, billId, key, callback) => {
         async.parallel({
-            owner: function(callback) {
+            owner: function (callback) {
                 mOwner
                     .findOne({ _id: ownerId, status: true })
                     .select('wallet')
@@ -288,7 +288,7 @@ var Payment = (function() {
                         else return callback(null, ow);
                     });
             },
-            bill: function(callback) {
+            bill: function (callback) {
                 mBillCharge
                     .findOne({
                         _id: billId,
@@ -322,27 +322,27 @@ var Payment = (function() {
                         isSolved: false,
                         status: true
                     }, {
-                        $set: {
-                            isSolved: true
-                        }
-                    }, (error, data) => {
-                        if (error) return callback(ms.EXCEPTION_FAILED);
-                        else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                        else {
-                            var p = owner.wallet + bill.price;
-                            mOwner.findOneAndUpdate({
-                                _id: ownerId,
-                                status: true
-                            }, {
-                                $set: {
-                                    wallet: p
-                                }
-                            }, (error) => {
-                                if (error) return callback(ms.EXCEPTION_FAILED);
-                                else return callback(null, bill);
-                            });
-                        }
-                    });
+                            $set: {
+                                isSolved: true
+                            }
+                        }, (error, data) => {
+                            if (error) return callback(ms.EXCEPTION_FAILED);
+                            else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                            else {
+                                var p = owner.wallet + bill.price;
+                                mOwner.findOneAndUpdate({
+                                    _id: ownerId,
+                                    status: true
+                                }, {
+                                        $set: {
+                                            wallet: p
+                                        }
+                                    }, (error) => {
+                                        if (error) return callback(ms.EXCEPTION_FAILED);
+                                        else return callback(null, bill);
+                                    });
+                            }
+                        });
                 }
             }
         });

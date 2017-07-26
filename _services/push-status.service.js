@@ -1,4 +1,4 @@
-var PushStatus = (function() {
+var PushStatus = (function () {
     PushStatus.DELETE = 1;
     PushStatus.CANCEL = 0;
     PushStatus.SUBMIT = 8;
@@ -10,7 +10,7 @@ var PushStatus = (function() {
     PushStatus.CONFIRM_DIRECT = 10;
     PushStatus.CANCEL_DIRECT = 11;
 
-    function PushStatus() {}
+    function PushStatus() { }
 
     return PushStatus;
 }());

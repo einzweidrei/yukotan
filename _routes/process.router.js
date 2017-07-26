@@ -11,7 +11,7 @@ var AppService = new as.App();
 var contProcess = require('../_controller/process.controller');
 var processController = new contProcess.Process();
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getAppLanguage(baseUrl);

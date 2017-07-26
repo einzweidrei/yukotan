@@ -16,7 +16,7 @@ var ms = messStatus.MessageStatus;
 
 router.use(multipartMiddleware);
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getAppLanguage(baseUrl);
@@ -69,7 +69,7 @@ router.route('/register').post((req, res) => {
         } else {
             cloudinary.uploader.upload(
                 req.files.image.path,
-                function(result) {
+                function (result) {
                     image = result.url;
                     authController.register(username, email, phone, name, age, addressName,
                         lat, lng, gender, password, device_token, image, (error, data) => {

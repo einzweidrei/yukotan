@@ -18,7 +18,7 @@ var AppService = new as.App();
 var messStatus = require('../_services/mess-status.service');
 var ms = messStatus.MessageStatus;
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     try {
         var baseUrl = req.baseUrl;
         var language = AppService.getAppLanguage(baseUrl);
@@ -157,7 +157,7 @@ router.route('/checkin').post(multipartMiddleware, (req, res) => {
         else {
             cloudinary.uploader.upload(
                 req.files.image.path,
-                function(result) {
+                function (result) {
                     var imageUrl = result.url;
                     taskController.checkIn(id, ownerId, imageUrl, (error, data) => {
                         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);

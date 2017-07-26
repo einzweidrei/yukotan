@@ -8,8 +8,8 @@ const title = 'NGV247';
 const bodyVi = 'Bạn nhận được một thông báo.';
 const bodyEn = 'You receive a notification.';
 
-var FCMService = (function() {
-    function FCMService() {}
+var FCMService = (function () {
+    function FCMService() { }
 
     FCMService.prototype.pushNotify = (user, language, status, billId, callback) => {
         var registrationToken = user.auth.device_token || '';
@@ -50,11 +50,11 @@ var FCMService = (function() {
                 if (billId != '') payload.data.bill = billId;
 
                 admin.messaging().sendToDevice(sendToken, payload)
-                    .then(function(response) {
+                    .then(function (response) {
                         if (!response || response.results.error) return callback(ms.PUSH_NOTIFY_FAILED);
                         else return callback(null, response);
                     })
-                    .catch(function(error) {
+                    .catch(function (error) {
                         return callback(ms.PUSH_NOTIFY_FAILED);
                     });
             } else return callback(ms.PUSH_NOTIFY_FAILED);
