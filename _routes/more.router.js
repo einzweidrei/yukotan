@@ -235,7 +235,10 @@ router.route('/ownerResetPassword').get((req, res) => {
     var url = req.query.url;
 
     ownerController.resetPassword(url, (error) => {
-        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+        return error ?
+            msg.msgReturn(res, error) :
+            // msg.msgReturn(res, ms.SUCCESS);
+            res.redirect('http://ngv247.com/');
     });
 });
 

@@ -778,62 +778,67 @@ var Owner = (function () {
     Owner.prototype.resetPassword = (url, callback) => {
         try {
             var m = url.split('-');
-            var id = m[0];
-            var key = m[1];
 
-            mSession
-                .findOne({ 'auth.userId': id, status: true })
-                .exec((error, data) => {
-                    if (error) return callback(ms.EXCEPTION_FAILED);
-                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                    else {
-                        var verifyKey = data.verification.password.key;
+            if (m.length == 2) {
+                var id = m[0];
+                var key = m[1];
 
-                        if (key == verifyKey) {
-                            var time = new Date(data.verification.password.date);
-                            var now = new Date();
+                mSession
+                    .findOne({ 'auth.userId': id, status: true })
+                    .exec((error, data) => {
+                        if (error) return callback(ms.EXCEPTION_FAILED);
+                        else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                        else {
+                            var verifyKey = data.verification.password.key;
 
-                            var diff = now - time;
-                            var hours = ~~(Math.abs(diff) / 36e5);
+                            if (key == verifyKey) {
+                                var time = new Date(data.verification.password.date);
+                                var now = new Date();
 
-                            if (hours > 168) {
-                                return callback(ms.KEY_EXPIRED);
+                                var diff = now - time;
+                                var hours = ~~(Math.abs(diff) / 36e5);
+
+                                if (hours > 168) {
+                                    return callback(ms.KEY_EXPIRED);
+                                } else {
+                                    var newPw = AppService.randomString(7);
+                                    mOwner.findOneAndUpdate({
+                                        _id: id,
+                                        status: true
+                                    }, {
+                                            $set: {
+                                                'auth.password': newPw,
+                                                'history.updateAt': new Date()
+                                            }
+                                        }, (error, owner) => {
+                                            if (error) return callback(ms.EXCEPTION_FAILED);
+                                            else if (validate.isNullorEmpty(owner)) return callback(ms.DATA_NOT_EXIST);
+                                            else {
+                                                mSession.findOneAndUpdate({
+                                                    'auth.userId': id,
+                                                    status: true
+                                                }, {
+                                                        'verification.password.key': ''
+                                                    }, (error, data) => {
+                                                        if (error) return callback(ms.EXCEPTION_FAILED);
+                                                        else {
+                                                            mailService.sendNewPassword(owner, newPw, (error, data) => {
+                                                                if (error) return callback(error);
+                                                                else return callback(null, data);
+                                                            });
+                                                        }
+                                                    });
+                                            }
+                                        });
+                                }
                             } else {
-                                var newPw = AppService.randomString(7);
-                                mOwner.findOneAndUpdate({
-                                    _id: id,
-                                    status: true
-                                }, {
-                                        $set: {
-                                            'auth.password': newPw,
-                                            'history.updateAt': new Date()
-                                        }
-                                    }, (error, owner) => {
-                                        if (error) return callback(ms.EXCEPTION_FAILED);
-                                        else if (validate.isNullorEmpty(owner)) return callback(ms.DATA_NOT_EXIST);
-                                        else {
-                                            mSession.findOneAndUpdate({
-                                                'auth.userId': id,
-                                                status: true
-                                            }, {
-                                                    'verification.password.key': ''
-                                                }, (error, data) => {
-                                                    if (error) return callback(ms.EXCEPTION_FAILED);
-                                                    else {
-                                                        mailService.sendNewPassword(owner, newPw, (error, data) => {
-                                                            if (error) return callback(error);
-                                                            else return callback(null, data);
-                                                        });
-                                                    }
-                                                });
-                                        }
-                                    });
+                                return callback(ms.INVALID_KEY);
                             }
-                        } else {
-                            return callback(ms.INVALID_KEY);
                         }
-                    }
-                });
+                    });
+            } else {
+                return callback(ms.INVALID_KEY);
+            }
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
         }

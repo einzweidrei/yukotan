@@ -57,4 +57,8 @@ router.route('/testToken').get((req, res) => {
     }
 });
 
+router.route('/test').get((req, res) => {
+    res.redirect('https://www.google.com.vn/?gws_rd=ssl');
+})
+
 module.exports = router;

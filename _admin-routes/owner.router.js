@@ -50,16 +50,33 @@ router.route('/check').get((req, res) => {
     });
 });
 
-router.route('/getAll').get((req, res) => {
+// router.route('/getAll').get((req, res) => {
+//     var startAt = req.query.startAt;
+//     var endAt = req.query.endAt;
+//     var page = req.query.page || 1;
+//     var limit = req.query.limit || 10;
+//     var sort = req.query.sort || 'asc';
+//     var email = req.query.email;
+//     var username = req.query.username;
+//     var name = req.query.name;
+//     var gender = req.query.gender;
+
+//     ownerController.getAll4Admin(page, limit, startAt, endAt, sort,
+//         email, username, name, gender, (error, data) => {
+//             return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
+//         });
+// });
+
+router.route('/getAll').post((req, res) => {
     var startAt = req.query.startAt;
     var endAt = req.query.endAt;
     var page = req.query.page || 1;
     var limit = req.query.limit || 10;
     var sort = req.query.sort || 'asc';
-    var email = req.query.email;
-    var username = req.query.username;
-    var name = req.query.name;
-    var gender = req.query.gender;
+    var email = req.body.email;
+    var username = req.body.username;
+    var name = req.body.name;
+    var gender = req.body.gender;
 
     ownerController.getAll4Admin(page, limit, startAt, endAt, sort,
         email, username, name, gender, (error, data) => {
