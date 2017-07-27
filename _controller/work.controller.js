@@ -157,6 +157,7 @@ var Work = (function () {
                             suggest: a.suggest,
                             price: a.price,
                             image: a.image,
+                            tools: a.tools,
                             weight: a.weight
                         };
                         m.push(d);
@@ -183,6 +184,7 @@ var Work = (function () {
                         suggest: data.suggest,
                         weight: data.weight,
                         price: data.price,
+                        tools: data.tools,
                         image: data.image
                     };
                     return callback(null, g);

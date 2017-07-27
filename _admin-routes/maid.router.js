@@ -177,8 +177,11 @@ router.route('/taskStatistic').get((req, res) => {
     var endAt = req.query.endAt;
     var method = req.query.method;
     var isSolved = req.query.isSolved;
+    var page = req.query.page || 1;
+    var limit = req.query.limit || 10;
+    var sort = req.query.sort || 'desc';
 
-    maidController.getStatisticalTasks(id, method, startAt, endAt, isSolved, (error, data) => {
+    maidController.getStatisticalTasks(id, method, startAt, endAt, isSolved, page, limit, sort, (error, data) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
     });
 });

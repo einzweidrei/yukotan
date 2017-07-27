@@ -1274,10 +1274,11 @@ var Owner = (function () {
         }
     };
 
-    Owner.prototype.getStatisticalTasks = (id, method, startAt, endAt, isSolved, callback) => {
+    Owner.prototype.getStatisticalTasks = (id, method, startAt, endAt, isSolved, page, limit, sort, callback) => {
         try {
-            var matchQuery = { 'owner': new ObjectId(id), isSolved: isSolved, status: true };
+            var matchQuery = { 'owner': new ObjectId(id), status: true };
 
+            if (isSolved) matchQuery['isSolved'] = isSolved;
             if (method) matchQuery['method'] = parseFloat(method);
 
             if (startAt || endAt) {
@@ -1299,24 +1300,18 @@ var Owner = (function () {
                 matchQuery['date'] = timeQuery;
             };
 
-            mBill.aggregate(
-                [{
-                    $match: matchQuery
-                },
-                {
-                    $project: {
-                        task: 1
-                    }
-                }
-                ], (error, data) => {
-                    if (error) return callback(ms.EXCEPTION_FAILED);
-                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                    else {
-                        mTask.populate(data, { path: 'task', select: 'info' }, (error, data) => {
-                            return callback(null, data);
-                        });
-                    }
-                });
+            var options = {
+                select: 'task period price',
+                populate: [{ path: 'task', select: 'info' }],
+                sort: { 'createAt': sort },
+                page: parseFloat(page),
+                limit: parseFloat(limit)
+            };
+
+            mBill.paginate(matchQuery, options).then((data) => {
+                if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else return callback(null, data);
+            });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
         }

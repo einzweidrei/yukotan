@@ -985,7 +985,7 @@ var Maid = (function () {
         }
     };
 
-    Maid.prototype.getStatisticalTasks = (id, method, startAt, endAt, isSolved, callback) => {
+    Maid.prototype.getStatisticalTasks = (id, method, startAt, endAt, isSolved, page, limit, sort, callback) => {
         try {
             var matchQuery = { 'maid': new ObjectId(id), status: true }
 
@@ -1009,33 +1009,20 @@ var Maid = (function () {
                 }
 
                 matchQuery['date'] = timeQuery;
-            }
+            };
 
-            mBill.aggregate(
-                [
-                    {
-                        $match: matchQuery
-                    },
-                    {
-                        $project: {
-                            task: 1,
-                            period: 1,
-                            price: 1
-                        }
-                    }
-                ], (error, data) => {
-                    if (error) return callback(ms.EXCEPTION_FAILED);
-                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                    else {
-                        if (error) return callback(ms.EXCEPTION_FAILED);
-                        else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                        else {
-                            mTask.populate(data, { path: 'task', select: 'info' }, (error, data) => {
-                                return callback(null, data);
-                            });
-                        }
-                    }
-                });
+            var options = {
+                select: 'task period price',
+                populate: [{ path: 'task', select: 'info' }],
+                sort: { 'createAt': sort },
+                page: parseFloat(page),
+                limit: parseFloat(limit)
+            };
+
+            mBill.paginate(matchQuery, options).then((data) => {
+                if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else return callback(null, data);
+            });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
         }

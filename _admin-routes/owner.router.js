@@ -25,17 +25,16 @@ router.use(function (req, res, next) {
         if (lnService.isValidLanguage(language)) {
             req.cookies['language'] = language;
             AppService.setLanguage(language);
-            next();
-            // if (req.headers.token) {
-            //     var token = req.headers.token;
-            //     sessionController.verifyWebToken(token, (error, data) => {
-            //         if (error) return msg.msgReturn(res, error);
-            //         else {
-            //             req.cookies['userId'] = data.auth.userId;
-            //             next();
-            //         }
-            //     });
-            // } else return msg.msgReturn(res, ms.UNAUTHORIZED);
+            if (req.headers.token) {
+                var token = req.headers.token;
+                sessionController.verifyWebToken(token, (error, data) => {
+                    if (error) return msg.msgReturn(res, error);
+                    else {
+                        req.cookies['userId'] = data.auth.userId;
+                        next();
+                    }
+                });
+            } else return msg.msgReturn(res, ms.UNAUTHORIZED);
         } else return msg.msgReturn(res, ms.LANGUAGE_NOT_SUPPORT);
     } catch (error) {
         return msg.msgReturn(res, ms.EXCEPTION_FAILED);
@@ -179,8 +178,11 @@ router.route('/taskStatistic').get((req, res) => {
     var endAt = req.query.endAt;
     var method = req.query.method;
     var isSolved = req.query.isSolved || true;
+    var page = req.query.page || 1;
+    var limit = req.query.limit || 10;
+    var sort = req.query.sort || 'desc';
 
-    ownerController.getStatisticalTasks(id, method, startAt, endAt, isSolved, (error, data) => {
+    ownerController.getStatisticalTasks(id, method, startAt, endAt, isSolved, page, limit, sort, (error, data) => {
         return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS, data);
     });
 });
