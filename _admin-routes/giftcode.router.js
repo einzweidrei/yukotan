@@ -75,10 +75,10 @@ router.route('/getById').get((req, res) => {
 });
 
 router.route('/create').post((req, res) => {
-    var name = req.body.code || '';
+    var name = req.body.code || "";
     var value = req.body.value || 0;
-    var descriptionVi = req.body.descriptionVi || '';
-    var descriptionEn = req.body.descriptionEn || '';
+    var descriptionVi = req.body.descriptionVi || "";
+    var descriptionEn = req.body.descriptionEn || "";
     var startAt = req.body.startAt || new Date();
     var endAt = req.body.endAt || new Date();
     var count = req.body.count || 0;

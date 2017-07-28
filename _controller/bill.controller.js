@@ -132,8 +132,18 @@ var Bill = (function () {
             var sortQuery = {}
             sort == 'asc' ? sortQuery['createAt'] = 1 : sortQuery['createAt'] = -1
 
+            var populateQuery = [
+                {
+                    path: 'task', select: 'info'
+                },
+                {
+                    path: 'owner', select: 'info'
+                }
+            ];
+
             var options = {
                 select: '-status -__v',
+                populate: populateQuery,
                 sort: sortQuery,
                 page: parseFloat(page),
                 limit: parseFloat(limit)

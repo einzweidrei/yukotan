@@ -57,7 +57,7 @@ router.route('/checkToken').get((req, res) => {
     } catch (error) {
         return msg.msgReturn(res, ms.EXCEPTION_FAILED);
     }
-})
+});
 
 router.route('/getById').get((req, res) => {
     try {

@@ -855,8 +855,22 @@ var Owner = (function () {
                 .findOne({ 'info.username': username, status: true })
                 .exec((error, data) => {
                     if (error) return callback(ms.EXCEPTION_FAILED);
-                    else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
-                    else return callback(null, data);
+                    else if (validate.isNullorEmpty(data)) return callback(null, 0);
+                    else return callback(ms.DUPLICATED);
+                });
+        } catch (error) {
+            return callback(ms.EXCEPTION_FAILED);
+        }
+    };
+
+    Owner.prototype.checkEmailExist = (email, callback) => {
+        try {
+            mOwner
+                .findOne({ 'info.email': email, status: true })
+                .exec((error, data) => {
+                    if (error) return callback(ms.EXCEPTION_FAILED);
+                    else if (validate.isNullorEmpty(data)) return callback(null, 0);
+                    else return callback(ms.DUPLICATED);
                 });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);

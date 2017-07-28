@@ -148,8 +148,8 @@ router.route('/chargeOnlineFiConfirm').post((req, res) => {
 
 router.route('/chargeOnlineSecConfirm').post((req, res) => {
     try {
-        if (req.headers.hbbgv_accesskey) {
-            var key = req.headers.hbbgv_accesskey;
+        if (req.headers.hbbgvaccesskey) {
+            var key = req.headers.hbbgvaccesskey;
             var ownerId = req.cookies.userId;
             var billId = req.body.billId;
 
@@ -157,7 +157,7 @@ router.route('/chargeOnlineSecConfirm').post((req, res) => {
                 return error ? msg.msgReturn(res, error, {}) : msg.msgReturn(res, ms.SUCCESS, data);
             });
         } else {
-            return msg.msgReturn(res, ms.INVALID_KEY, {});
+            return msg.msgReturn(res, ms.INVALID_KEY, { key: req.headers.hbbgv_accesskey });
         }
     } catch (error) {
         return msg.msgReturn(res, ms.EXCEPTION_FAILED, {});
@@ -166,8 +166,8 @@ router.route('/chargeOnlineSecConfirm').post((req, res) => {
 
 router.route('/chargeOnlineThiConfirm').post((req, res) => {
     try {
-        if (req.headers.hbbgv_accesskey) {
-            var key = req.headers.hbbgv_accesskey;
+        if (req.headers.hbbgvaccesskey) {
+            var key = req.headers.hbbgvaccesskey;
             var ownerId = req.cookies.userId;
             var billId = req.body.billId;
 

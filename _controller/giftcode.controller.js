@@ -13,7 +13,7 @@ var Giftcode = (function () {
         try {
             var findQuery = { status: true };
 
-            if (name) findQuery['info.name'] = new RegExp(name, 'i');
+            if (name) findQuery['name'] = new RegExp(name, 'i');
             if (valueMin || valueMax) {
                 var valueQuery = {};
 
@@ -74,8 +74,8 @@ var Giftcode = (function () {
         try {
             mGiftCode.findOne({ _id: id, status: true }, (error, data) => {
                 if (error) return callback(ms.EXCEPTION_FAILED);
-                else if (validate.isNullorEmpty(data)) return msg.msgReturn(res, 4);
-                return msg.msgReturn(res, 0, data);
+                else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
+                else return callback(null, data);
             });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
@@ -85,7 +85,7 @@ var Giftcode = (function () {
     Giftcode.prototype.create = (name, value, descriptionVi, descriptionEn, startAt, endAt, count, callback) => {
         try {
             var giftcode = new mGiftCode();
-            giftcode.name = name;
+            giftcode.name = name.toUpperCase();
             giftcode.value = value;
 
             giftcode.set('description.all', {
@@ -107,7 +107,7 @@ var Giftcode = (function () {
             giftcode.status = true
 
             giftcode.save((error) => {
-                return error ? callback(ms.EXCEPTION_FAILED) : msg.msgReturn(null, giftcode);
+                return error ? callback(ms.EXCEPTION_FAILED) : callback(null, giftcode);
             });
         } catch (error) {
             return callback(ms.EXCEPTION_FAILED);
@@ -122,7 +122,7 @@ var Giftcode = (function () {
                     status: true
                 }, {
                     $set: {
-                        name: name,
+                        name: name.toUpperCase(),
                         value: value,
                         description: {
                             vi: descriptionVi,

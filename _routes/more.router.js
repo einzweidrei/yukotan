@@ -242,4 +242,20 @@ router.route('/ownerResetPassword').get((req, res) => {
     });
 });
 
+router.route('/checkUsername').get((req, res) => {
+    var username = req.query.username;
+
+    ownerController.checkAccountExist(username, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
+});
+
+router.route('/checkEmail').get((req, res) => {
+    var email = req.query.email;
+
+    ownerController.checkEmailExist(email, (error) => {
+        return error ? msg.msgReturn(res, error) : msg.msgReturn(res, ms.SUCCESS);
+    });
+});
+
 module.exports = router;

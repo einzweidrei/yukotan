@@ -251,13 +251,15 @@ var Payment = (function () {
 
     Payment.prototype.chargeOnlineSecond = (ownerId, billId, key, callback) => {
         var newKey = AppService.getToken();
-        mBillCharge.findOneAndUpdate({
-            _id: billId,
-            owner: ownerId,
-            'verify.key': key,
-            isSolved: false,
-            status: true
-        }, {
+        
+        mBillCharge.findOneAndUpdate(
+            {
+                _id: billId,
+                owner: ownerId,
+                'verify.key': key,
+                isSolved: false,
+                status: true
+            }, {
                 $set: {
                     verify: {
                         key: newKey,
@@ -316,12 +318,13 @@ var Payment = (function () {
                 if (second > 60) {
                     return callback(ms.INVALID_KEY);
                 } else {
-                    mBillCharge.findOneAndUpdate({
-                        owner: ownerId,
-                        'verify.key': key,
-                        isSolved: false,
-                        status: true
-                    }, {
+                    mBillCharge.findOneAndUpdate(
+                        {
+                            owner: ownerId,
+                            'verify.key': key,
+                            isSolved: false,
+                            status: true
+                        }, {
                             $set: {
                                 isSolved: true
                             }
@@ -330,10 +333,11 @@ var Payment = (function () {
                             else if (validate.isNullorEmpty(data)) return callback(ms.DATA_NOT_EXIST);
                             else {
                                 var p = owner.wallet + bill.price;
-                                mOwner.findOneAndUpdate({
-                                    _id: ownerId,
-                                    status: true
-                                }, {
+                                mOwner.findOneAndUpdate(
+                                    {
+                                        _id: ownerId,
+                                        status: true
+                                    }, {
                                         $set: {
                                             wallet: p
                                         }

@@ -106,8 +106,7 @@ var Task = (function () {
         },
         {
             $sort: sortQuery
-        }
-        ];
+        }];
 
         var task = new Task();
         task.aggregate(aggregateQuery, (error, data) => {

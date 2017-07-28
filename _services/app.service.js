@@ -9,7 +9,7 @@ const Content = require('../_model/content');
 const Suggest = require('../_model/suggest');
 const GiftCode = require('../_model/giftcode');
 
-const hash_key = 'LULULUL';
+const hash_key = 'HBBSolution';
 const token_length = 64;
 const azure_key = 'b1726597dcc74171abf38be836846977';
 const task_limit = 10;
